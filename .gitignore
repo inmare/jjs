@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Downloaded llama.cpp binaries and GGUF weights (see benchmark_vlm_compare.py)
+vendor/
+
+# Local surveillance / experiment videos and extracted frames
+data/datasets/
+
+qwen3-vl-4b-nf4
