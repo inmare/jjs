@@ -1,10 +1,16 @@
 {
-  "generated_at": "2026-04-19T02:33:47",
+  "generated_at": "2026-04-26T01:27:22",
+  "frame_gate": {
+    "mode": "yolo",
+    "mse_threshold": 2.5,
+    "use_crop_layout_gate": true,
+    "crop_gate_max_shift": 0.02
+  },
   "frames_dir": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames",
   "frame_count": 6,
   "qwen_model": "qwen3-vl-4b-q8",
   "small_vlm_model": "smolvlm-256m-q8",
-  "notes": "8GB VRAM: Qwen --no-mmproj-offload, -np 1; SmolVLM 별도 기동 후 1단계 캐시.",
+  "notes": "8GB VRAM: Phase1/2 는 단일 서버. Phase3 는 Qwen+Smol 동시+YOLO(병렬)로 메모리 부담↑ — OOM 시 ng 감소·프레임 수 축소.",
   "resource_sampling_note": "각 VLM 호출 직후 nvidia-smi로 GPU 전체 memory.used/utilization.gpu 스냅샷. python_rss_mb는 uv run python 프로세스(실험 스크립트)만 — llama-server.exe VRAM은 GPU 행에 포함.",
   "bench": [
     {
@@ -23,7 +29,9 @@
         "qwen_context": {
           "width": 960,
           "height": 540,
-          "max_side_cap": 960
+          "max_side_cap": 960,
+          "original_width": 1920,
+          "original_height": 1080
         },
         "yolo_qwen": {
           "context_width": 960,
@@ -35,53 +43,78 @@
               216,
               238
             ]
+          ],
+          "crop_bboxes_xyxy_orig": [
+            [
+              0,
+              730,
+              216,
+              968
+            ]
           ]
         }
       },
+      "frame_gating": {
+        "mode": "yolo",
+        "path": "full",
+        "mse": null,
+        "yolo_fingerprint": "1|7",
+        "crop_gate_fingerprint": "1|0.056,0.786",
+        "use_crop_layout_gate": true,
+        "crop_gate_max_shift": 0.02
+      },
+      "timings_ms": {
+        "read_resize_ms": 139.09,
+        "mse_ms": 0.0,
+        "yolo_ms": 185.243,
+        "qwen_only_ms": 4942.992,
+        "yolo_qwen_ms": 4385.498,
+        "total_ms": 9652.858
+      },
       "qwen_only": {
-        "seconds": 5.2,
+        "seconds": 4.943,
         "prompt_tokens": 552,
-        "completion_tokens": 83,
-        "total_tokens": 635,
+        "completion_tokens": 50,
+        "total_tokens": 602,
         "usage": {
           "prompt_tokens": 552,
-          "completion_tokens": 83,
-          "total_tokens": 635
+          "completion_tokens": 50,
+          "total_tokens": 602
         },
         "approx_image_tokens": 510,
-        "reply": "- **사람**: 없음 (公园 내 사람의 움직임 없음)\n- **차량**: 왼쪽에 화물차, 그 뒤에 승합차, 그리고 더 멀리 차량들이 보임\n- **이상 징후**: 없음 (정상적인 공원 풍경, 이상 징후 없음)",
-        "reply_preview": "- **사람**: 없음 (公园 내 사람의 움직임 없음)\n- **차량**: 왼쪽에 화물차, 그 뒤에 승합차, 그리고 더 멀리 차량들이 보임\n- **이상 징후**: 없음 (정상적인 공원 풍경, 이상 징후 없음)",
+        "reply": "- 사람: 없음  \n- 차량: 왼쪽에 화물차와 승용차가 주차되어 있음  \n- 이상 징후: 없음 (정상적인 공원 풍경)",
+        "reply_preview": "- 사람: 없음  \n- 차량: 왼쪽에 화물차와 승용차가 주차되어 있음  \n- 이상 징후: 없음 (정상적인 공원 풍경)",
         "resources_after": {
           "label": "bench_qwen_only_after",
-          "unix_ts": 1776533519.515,
-          "gpu_memory_used_mb": 7634.0,
+          "unix_ts": 1777134288.666,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
-          "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1332.31
+          "gpu_utilization_percent": 56.0,
+          "python_rss_mb": 388.19
         }
       },
       "yolo_qwen": {
-        "yolo_seconds": 0.422,
-        "vlm_seconds": 4.878,
-        "total_seconds": 5.3,
-        "prompt_tokens": 620,
-        "completion_tokens": 76,
-        "total_tokens": 696,
+        "yolo_seconds": 0.185,
+        "vlm_seconds": 4.385,
+        "total_seconds": 4.571,
+        "prompt_tokens": 736,
+        "completion_tokens": 46,
+        "total_tokens": 782,
         "usage": {
-          "prompt_tokens": 620,
-          "completion_tokens": 76,
-          "total_tokens": 696
+          "prompt_tokens": 736,
+          "completion_tokens": 46,
+          "total_tokens": 782
         },
         "approx_image_tokens": 559,
-        "reply": "감시 화면에서 **차량(트럭)이 확인됨** (감지 확률: 0.83).  \n사람은 보이지 않으며, 이상 징후는 없음.  \n公园 풍경으로 보이며, 트럭은 외부 도로에 정차 중인 것으로 보입니다.",
-        "reply_preview": "감시 화면에서 **차량(트럭)이 확인됨** (감지 확률: 0.83).  \n사람은 보이지 않으며, 이상 징후는 없음.  \n公园 풍경으로 보이며, 트럭은 외부 도로에 정차 중인 것으로 보입니다.",
+        "reply": "이미지 #1: 흰색 대형 화물차가 공원 외부 도로에 정차해 있습니다. 사람 또는 차량, 이상 징후는 확인되지 않음.",
+        "reply_preview": "이미지 #1: 흰색 대형 화물차가 공원 외부 도로에 정차해 있습니다. 사람 또는 차량, 이상 징후는 확인되지 않음.",
         "resources_after": {
           "label": "bench_yolo_qwen_after",
-          "unix_ts": 1776533519.568,
-          "gpu_memory_used_mb": 7634.0,
+          "unix_ts": 1777134288.867,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
-          "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1332.35
+          "gpu_utilization_percent": 56.0,
+          "python_rss_mb": 388.19
         }
       }
     },
@@ -101,60 +134,80 @@
         "qwen_context": {
           "width": 960,
           "height": 540,
-          "max_side_cap": 960
+          "max_side_cap": 960,
+          "original_width": 1920,
+          "original_height": 1080
         },
         "yolo_qwen": {
           "context_width": 960,
           "context_height": 540,
           "crop_max_side_cap": 640,
           "n_images_sent": 1,
-          "crop_dimensions_wh": []
+          "crop_dimensions_wh": [],
+          "crop_bboxes_xyxy_orig": []
         }
       },
+      "frame_gating": {
+        "mode": "yolo",
+        "path": "full",
+        "mse": null,
+        "yolo_fingerprint": "0|",
+        "crop_gate_fingerprint": "0|",
+        "use_crop_layout_gate": true,
+        "crop_gate_max_shift": 0.02
+      },
+      "timings_ms": {
+        "read_resize_ms": 48.378,
+        "mse_ms": 0.001,
+        "yolo_ms": 28.92,
+        "qwen_only_ms": 5183.308,
+        "yolo_qwen_ms": 5186.71,
+        "total_ms": 10447.352
+      },
       "qwen_only": {
-        "seconds": 4.893,
+        "seconds": 5.183,
         "prompt_tokens": 552,
-        "completion_tokens": 80,
-        "total_tokens": 632,
+        "completion_tokens": 100,
+        "total_tokens": 652,
         "usage": {
           "prompt_tokens": 552,
-          "completion_tokens": 80,
-          "total_tokens": 632
+          "completion_tokens": 100,
+          "total_tokens": 652
         },
         "approx_image_tokens": 510,
-        "reply": "- 사람: 오른쪽 끝에 몇 명이 보이며, 산책 중인 것으로 보임.\n- 차량: 왼쪽에 녹색 버스와 검은색, 파란색 자동차가 주차되어 있음.\n- 이상 징후: 없음. 평범한 공원과 도로 환경.",
-        "reply_preview": "- 사람: 오른쪽 끝에 몇 명이 보이며, 산책 중인 것으로 보임.\n- 차량: 왼쪽에 녹색 버스와 검은색, 파란색 자동차가 주차되어 있음.\n- 이상 징후: 없음. 평범한 공원과 도로 환경.",
+        "reply": "- **사람**: 오른쪽 끝에 약간의 인물 실루엣이 보임 (거리가 멀거나 희미함).\n- **차량**: 왼쪽 끝에 흰색 버스와 그 앞에 검은색, 파란색 차량이 정차/이동 중.\n- **이상 징후**: 없음. 평범한 공원과 도로 환경.",
+        "reply_preview": "- **사람**: 오른쪽 끝에 약간의 인물 실루엣이 보임 (거리가 멀거나 희미함).\n- **차량**: 왼쪽 끝에 흰색 버스와 그 앞에 검은색, 파란색 차량이 정차/이동 중.\n- **이상 징후**: 없음. 평범한 공원과 도로 환경.",
         "resources_after": {
           "label": "bench_qwen_only_after",
-          "unix_ts": 1776533529.99,
-          "gpu_memory_used_mb": 7697.0,
+          "unix_ts": 1777134299.362,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
-          "gpu_utilization_percent": 95.0,
-          "python_rss_mb": 1338.59
+          "gpu_utilization_percent": 98.0,
+          "python_rss_mb": 394.01
         }
       },
       "yolo_qwen": {
-        "yolo_seconds": 0.014,
-        "vlm_seconds": 5.449,
-        "total_seconds": 5.464,
-        "prompt_tokens": 566,
-        "completion_tokens": 93,
-        "total_tokens": 659,
+        "yolo_seconds": 0.029,
+        "vlm_seconds": 5.187,
+        "total_seconds": 5.216,
+        "prompt_tokens": 621,
+        "completion_tokens": 107,
+        "total_tokens": 728,
         "usage": {
-          "prompt_tokens": 566,
-          "completion_tokens": 93,
-          "total_tokens": 659
+          "prompt_tokens": 621,
+          "completion_tokens": 107,
+          "total_tokens": 728
         },
         "approx_image_tokens": 510,
-        "reply": "[YOLO 프리셋 탐지: no_detections]  \n감시 화면에는 사람·차량·이상 징후가 감지되지 않았습니다.  \n공원 풍경에 나무와 정원이 있고, 왼쪽에 버스와 자동차가 보이지만, 사람이나 이상한 징후는 없습니다.  \n일반적인 평온한 환경입니다.",
-        "reply_preview": "[YOLO 프리셋 탐지: no_detections]  \n감시 화면에는 사람·차량·이상 징후가 감지되지 않았습니다.  \n공원 풍경에 나무와 정원이 있고, 왼쪽에 버스와 자동차가 보이지만, 사람이나 이상한 징후는 없습니다.  \n일반적인 평온한 환경입니다.",
+        "reply": "공원 내에는 사람·차량·이상 징후가 없습니다.  \n왼쪽에 버스와 자동차가 도로에 서 있거나 움직이고 있으며, 오른쪽 끝에 멀리서 몇 명의 사람의 실루엣이 보이지만, 구체적인 행동이나 이상 징후는 확인할 수 없습니다.  \n전체적으로 자연스러운 공원 풍경이며, 위험하거나 이상한 상황은 없습니다.",
+        "reply_preview": "공원 내에는 사람·차량·이상 징후가 없습니다.  \n왼쪽에 버스와 자동차가 도로에 서 있거나 움직이고 있으며, 오른쪽 끝에 멀리서 몇 명의 사람의 실루엣이 보이지만, 구체적인 행동이나 이상 징후는 확인할 수 없습니다.  \n전체적으로 자연스러운 공원 풍경이며, 위험하거나 이상한 상황은 없습니다.",
         "resources_after": {
           "label": "bench_yolo_qwen_after",
-          "unix_ts": 1776533530.045,
-          "gpu_memory_used_mb": 7697.0,
+          "unix_ts": 1777134299.414,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
-          "gpu_utilization_percent": 95.0,
-          "python_rss_mb": 1338.59
+          "gpu_utilization_percent": 98.0,
+          "python_rss_mb": 394.02
         }
       }
     },
@@ -174,7 +227,9 @@
         "qwen_context": {
           "width": 960,
           "height": 540,
-          "max_side_cap": 960
+          "max_side_cap": 960,
+          "original_width": 1920,
+          "original_height": 1080
         },
         "yolo_qwen": {
           "context_width": 960,
@@ -190,53 +245,84 @@
               154,
               74
             ]
+          ],
+          "crop_bboxes_xyxy_orig": [
+            [
+              1,
+              833,
+              124,
+              950
+            ],
+            [
+              271,
+              829,
+              425,
+              903
+            ]
           ]
         }
       },
+      "frame_gating": {
+        "mode": "yolo",
+        "path": "full",
+        "mse": null,
+        "yolo_fingerprint": "2|2",
+        "crop_gate_fingerprint": "2|0.033,0.825,0.181,0.802",
+        "use_crop_layout_gate": true,
+        "crop_gate_max_shift": 0.02
+      },
+      "timings_ms": {
+        "read_resize_ms": 44.756,
+        "mse_ms": 0.001,
+        "yolo_ms": 35.411,
+        "qwen_only_ms": 5602.571,
+        "yolo_qwen_ms": 4426.766,
+        "total_ms": 10109.538
+      },
       "qwen_only": {
-        "seconds": 5.489,
+        "seconds": 5.603,
         "prompt_tokens": 552,
-        "completion_tokens": 104,
-        "total_tokens": 656,
+        "completion_tokens": 126,
+        "total_tokens": 678,
         "usage": {
           "prompt_tokens": 552,
-          "completion_tokens": 104,
-          "total_tokens": 656
+          "completion_tokens": 126,
+          "total_tokens": 678
         },
         "approx_image_tokens": 510,
-        "reply": "- 사람: 없음 (사람의 움직임이나 존재는 확인되지 않음)\n- 차량: 도로에 차량 몇 대가 주차되어 있음 (흰색 자동차, 파란 자동차, 대형 버스 등)\n- 이상 징후: 없음 (일반적인 공원 풍경, 정상적인 상황)\n\n→ 전체적으로 정상적인 공원 환경이며, 이상 징후 없음.",
-        "reply_preview": "- 사람: 없음 (사람의 움직임이나 존재는 확인되지 않음)\n- 차량: 도로에 차량 몇 대가 주차되어 있음 (흰색 자동차, 파란 자동차, 대형 버스 등)\n- 이상 징후: 없음 (일반적인 공원 풍경, 정상적인 상황)\n\n→ 전체적으로 정상적인 공원 환경이며, 이상 징후 없음.",
+        "reply": "- **사람**: 오른쪽 먼 곳에 몇 명이 약간 움직이고 있는 것으로 보이지만, 명확한 인식은 어렵습니다.\n- **차량**: 왼쪽에 승용차와 버스가 주차되어 있고, 중앙 배경에는 다른 차량들이 이동 중인 것처럼 보입니다.\n- **이상 징후**: 특별한 이상 징후는 없어 보입니다. 자연스러운 공원 환경이며, 사람과 차량의 움직임도 정상적입니다.",
+        "reply_preview": "- **사람**: 오른쪽 먼 곳에 몇 명이 약간 움직이고 있는 것으로 보이지만, 명확한 인식은 어렵습니다.\n- **차량**: 왼쪽에 승용차와 버스가 주차되어 있고, 중앙 배경에는 다른 차량들이 이동 중인 것처럼 보입니다.\n- **이상 징후**: 특별한 이상 징후는 없어 보입니다. 자연스러운 공원 환경이며, 사람과 차량의 움직임도 정상적입니다.",
         "resources_after": {
           "label": "bench_qwen_only_after",
-          "unix_ts": 1776533541.706,
-          "gpu_memory_used_mb": 7648.0,
+          "unix_ts": 1777134309.571,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
           "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1339.64
+          "python_rss_mb": 393.82
         }
       },
       "yolo_qwen": {
-        "yolo_seconds": 0.018,
-        "vlm_seconds": 6.08,
-        "total_seconds": 6.098,
-        "prompt_tokens": 606,
-        "completion_tokens": 132,
-        "total_tokens": 738,
+        "yolo_seconds": 0.035,
+        "vlm_seconds": 4.427,
+        "total_seconds": 4.462,
+        "prompt_tokens": 773,
+        "completion_tokens": 45,
+        "total_tokens": 818,
         "usage": {
-          "prompt_tokens": 606,
-          "completion_tokens": 132,
-          "total_tokens": 738
+          "prompt_tokens": 773,
+          "completion_tokens": 45,
+          "total_tokens": 818
         },
         "approx_image_tokens": 536,
-        "reply": "감시 화면에는 **차량이 감지되었습니다** (차량: 0.32, 0.29), 하지만 **사람이나 이상 징후는 없습니다**.\n\n- **차량**: 왼쪽 배경에 차량들이 주차되어 있고, 중앙에는 흰색 승용차와 파란색 승용차가 보입니다.\n- **사람**: 화면에 사람이 보이지 않습니다.\n- **이상 징후**: 인식된 것이 없으며, 환경은 평온한 공원 풍경입니다.",
-        "reply_preview": "감시 화면에는 **차량이 감지되었습니다** (차량: 0.32, 0.29), 하지만 **사람이나 이상 징후는 없습니다**.\n\n- **차량**: 왼쪽 배경에 차량들이 주차되어 있고, 중앙에는 흰색 승용차와 파란색 승용차가 보입니다.\n- **사람**: 화면에 사람이 보이지 않습니다.\n- **이상 징후**: 인식된 것이 없으며, 환경은 평온한 공원 풍경입니다.",
+        "reply": "감시 화면에는 사람이나 차량이 보이지 않습니다. 오직 공원 풍경과 차량이 주차된 도로만 보입니다. 이상 징후는 없습니다.",
+        "reply_preview": "감시 화면에는 사람이나 차량이 보이지 않습니다. 오직 공원 풍경과 차량이 주차된 도로만 보입니다. 이상 징후는 없습니다.",
         "resources_after": {
           "label": "bench_yolo_qwen_after",
-          "unix_ts": 1776533541.747,
-          "gpu_memory_used_mb": 7648.0,
+          "unix_ts": 1777134309.622,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
           "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1339.64
+          "python_rss_mb": 393.82
         }
       }
     },
@@ -256,7 +342,9 @@
         "qwen_context": {
           "width": 960,
           "height": 540,
-          "max_side_cap": 960
+          "max_side_cap": 960,
+          "original_width": 1920,
+          "original_height": 1080
         },
         "yolo_qwen": {
           "context_width": 960,
@@ -272,53 +360,84 @@
               202,
               105
             ]
+          ],
+          "crop_bboxes_xyxy_orig": [
+            [
+              0,
+              763,
+              315,
+              942
+            ],
+            [
+              137,
+              833,
+              339,
+              938
+            ]
           ]
         }
       },
+      "frame_gating": {
+        "mode": "yolo",
+        "path": "full",
+        "mse": null,
+        "yolo_fingerprint": "2|2,5",
+        "crop_gate_fingerprint": "2|0.082,0.789,0.124,0.820",
+        "use_crop_layout_gate": true,
+        "crop_gate_max_shift": 0.02
+      },
+      "timings_ms": {
+        "read_resize_ms": 43.974,
+        "mse_ms": 0.001,
+        "yolo_ms": 32.094,
+        "qwen_only_ms": 7034.834,
+        "yolo_qwen_ms": 6300.126,
+        "total_ms": 13411.072
+      },
       "qwen_only": {
-        "seconds": 7.323,
+        "seconds": 7.035,
         "prompt_tokens": 552,
-        "completion_tokens": 120,
-        "total_tokens": 672,
+        "completion_tokens": 149,
+        "total_tokens": 701,
         "usage": {
           "prompt_tokens": 552,
-          "completion_tokens": 120,
-          "total_tokens": 672
+          "completion_tokens": 149,
+          "total_tokens": 701
         },
         "approx_image_tokens": 510,
-        "reply": "- **사람**: 오른쪽 끝에 약간 보이는 사람의 실루엣(걷고 있는 것으로 추정).  \n- **차량**: 왼쪽에 파란색 자동차, 그 옆에 흰색 자동차, 더 멀리에 버스가 주차되어 있거나 움직이고 있는 것처럼 보임.  \n- **이상 징후**: 특별한 이상 징후 없음. 자연스러운 공원 풍경과 도시 도로 상황.",
-        "reply_preview": "- **사람**: 오른쪽 끝에 약간 보이는 사람의 실루엣(걷고 있는 것으로 추정).  \n- **차량**: 왼쪽에 파란색 자동차, 그 옆에 흰색 자동차, 더 멀리에 버스가 주차되어 있거나 움직이고 있는 것처럼 보임.  \n- **이상 징후**: 특별한 이상 징후 없음. 자연스러운 공원 풍경과 도시 도로 상황.",
+        "reply": "- **사람**: 오른쪽 끝에 약간 보이는 사람의 실루엣 (걷고 있는 것으로 보임)  \n- **차량**: 왼쪽에 파란색 승용차, 녹색 버스, 흰색 차량 등 도로에 정차하거나 주행 중인 차량 있음  \n- **이상 징후**: 특별한 이상 징후 없음. 자연스러운 공원과 도로 환경, 햇빛을 받는 나무, 사람과 차량의 정상적인 움직임\n\n※ 전체적으로 평온한 도시 공원의 일상 장면입니다.",
+        "reply_preview": "- **사람**: 오른쪽 끝에 약간 보이는 사람의 실루엣 (걷고 있는 것으로 보임)  \n- **차량**: 왼쪽에 파란색 승용차, 녹색 버스, 흰색 차량 등 도로에 정차하거나 주행 중인 차량 있음  \n- **이상 징후**: 특별한 이상 징후 없음. 자연스러운 공원과 도로 환경, 햇빛을 받는 나무, 사람과 차량의 정상적인 움직임\n\n※ 전체적으로 평온한 도시 공원의 일상 장면입니다.",
         "resources_after": {
           "label": "bench_qwen_only_after",
-          "unix_ts": 1776533556.557,
-          "gpu_memory_used_mb": 7405.0,
+          "unix_ts": 1777134323.08,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
-          "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1340.59
+          "gpu_utilization_percent": 97.0,
+          "python_rss_mb": 394.7
         }
       },
       "yolo_qwen": {
-        "yolo_seconds": 0.016,
-        "vlm_seconds": 7.397,
-        "total_seconds": 7.413,
-        "prompt_tokens": 658,
-        "completion_tokens": 74,
-        "total_tokens": 732,
+        "yolo_seconds": 0.032,
+        "vlm_seconds": 6.3,
+        "total_seconds": 6.332,
+        "prompt_tokens": 825,
+        "completion_tokens": 58,
+        "total_tokens": 883,
         "usage": {
-          "prompt_tokens": 658,
-          "completion_tokens": 74,
-          "total_tokens": 732
+          "prompt_tokens": 825,
+          "completion_tokens": 58,
+          "total_tokens": 883
         },
         "approx_image_tokens": 588,
-        "reply": "감시 화면에 **사람**은 없고, **차량**은 버스(검출 확률 0.67), 자동차(검출 확률 0.70)가 확인됩니다. **이상 징후**는 없으며, 정상적인 도시 공원 환경입니다.",
-        "reply_preview": "감시 화면에 **사람**은 없고, **차량**은 버스(검출 확률 0.67), 자동차(검출 확률 0.70)가 확인됩니다. **이상 징후**는 없으며, 정상적인 도시 공원 환경입니다.",
+        "reply": "감시 화면에는 차량이 보입니다. 왼쪽에는 대형 버스가 있고, 그 옆에 파란색 스포츠카가 주차된 상태로 보입니다. 사람이나 이상 징후는 확인되지 않았습니다.",
+        "reply_preview": "감시 화면에는 차량이 보입니다. 왼쪽에는 대형 버스가 있고, 그 옆에 파란색 스포츠카가 주차된 상태로 보입니다. 사람이나 이상 징후는 확인되지 않았습니다.",
         "resources_after": {
           "label": "bench_yolo_qwen_after",
-          "unix_ts": 1776533556.608,
-          "gpu_memory_used_mb": 7397.0,
+          "unix_ts": 1777134323.135,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
-          "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1340.59
+          "gpu_utilization_percent": 97.0,
+          "python_rss_mb": 394.7
         }
       }
     },
@@ -338,7 +457,9 @@
         "qwen_context": {
           "width": 960,
           "height": 540,
-          "max_side_cap": 960
+          "max_side_cap": 960,
+          "original_width": 1920,
+          "original_height": 1080
         },
         "yolo_qwen": {
           "context_width": 960,
@@ -354,53 +475,84 @@
               159,
               67
             ]
+          ],
+          "crop_bboxes_xyxy_orig": [
+            [
+              0,
+              855,
+              180,
+              975
+            ],
+            [
+              263,
+              846,
+              422,
+              913
+            ]
           ]
         }
       },
+      "frame_gating": {
+        "mode": "yolo",
+        "path": "full",
+        "mse": null,
+        "yolo_fingerprint": "2|2",
+        "crop_gate_fingerprint": "2|0.047,0.847,0.178,0.814",
+        "use_crop_layout_gate": true,
+        "crop_gate_max_shift": 0.02
+      },
+      "timings_ms": {
+        "read_resize_ms": 43.696,
+        "mse_ms": 0.001,
+        "yolo_ms": 30.041,
+        "qwen_only_ms": 6384.448,
+        "yolo_qwen_ms": 6570.246,
+        "total_ms": 13028.491
+      },
       "qwen_only": {
-        "seconds": 6.44,
+        "seconds": 6.384,
         "prompt_tokens": 552,
-        "completion_tokens": 99,
-        "total_tokens": 651,
+        "completion_tokens": 89,
+        "total_tokens": 641,
         "usage": {
           "prompt_tokens": 552,
-          "completion_tokens": 99,
-          "total_tokens": 651
+          "completion_tokens": 89,
+          "total_tokens": 641
         },
         "approx_image_tokens": 510,
-        "reply": "- **사람**: 없음 (화면에 사람은 보이지 않음)\n- **차량**: 보행로 옆 도로에 차량 (파란색 세단, 흰색 스테이션 와이어, 빨간색 버스 등)이 주행 중\n- **이상 징후**: 없음 (정상적인 도시 공원 환경, 이상 징후는 없음)",
-        "reply_preview": "- **사람**: 없음 (화면에 사람은 보이지 않음)\n- **차량**: 보행로 옆 도로에 차량 (파란색 세단, 흰색 스테이션 와이어, 빨간색 버스 등)이 주행 중\n- **이상 징후**: 없음 (정상적인 도시 공원 환경, 이상 징후는 없음)",
+        "reply": "- 사람: 없음 (주변에 사람의 모습은 보이지 않음)\n- 차량: 보이긴 하지만, 주요 차량은 없으며, 배경에 차량 몇 대가 정차하거나 지나가고 있음\n- 이상 징후: 없음 (정상적인 공원과 도로 환경, 이상한 동작이나 위험 상황 없음)",
+        "reply_preview": "- 사람: 없음 (주변에 사람의 모습은 보이지 않음)\n- 차량: 보이긴 하지만, 주요 차량은 없으며, 배경에 차량 몇 대가 정차하거나 지나가고 있음\n- 이상 징후: 없음 (정상적인 공원과 도로 환경, 이상한 동작이나 위험 상황 없음)",
         "resources_after": {
           "label": "bench_qwen_only_after",
-          "unix_ts": 1776533569.139,
-          "gpu_memory_used_mb": 7439.0,
+          "unix_ts": 1777134336.211,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
           "gpu_utilization_percent": 96.0,
-          "python_rss_mb": 1341.29
+          "python_rss_mb": 395.89
         }
       },
       "yolo_qwen": {
-        "yolo_seconds": 0.026,
-        "vlm_seconds": 5.991,
-        "total_seconds": 6.017,
-        "prompt_tokens": 614,
-        "completion_tokens": 46,
-        "total_tokens": 660,
+        "yolo_seconds": 0.03,
+        "vlm_seconds": 6.57,
+        "total_seconds": 6.6,
+        "prompt_tokens": 781,
+        "completion_tokens": 97,
+        "total_tokens": 878,
         "usage": {
-          "prompt_tokens": 614,
-          "completion_tokens": 46,
-          "total_tokens": 660
+          "prompt_tokens": 781,
+          "completion_tokens": 97,
+          "total_tokens": 878
         },
         "approx_image_tokens": 544,
-        "reply": "감시 화면에는 차량이 감지되었고, 사람이나 이상 징후는 확인되지 않았습니다.  \n(차량 감지: 0.42, 0.45)",
-        "reply_preview": "감시 화면에는 차량이 감지되었고, 사람이나 이상 징후는 확인되지 않았습니다.  \n(차량 감지: 0.42, 0.45)",
+        "reply": "감시 화면에는 차량이 있는 것으로 보입니다.  \n#1 이미지: 파란색 승용차가 도로에 정차해 있습니다.  \n#2 이미지: 파란색 차량의 전면부(특히 라이트와 그릴)가 클로즈업된 모습으로, 차량이 존재함을 확인할 수 있습니다.  \n사람이나 이상 징후는 보이지 않습니다.",
+        "reply_preview": "감시 화면에는 차량이 있는 것으로 보입니다.  \n#1 이미지: 파란색 승용차가 도로에 정차해 있습니다.  \n#2 이미지: 파란색 차량의 전면부(특히 라이트와 그릴)가 클로즈업된 모습으로, 차량이 존재함을 확인할 수 있습니다.  \n사람이나 이상 징후는 보이지 않습니다.",
         "resources_after": {
           "label": "bench_yolo_qwen_after",
-          "unix_ts": 1776533569.231,
-          "gpu_memory_used_mb": 7439.0,
+          "unix_ts": 1777134336.265,
+          "gpu_memory_used_mb": 7598.0,
           "gpu_memory_total_mb": 8188.0,
           "gpu_utilization_percent": 96.0,
-          "python_rss_mb": 1341.3
+          "python_rss_mb": 395.89
         }
       }
     },
@@ -420,7 +572,9 @@
         "qwen_context": {
           "width": 960,
           "height": 540,
-          "max_side_cap": 960
+          "max_side_cap": 960,
+          "original_width": 1920,
+          "original_height": 1080
         },
         "yolo_qwen": {
           "context_width": 960,
@@ -436,63 +590,580 @@
               100,
               97
             ]
+          ],
+          "crop_bboxes_xyxy_orig": [
+            [
+              71,
+              878,
+              311,
+              995
+            ],
+            [
+              448,
+              821,
+              548,
+              918
+            ]
           ]
         }
       },
+      "frame_gating": {
+        "mode": "yolo",
+        "path": "full",
+        "mse": null,
+        "yolo_fingerprint": "2|2,7",
+        "crop_gate_fingerprint": "2|0.099,0.867,0.259,0.805",
+        "use_crop_layout_gate": true,
+        "crop_gate_max_shift": 0.02
+      },
+      "timings_ms": {
+        "read_resize_ms": 41.557,
+        "mse_ms": 0.001,
+        "yolo_ms": 30.66,
+        "qwen_only_ms": 7348.432,
+        "yolo_qwen_ms": 7012.349,
+        "total_ms": 14433.04
+      },
       "qwen_only": {
-        "seconds": 7.478,
+        "seconds": 7.348,
         "prompt_tokens": 552,
-        "completion_tokens": 75,
-        "total_tokens": 627,
+        "completion_tokens": 95,
+        "total_tokens": 647,
         "usage": {
           "prompt_tokens": 552,
-          "completion_tokens": 75,
-          "total_tokens": 627
+          "completion_tokens": 95,
+          "total_tokens": 647
         },
         "approx_image_tokens": 510,
-        "reply": "- **사람**: 왼쪽 도로 근처에 1~2명의 사람이 보입니다.  \n- **차량**: 흰색 자동차와 파란색 버스가 도로에 있다.  \n- **이상 징후**: 없음. 평상시의 공원과 도로 장면.",
-        "reply_preview": "- **사람**: 왼쪽 도로 근처에 1~2명의 사람이 보입니다.  \n- **차량**: 흰색 자동차와 파란색 버스가 도로에 있다.  \n- **이상 징후**: 없음. 평상시의 공원과 도로 장면.",
+        "reply": "- **사람**: 왼쪽 도로 근처에 1명의 사람이 걸어가고 있습니다.  \n- **차량**: 흰색 승용차와 파란색 버스가 도로 위에 있습니다.  \n- **이상 징후**: 없음. 자연스러운 공원과 도로 환경이며, 이상한 활동이나 위험한 상황은 보이지 않습니다.",
+        "reply_preview": "- **사람**: 왼쪽 도로 근처에 1명의 사람이 걸어가고 있습니다.  \n- **차량**: 흰색 승용차와 파란색 버스가 도로 위에 있습니다.  \n- **이상 징후**: 없음. 자연스러운 공원과 도로 환경이며, 이상한 활동이나 위험한 상황은 보이지 않습니다.",
         "resources_after": {
           "label": "bench_qwen_only_after",
-          "unix_ts": 1776533584.162,
-          "gpu_memory_used_mb": 7439.0,
+          "unix_ts": 1777134350.744,
+          "gpu_memory_used_mb": 7600.0,
           "gpu_memory_total_mb": 8188.0,
           "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1339.54
+          "python_rss_mb": 396.67
         }
       },
       "yolo_qwen": {
-        "yolo_seconds": 0.018,
-        "vlm_seconds": 7.279,
-        "total_seconds": 7.297,
-        "prompt_tokens": 621,
-        "completion_tokens": 155,
-        "total_tokens": 776,
+        "yolo_seconds": 0.031,
+        "vlm_seconds": 7.012,
+        "total_seconds": 7.043,
+        "prompt_tokens": 789,
+        "completion_tokens": 80,
+        "total_tokens": 869,
         "usage": {
-          "prompt_tokens": 621,
-          "completion_tokens": 155,
-          "total_tokens": 776
+          "prompt_tokens": 789,
+          "completion_tokens": 80,
+          "total_tokens": 869
         },
         "approx_image_tokens": 551,
-        "reply": "감시 화면에서 **사람**과 **차량**이 감지되었습니다.\n\n- **사람**: 녹색 울타리 근처에 한 명이 서 있음 (YOLO 탐지 결과 없음).\n- **차량**: 흰색 자동차(0.73 점수)와 파란색 버스(0.40 점수)가 감지됨.\n- **이상 징후**: 화면에 이상 징후는 없음. 풍부한 녹색 식물로 둘러싸인 공원과 도로, 차량·사람이 정상적으로 이동 중인 것으로 보임.",
-        "reply_preview": "감시 화면에서 **사람**과 **차량**이 감지되었습니다.\n\n- **사람**: 녹색 울타리 근처에 한 명이 서 있음 (YOLO 탐지 결과 없음).\n- **차량**: 흰색 자동차(0.73 점수)와 파란색 버스(0.40 점수)가 감지됨.\n- **이상 징후**: 화면에 이상 징후는 없음. 풍부한 녹색 식물로 둘러싸인 공원과 도로, 차량·사람이 정상적으로 이동 중인 것으로 보임.",
+        "reply": "감시 화면에 이상 징후는 없음.  \n차량(백색 세단, 파란색 버스)과 사람(녹색 옷을 입은 사람이 보행 중)이 도로와 공원 인근에 존재하지만, 정상적인 이동 상태이며 위험 요소나 이상 징후는 확인되지 않음.",
+        "reply_preview": "감시 화면에 이상 징후는 없음.  \n차량(백색 세단, 파란색 버스)과 사람(녹색 옷을 입은 사람이 보행 중)이 도로와 공원 인근에 존재하지만, 정상적인 이동 상태이며 위험 요소나 이상 징후는 확인되지 않음.",
         "resources_after": {
           "label": "bench_yolo_qwen_after",
-          "unix_ts": 1776533584.211,
-          "gpu_memory_used_mb": 7439.0,
+          "unix_ts": 1777134350.793,
+          "gpu_memory_used_mb": 7600.0,
           "gpu_memory_total_mb": 8188.0,
           "gpu_utilization_percent": 98.0,
-          "python_rss_mb": 1339.54
+          "python_rss_mb": 396.67
         }
       }
+    }
+  ],
+  "yolo_smol_parallel_qwen": [
+    {
+      "frame": "frame_000001.jpg",
+      "yolo": {
+        "n_detections": 1,
+        "summary": "truck:0.83",
+        "n_crops": 1,
+        "crop_bboxes_xyxy_orig": [
+          [
+            0,
+            730,
+            216,
+            968
+          ]
+        ]
+      },
+      "yolo_smol_parallel": {
+        "yolo_seconds": 0.061,
+        "smol_seconds": 0.123,
+        "wall_parallel_seconds": 0.125
+      },
+      "smol_text": "One short English sentence.",
+      "stage1_merged": "원본 1920×1080 픽셀, 잘라내기 1개(좌표만):\n  · 잘라내기 1 [x1,y1,x2,y2]=[0,730,216,968]\n[SmolVLM 병렬 응답] One short English sentence.",
+      "smol_error": null,
+      "parsed_risk": "med",
+      "stage1_usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 6,
+        "total_tokens": 116
+      },
+      "stage1_resources_after": {
+        "label": "yolo_smol_parallel_after",
+        "unix_ts": 1777134358.436,
+        "gpu_memory_used_mb": 7718.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 0.0,
+        "python_rss_mb": 432.02
+      },
+      "input_image": {
+        "source_frame": "frame_000001.jpg",
+        "path": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames\\frame_000001.jpg",
+        "original_width": 1920,
+        "original_height": 1080,
+        "width": 960,
+        "height": 540,
+        "max_side_cap": 960,
+        "crop_max_side_cap": 640,
+        "qwen_n_images": 2,
+        "qwen_crop_dimensions_wh": [
+          [
+            216,
+            238
+          ]
+        ]
+      },
+      "stage1_prompt_tokens": 110,
+      "qwen_called": true,
+      "qwen_seconds": 4.709,
+      "qwen_prompt_tokens": 909,
+      "qwen_completion_tokens": 59,
+      "qwen_total_tokens": 968,
+      "qwen_usage": {
+        "prompt_tokens": 909,
+        "completion_tokens": 59,
+        "total_tokens": 968
+      },
+      "qwen_reply": "이미지 하단 왼쪽에 흰색 대형 트럭이 정지해 있으며, 그 옆으로 차량들이 주차되어 있습니다. 사람이나 차량의 움직임은 없고, 이상 징후는 확인되지 않습니다.",
+      "qwen_resources_after": {
+        "label": "yolo_smol_parallel_qwen_after",
+        "unix_ts": 1777134363.215,
+        "gpu_memory_used_mb": 7774.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 97.0,
+        "python_rss_mb": 432.33
+      },
+      "total_seconds": 4.834
+    },
+    {
+      "frame": "frame_000002.jpg",
+      "yolo": {
+        "n_detections": 0,
+        "summary": "no_detections",
+        "n_crops": 0,
+        "crop_bboxes_xyxy_orig": []
+      },
+      "yolo_smol_parallel": {
+        "yolo_seconds": 0.11,
+        "smol_seconds": 0.157,
+        "wall_parallel_seconds": 0.158
+      },
+      "smol_text": "One short sentence: \"one short English sentence\"",
+      "stage1_merged": "원본 1920×1080 픽셀, 잘라내기 없음(탐지 없음 또는 크기 필터).\n[SmolVLM 병렬 응답] One short sentence: \"one short English sentence\"",
+      "smol_error": null,
+      "parsed_risk": "med",
+      "stage1_usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 11,
+        "total_tokens": 121
+      },
+      "stage1_resources_after": {
+        "label": "yolo_smol_parallel_after",
+        "unix_ts": 1777134363.561,
+        "gpu_memory_used_mb": 7774.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 97.0,
+        "python_rss_mb": 434.89
+      },
+      "input_image": {
+        "source_frame": "frame_000002.jpg",
+        "path": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames\\frame_000002.jpg",
+        "original_width": 1920,
+        "original_height": 1080,
+        "width": 960,
+        "height": 540,
+        "max_side_cap": 960,
+        "crop_max_side_cap": 640,
+        "qwen_n_images": 1,
+        "qwen_crop_dimensions_wh": []
+      },
+      "stage1_prompt_tokens": 110,
+      "qwen_called": true,
+      "qwen_seconds": 6.408,
+      "qwen_prompt_tokens": 772,
+      "qwen_completion_tokens": 39,
+      "qwen_total_tokens": 811,
+      "qwen_usage": {
+        "prompt_tokens": 772,
+        "completion_tokens": 39,
+        "total_tokens": 811
+      },
+      "qwen_reply": "공원 안에는 사람이나 차량이 보이지 않으며, 나무와 초록색 잔디가 가득한 평온한 풍경입니다.",
+      "qwen_resources_after": {
+        "label": "yolo_smol_parallel_qwen_after",
+        "unix_ts": 1777134370.084,
+        "gpu_memory_used_mb": 7794.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 96.0,
+        "python_rss_mb": 435.23
+      },
+      "total_seconds": 6.566
+    },
+    {
+      "frame": "frame_000003.jpg",
+      "yolo": {
+        "n_detections": 2,
+        "summary": "car:0.32, car:0.29",
+        "n_crops": 2,
+        "crop_bboxes_xyxy_orig": [
+          [
+            1,
+            833,
+            124,
+            950
+          ],
+          [
+            271,
+            829,
+            425,
+            903
+          ]
+        ]
+      },
+      "yolo_smol_parallel": {
+        "yolo_seconds": 0.105,
+        "smol_seconds": 0.163,
+        "wall_parallel_seconds": 0.164
+      },
+      "smol_text": "One short English sentence.",
+      "stage1_merged": "원본 1920×1080 픽셀, 잘라내기 2개(좌표만):\n  · 잘라내기 1 [x1,y1,x2,y2]=[1,833,124,950]\n  · 잘라내기 2 [x1,y1,x2,y2]=[271,829,425,903]\n[SmolVLM 병렬 응답] One short English sentence.",
+      "smol_error": null,
+      "parsed_risk": "med",
+      "stage1_usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 6,
+        "total_tokens": 116
+      },
+      "stage1_resources_after": {
+        "label": "yolo_smol_parallel_after",
+        "unix_ts": 1777134370.45,
+        "gpu_memory_used_mb": 7794.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 3.0,
+        "python_rss_mb": 427.34
+      },
+      "input_image": {
+        "source_frame": "frame_000003.jpg",
+        "path": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames\\frame_000003.jpg",
+        "original_width": 1920,
+        "original_height": 1080,
+        "width": 960,
+        "height": 540,
+        "max_side_cap": 960,
+        "crop_max_side_cap": 640,
+        "qwen_n_images": 3,
+        "qwen_crop_dimensions_wh": [
+          [
+            123,
+            117
+          ],
+          [
+            154,
+            74
+          ]
+        ]
+      },
+      "stage1_prompt_tokens": 110,
+      "qwen_called": true,
+      "qwen_seconds": 5.56,
+      "qwen_prompt_tokens": 980,
+      "qwen_completion_tokens": 26,
+      "qwen_total_tokens": 1006,
+      "qwen_usage": {
+        "prompt_tokens": 980,
+        "completion_tokens": 26,
+        "total_tokens": 1006
+      },
+      "qwen_reply": "감시 화면에는 차량이 주차되어 있지만 사람이나 이상 징후는 보이지 않습니다.",
+      "qwen_resources_after": {
+        "label": "yolo_smol_parallel_qwen_after",
+        "unix_ts": 1777134376.138,
+        "gpu_memory_used_mb": 7755.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 63.0,
+        "python_rss_mb": 427.7
+      },
+      "total_seconds": 5.724
+    },
+    {
+      "frame": "frame_000004.jpg",
+      "yolo": {
+        "n_detections": 2,
+        "summary": "bus:0.67, car:0.70",
+        "n_crops": 2,
+        "crop_bboxes_xyxy_orig": [
+          [
+            0,
+            763,
+            315,
+            942
+          ],
+          [
+            137,
+            833,
+            339,
+            938
+          ]
+        ]
+      },
+      "yolo_smol_parallel": {
+        "yolo_seconds": 0.137,
+        "smol_seconds": 0.731,
+        "wall_parallel_seconds": 0.732
+      },
+      "smol_text": "The image is taken in a park near a large tree with a thick canopy. The trees are tall and green, with lush foliage and green leaves. The ground is covered with green grass and small bushes, adding to the natural aesthetic of the area. There is a bench or small seating area in the middle of the park, covered in green fabric.\n\nIn the background, there is a bus or a similar public transportation vehicle. It has a light blue or green color scheme, typical of vehicles used on public roads. The bus is parked in a section of the park where it has taken up the majority of the space.\n\nThe sky is clear with a few clouds, indicating that it is probably a sunny day. The sun is casting shadows from the trees, giving the image a warm and inviting feel.\n\nThe image provides a snapshot of a park with a few elements that suggest it is likely a tourist destination. The lush green grass, the open space, and the presence of buses indicate that this park is a popular spot for visitors. The visible objects suggest that the park is well-maintained, possibly for a variety of reasons such as recreation, tourism, or simply a designated area for visitors.\n\nTo provide more context, it is important to",
+      "stage1_merged": "원본 1920×1080 픽셀, 잘라내기 2개(좌표만):\n  · 잘라내기 1 [x1,y1,x2,y2]=[0,763,315,942]\n  · 잘라내기 2 [x1,y1,x2,y2]=[137,833,339,938]\n[SmolVLM 병렬 응답] The image is taken in a park near a large tree with a thick canopy. The trees are tall and green, with lush foliage and green leaves. The ground is covered with green grass and small bushes, adding to the natural aesthetic of the area. There is a bench or small seating area in the middle of the park, covered in green fabric.\n\nIn the background, there is a bus or a similar public transportation vehicle. It has a light blue or green color scheme, typical of vehicles used on public roads. The bus is parked in a section of the park where it has taken up the majority of the space.\n\nThe sky is clear with a few clouds, indicating that it is probably a sunny day. The sun is casting shadows from the trees, giving the image a warm and inviting feel.\n\nThe image provides a snapshot of a park with a few elements that suggest it is likely a tourist destination. The lush green grass, the open space, and the presence of buses indicate that this park is a popular spot for visitors. The visible objects suggest that the park is well-maintained, possibly for a variety of reasons such as recreation, tourism, or simply a designated area for visitors.\n\nTo provide more context, it is important to",
+      "smol_error": null,
+      "parsed_risk": "med",
+      "stage1_usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 256,
+        "total_tokens": 366
+      },
+      "stage1_resources_after": {
+        "label": "yolo_smol_parallel_after",
+        "unix_ts": 1777134377.052,
+        "gpu_memory_used_mb": 7728.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 78.0,
+        "python_rss_mb": 428.17
+      },
+      "input_image": {
+        "source_frame": "frame_000004.jpg",
+        "path": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames\\frame_000004.jpg",
+        "original_width": 1920,
+        "original_height": 1080,
+        "width": 960,
+        "height": 540,
+        "max_side_cap": 960,
+        "crop_max_side_cap": 640,
+        "qwen_n_images": 3,
+        "qwen_crop_dimensions_wh": [
+          [
+            315,
+            179
+          ],
+          [
+            202,
+            105
+          ]
+        ]
+      },
+      "stage1_prompt_tokens": 110,
+      "qwen_called": true,
+      "qwen_seconds": 8.734,
+      "qwen_prompt_tokens": 1276,
+      "qwen_completion_tokens": 114,
+      "qwen_total_tokens": 1390,
+      "qwen_usage": {
+        "prompt_tokens": 1276,
+        "completion_tokens": 114,
+        "total_tokens": 1390
+      },
+      "qwen_reply": "감시 화면에서 사람 또는 차량의 이상 징후는 없습니다.  \n공원 안에는 푸른 나무와 풀, 휴식용 의자, 그리고 공원을 지나가는 버스와 파란색 자동차가 보입니다.  \n버스는 공원 안에 정차해 있으며, 자동차는 주행 중인 것으로 보입니다.  \n이 모든 요소는 정상적인 공원 환경을 나타내며, 이상 징후는 없습니다.",
+      "qwen_resources_after": {
+        "label": "yolo_smol_parallel_qwen_after",
+        "unix_ts": 1777134385.889,
+        "gpu_memory_used_mb": 7772.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 97.0,
+        "python_rss_mb": 428.53
+      },
+      "total_seconds": 9.466
+    },
+    {
+      "frame": "frame_000005.jpg",
+      "yolo": {
+        "n_detections": 2,
+        "summary": "car:0.42, car:0.45",
+        "n_crops": 2,
+        "crop_bboxes_xyxy_orig": [
+          [
+            0,
+            855,
+            180,
+            975
+          ],
+          [
+            263,
+            846,
+            422,
+            913
+          ]
+        ]
+      },
+      "yolo_smol_parallel": {
+        "yolo_seconds": 0.048,
+        "smol_seconds": 0.125,
+        "wall_parallel_seconds": 0.126
+      },
+      "smol_text": "A blue car is parked near some parked cars. There is a tall green bush next to the car.",
+      "stage1_merged": "원본 1920×1080 픽셀, 잘라내기 2개(좌표만):\n  · 잘라내기 1 [x1,y1,x2,y2]=[0,855,180,975]\n  · 잘라내기 2 [x1,y1,x2,y2]=[263,846,422,913]\n[SmolVLM 병렬 응답] A blue car is parked near some parked cars. There is a tall green bush next to the car.",
+      "smol_error": null,
+      "parsed_risk": "med",
+      "stage1_usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 22,
+        "total_tokens": 132
+      },
+      "stage1_resources_after": {
+        "label": "yolo_smol_parallel_after",
+        "unix_ts": 1777134386.123,
+        "gpu_memory_used_mb": 7772.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 97.0,
+        "python_rss_mb": 429.37
+      },
+      "input_image": {
+        "source_frame": "frame_000005.jpg",
+        "path": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames\\frame_000005.jpg",
+        "original_width": 1920,
+        "original_height": 1080,
+        "width": 960,
+        "height": 540,
+        "max_side_cap": 960,
+        "crop_max_side_cap": 640,
+        "qwen_n_images": 3,
+        "qwen_crop_dimensions_wh": [
+          [
+            180,
+            120
+          ],
+          [
+            159,
+            67
+          ]
+        ]
+      },
+      "stage1_prompt_tokens": 110,
+      "qwen_called": true,
+      "qwen_seconds": 7.657,
+      "qwen_prompt_tokens": 1004,
+      "qwen_completion_tokens": 81,
+      "qwen_total_tokens": 1085,
+      "qwen_usage": {
+        "prompt_tokens": 1004,
+        "completion_tokens": 81,
+        "total_tokens": 1085
+      },
+      "qwen_reply": "감시 화면에는 차량이 보이지만 사람이나 이상 징후는 없습니다.  \n왼쪽에 파란색 자동차가 주차되어 있고, 그 옆에 다른 차량들이 줄지어 서 있습니다.  \n차량 옆에는 키트가 있는 풀밭이 보이며, 배경에는 나무들이 많습니다.",
+      "qwen_resources_after": {
+        "label": "yolo_smol_parallel_qwen_after",
+        "unix_ts": 1777134393.828,
+        "gpu_memory_used_mb": 7772.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 98.0,
+        "python_rss_mb": 429.73
+      },
+      "total_seconds": 7.783
+    },
+    {
+      "frame": "frame_000006.jpg",
+      "yolo": {
+        "n_detections": 2,
+        "summary": "car:0.73, truck:0.40",
+        "n_crops": 2,
+        "crop_bboxes_xyxy_orig": [
+          [
+            71,
+            878,
+            311,
+            995
+          ],
+          [
+            448,
+            821,
+            548,
+            918
+          ]
+        ]
+      },
+      "yolo_smol_parallel": {
+        "yolo_seconds": 0.051,
+        "smol_seconds": 0.122,
+        "wall_parallel_seconds": 0.123
+      },
+      "smol_text": "The dog is alert and is sniffing around. The traffic is busy, and it is hard to tell what is going on.",
+      "stage1_merged": "원본 1920×1080 픽셀, 잘라내기 2개(좌표만):\n  · 잘라내기 1 [x1,y1,x2,y2]=[71,878,311,995]\n  · 잘라내기 2 [x1,y1,x2,y2]=[448,821,548,918]\n[SmolVLM 병렬 응답] The dog is alert and is sniffing around. The traffic is busy, and it is hard to tell what is going on.",
+      "smol_error": null,
+      "parsed_risk": "med",
+      "stage1_usage": {
+        "prompt_tokens": 110,
+        "completion_tokens": 27,
+        "total_tokens": 137
+      },
+      "stage1_resources_after": {
+        "label": "yolo_smol_parallel_after",
+        "unix_ts": 1777134394.044,
+        "gpu_memory_used_mb": 7772.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 98.0,
+        "python_rss_mb": 427.78
+      },
+      "input_image": {
+        "source_frame": "frame_000006.jpg",
+        "path": "D:\\Private\\Fiddles\\qwen-vlm\\data\\datasets\\demo\\frames\\frame_000006.jpg",
+        "original_width": 1920,
+        "original_height": 1080,
+        "width": 960,
+        "height": 540,
+        "max_side_cap": 960,
+        "crop_max_side_cap": 640,
+        "qwen_n_images": 3,
+        "qwen_crop_dimensions_wh": [
+          [
+            240,
+            117
+          ],
+          [
+            100,
+            97
+          ]
+        ]
+      },
+      "stage1_prompt_tokens": 110,
+      "qwen_called": true,
+      "qwen_seconds": 6.211,
+      "qwen_prompt_tokens": 1018,
+      "qwen_completion_tokens": 50,
+      "qwen_total_tokens": 1068,
+      "qwen_usage": {
+        "prompt_tokens": 1018,
+        "completion_tokens": 50,
+        "total_tokens": 1068
+      },
+      "qwen_reply": "감시 화면에는 차량(흰색 자동차, 파란 버스)과 사람(녹색 옷을 입은 사람이 보행 중)이 보입니다. 이상 징후는 없어 보입니다.",
+      "qwen_resources_after": {
+        "label": "yolo_smol_parallel_qwen_after",
+        "unix_ts": 1777134400.302,
+        "gpu_memory_used_mb": 7660.0,
+        "gpu_memory_total_mb": 8188.0,
+        "gpu_utilization_percent": 96.0,
+        "python_rss_mb": 428.11
+      },
+      "total_seconds": 6.334
     }
   ],
   "two_stage_skip_low": [
     {
       "frame": "frame_000001.jpg",
       "stage1_source": "small_vlm",
-      "stage1_seconds": 0.134,
-      "stage1_text": "One short English sentence.",
+      "stage1_seconds": 0.553,
+      "stage1_text": "One short English sentence.\n\nThe image depicts a scene that appears to be a park or a grassy area with several elements that suggest it could be during the early morning or late evening. The scene is relatively calm, with a variety of natural elements contributing to the overall tranquility of the environment.\n\n**Objects present:**\n1. **Green grass**: The grass is lush and bright, indicating a sunny day.\n2. **Trees**: There are tall, green trees that dominate the landscape, providing a natural backdrop to the scene.\n3. **Meadows**: The grass is interspersed with a variety of small, dense meadows, which are typically seen during the late spring or early summer months when flowers bloom and vegetation is lush.\n4. **Vehicles**: Several vehicles are visible, including what looks like a semi-trailer truck and a large semi-trailer truck in the background. This suggests that there might be some traffic or movement around the park.\n5. **Path**: The park is paved with dark-colored stones, indicating it is a dirt or paved path.\n\n**Contextual Analysis and Potential Question:**\n- \"The park is surrounded by trees and has a pleasant, grassy area.\"\n- \"The flowers are",
       "parsed_risk": "med",
       "qwen_called": true,
       "input_image": {
@@ -504,17 +1175,17 @@
       },
       "stage1_usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 6,
-        "total_tokens": 116
+        "completion_tokens": 256,
+        "total_tokens": 366
       },
       "stage1_prompt_tokens": 110,
       "stage1_resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.44,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.453,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 8.0,
-        "python_rss_mb": 1333.6
+        "gpu_utilization_percent": 89.0,
+        "python_rss_mb": 390.82
       },
       "stage1_image_sent": {
         "source_frame": "frame_000001.jpg",
@@ -523,31 +1194,31 @@
         "height": 540,
         "context_max_side": 960
       },
-      "qwen_seconds": 3.703,
-      "qwen_prompt_tokens": 585,
-      "qwen_completion_tokens": 22,
-      "qwen_total_tokens": 607,
+      "qwen_seconds": 6.856,
+      "qwen_prompt_tokens": 829,
+      "qwen_completion_tokens": 17,
+      "qwen_total_tokens": 846,
       "qwen_usage": {
-        "prompt_tokens": 585,
-        "completion_tokens": 22,
-        "total_tokens": 607
+        "prompt_tokens": 829,
+        "completion_tokens": 17,
+        "total_tokens": 846
       },
-      "qwen_reply": "공원 내 사람 또는 차량은 없고, 이상 징후는 확인되지 않음.",
+      "qwen_reply": "사람이나 차량은 없고, 이상 징후는 없습니다.",
       "qwen_resources_after": {
         "label": "two_stage_qwen_after",
-        "unix_ts": 1776533592.978,
-        "gpu_memory_used_mb": 7403.0,
+        "unix_ts": 1777134407.416,
+        "gpu_memory_used_mb": 7627.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 96.0,
-        "python_rss_mb": 1342.03
+        "gpu_utilization_percent": 91.0,
+        "python_rss_mb": 422.18
       },
-      "total_seconds": 3.837
+      "total_seconds": 7.409
     },
     {
       "frame": "frame_000002.jpg",
       "stage1_source": "small_vlm",
-      "stage1_seconds": 0.065,
-      "stage1_text": "One short sentence. One short English sentence.",
+      "stage1_seconds": 0.055,
+      "stage1_text": "One short English sentence.",
       "parsed_risk": "med",
       "qwen_called": true,
       "input_image": {
@@ -559,17 +1230,17 @@
       },
       "stage1_usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 10,
-        "total_tokens": 120
+        "completion_tokens": 6,
+        "total_tokens": 116
       },
       "stage1_prompt_tokens": 110,
       "stage1_resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.582,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.574,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 26.0,
-        "python_rss_mb": 1333.6
+        "gpu_utilization_percent": 89.0,
+        "python_rss_mb": 390.82
       },
       "stage1_image_sent": {
         "source_frame": "frame_000002.jpg",
@@ -578,31 +1249,31 @@
         "height": 540,
         "context_max_side": 960
       },
-      "qwen_seconds": 5.564,
-      "qwen_prompt_tokens": 589,
-      "qwen_completion_tokens": 14,
-      "qwen_total_tokens": 603,
+      "qwen_seconds": 5.855,
+      "qwen_prompt_tokens": 585,
+      "qwen_completion_tokens": 17,
+      "qwen_total_tokens": 602,
       "qwen_usage": {
-        "prompt_tokens": 589,
-        "completion_tokens": 14,
-        "total_tokens": 603
+        "prompt_tokens": 585,
+        "completion_tokens": 17,
+        "total_tokens": 602
       },
-      "qwen_reply": "공원 길에서 사람과 차량이 보임.",
+      "qwen_reply": "공원 내 사람·차량·이상 징후 없음.",
       "qwen_resources_after": {
         "label": "two_stage_qwen_after",
-        "unix_ts": 1776533598.698,
-        "gpu_memory_used_mb": 7403.0,
+        "unix_ts": 1777134413.482,
+        "gpu_memory_used_mb": 7642.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 98.0,
-        "python_rss_mb": 1342.36
+        "gpu_utilization_percent": 95.0,
+        "python_rss_mb": 422.56
       },
-      "total_seconds": 5.629
+      "total_seconds": 5.91
     },
     {
       "frame": "frame_000003.jpg",
       "stage1_source": "small_vlm",
-      "stage1_seconds": 0.083,
-      "stage1_text": "This picture shows cars parked on the grass and also we see a blue vehicle and a black vehicle parked under a shed.",
+      "stage1_seconds": 0.067,
+      "stage1_text": "One short sentence about a park with some cars parked along the side.",
       "parsed_risk": "med",
       "qwen_called": true,
       "input_image": {
@@ -614,17 +1285,17 @@
       },
       "stage1_usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 25,
-        "total_tokens": 135
+        "completion_tokens": 15,
+        "total_tokens": 125
       },
       "stage1_prompt_tokens": 110,
       "stage1_resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.741,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.711,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 26.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 17.0,
+        "python_rss_mb": 390.82
       },
       "stage1_image_sent": {
         "source_frame": "frame_000003.jpg",
@@ -633,31 +1304,31 @@
         "height": 540,
         "context_max_side": 960
       },
-      "qwen_seconds": 7.867,
-      "qwen_prompt_tokens": 604,
-      "qwen_completion_tokens": 77,
-      "qwen_total_tokens": 681,
+      "qwen_seconds": 6.392,
+      "qwen_prompt_tokens": 594,
+      "qwen_completion_tokens": 34,
+      "qwen_total_tokens": 628,
       "qwen_usage": {
-        "prompt_tokens": 604,
-        "completion_tokens": 77,
-        "total_tokens": 681
+        "prompt_tokens": 594,
+        "completion_tokens": 34,
+        "total_tokens": 628
       },
-      "qwen_reply": "차량 이상 징후 있음.  \n초록 잔디 위에 차량(파란색, 검정색)이 주차되어 있어 공공장소에서의 비정상적 주차로 판단됨.  \n사람은 보이지 않음.  \n이상 징후: 공원 내 잔디 위 주차.",
+      "qwen_reply": "공원에는 차량이 둘러싸인 길가에 주차되어 있으며, 사람이나 이상 징후는 확인되지 않음.",
       "qwen_resources_after": {
         "label": "two_stage_qwen_after",
-        "unix_ts": 1776533606.648,
-        "gpu_memory_used_mb": 7468.0,
+        "unix_ts": 1777134420.104,
+        "gpu_memory_used_mb": 7749.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 98.0,
-        "python_rss_mb": 1342.71
+        "gpu_utilization_percent": 96.0,
+        "python_rss_mb": 422.91
       },
-      "total_seconds": 7.95
+      "total_seconds": 6.459
     },
     {
       "frame": "frame_000004.jpg",
       "stage1_source": "small_vlm",
-      "stage1_seconds": 0.075,
-      "stage1_text": "A park with a lot of trees. There are a couple of cars parked near the trees.",
+      "stage1_seconds": 0.132,
+      "stage1_text": "This is a photograph of a park with a variety of trees and bushes, including some that are tall with lush green leaves. A few cars are parked along the edges of the grass area. In the background, there is a bright sky with a few wisps of clouds.",
       "parsed_risk": "med",
       "qwen_called": true,
       "input_image": {
@@ -669,17 +1340,17 @@
       },
       "stage1_usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 20,
-        "total_tokens": 130
+        "completion_tokens": 56,
+        "total_tokens": 166
       },
       "stage1_prompt_tokens": 110,
       "stage1_resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.888,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.916,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 26.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 17.0,
+        "python_rss_mb": 390.83
       },
       "stage1_image_sent": {
         "source_frame": "frame_000004.jpg",
@@ -688,31 +1359,31 @@
         "height": 540,
         "context_max_side": 960
       },
-      "qwen_seconds": 6.881,
-      "qwen_prompt_tokens": 599,
-      "qwen_completion_tokens": 105,
-      "qwen_total_tokens": 704,
+      "qwen_seconds": 5.769,
+      "qwen_prompt_tokens": 635,
+      "qwen_completion_tokens": 68,
+      "qwen_total_tokens": 703,
       "qwen_usage": {
-        "prompt_tokens": 599,
-        "completion_tokens": 105,
-        "total_tokens": 704
+        "prompt_tokens": 635,
+        "completion_tokens": 68,
+        "total_tokens": 703
       },
-      "qwen_reply": "사람: 없음  \n차량: 있음 (수정: 이미지에 차량 2대(파란색 세단, 흰색 세단)와 버스 일부가 보임)  \n이상 징후: 없음\n\n※ 설명: 감시 화면은 녹음된 공공장소(공원)이며, 차량이 일부 보이지만 사람이 없는 평온한 상황입니다. 이상 징후는 확인되지 않습니다.",
+      "qwen_reply": "사람: 없음  \n차량: 주차된 차량(자동차, 버스) 존재  \n이상 징후: 없음\n\n(분석: 이미지에서 사람은 보이지 않으며, 차량은 주차된 상태로 정상적. 이상 징후는 확인되지 않음.)",
       "qwen_resources_after": {
         "label": "two_stage_qwen_after",
-        "unix_ts": 1776533613.616,
-        "gpu_memory_used_mb": 7461.0,
+        "unix_ts": 1777134426.048,
+        "gpu_memory_used_mb": 7716.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 98.0,
-        "python_rss_mb": 1343.05
+        "gpu_utilization_percent": 96.0,
+        "python_rss_mb": 423.25
       },
-      "total_seconds": 6.956
+      "total_seconds": 5.901
     },
     {
       "frame": "frame_000005.jpg",
       "stage1_source": "small_vlm",
-      "stage1_seconds": 0.063,
-      "stage1_text": "A blue vehicle is parked next to a green tree.",
+      "stage1_seconds": 0.052,
+      "stage1_text": "One short English sentence.",
       "parsed_risk": "med",
       "qwen_called": true,
       "input_image": {
@@ -724,17 +1395,17 @@
       },
       "stage1_usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 12,
-        "total_tokens": 122
+        "completion_tokens": 6,
+        "total_tokens": 116
       },
       "stage1_prompt_tokens": 110,
       "stage1_resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533586.031,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134355.041,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 14.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 17.0,
+        "python_rss_mb": 390.84
       },
       "stage1_image_sent": {
         "source_frame": "frame_000005.jpg",
@@ -743,31 +1414,31 @@
         "height": 540,
         "context_max_side": 960
       },
-      "qwen_seconds": 6.245,
-      "qwen_prompt_tokens": 591,
-      "qwen_completion_tokens": 28,
-      "qwen_total_tokens": 619,
+      "qwen_seconds": 6.455,
+      "qwen_prompt_tokens": 585,
+      "qwen_completion_tokens": 27,
+      "qwen_total_tokens": 612,
       "qwen_usage": {
-        "prompt_tokens": 591,
-        "completion_tokens": 28,
-        "total_tokens": 619
+        "prompt_tokens": 585,
+        "completion_tokens": 27,
+        "total_tokens": 612
       },
-      "qwen_reply": "사람은 없고, 차량(파란 자동차 포함)은 존재함. 이상 징후 없음.",
+      "qwen_reply": "公园 내에서 사람이나 차량은 없으나, 외부 도로에는 차량이 주행 중입니다.",
       "qwen_resources_after": {
         "label": "two_stage_qwen_after",
-        "unix_ts": 1776533619.937,
-        "gpu_memory_used_mb": 7459.0,
+        "unix_ts": 1777134432.674,
+        "gpu_memory_used_mb": 7764.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 91.0,
-        "python_rss_mb": 1343.4
+        "gpu_utilization_percent": 98.0,
+        "python_rss_mb": 423.6
       },
-      "total_seconds": 6.308
+      "total_seconds": 6.507
     },
     {
       "frame": "frame_000006.jpg",
       "stage1_source": "small_vlm",
-      "stage1_seconds": 0.449,
-      "stage1_text": "The image shows a scene from an outdoor park or a recreational area, likely a park or a park area with green grass and trees. Here's the detailed description of the objects and elements present:\n\n### Objects and Elements:\n1. **Green Grass:** The background is predominantly lush with green grass, indicating a healthy environment.\n2. **Trees:** Several trees with full green foliage are visible, adding a natural touch to the scene.\n3. **Road:** There is a road in the foreground, suggesting the park is located near a road.\n4. **Parking Vehicles:** There are cars parked on the street, indicating that the park is accessible for public transportation.\n5. **Street Lights:** Street lights are visible in the image, indicating that the park is set up for public use.\n6. **Paved and Sided Road:** The road is wide and paved, and it runs along the park's side.\n7. **Parking Area:** There are a few parked cars, suggesting that the park is accessible to visitors.\n8. **Bush Trees:** Some bushes or trees in the background are taller than the ones in the foreground, providing a sense of depth and scale to the scene.\n\n### Relevant",
+      "stage1_seconds": 0.452,
+      "stage1_text": "The image depicts a scene from a park with a dog, surrounded by various elements and objects. Here is a detailed description of the objects and their arrangement in the image:\n\n1. **Park Area**: The park is filled with lush green grass and trees, indicating a well-maintained area. The park is enclosed by tall, lush trees, creating a canopy that gives the park a serene and expansive feel.\n\n2. **Vehicles and Vehicles**: There are a few cars and trucks parked along the edges of the park. These vehicles are parked in a semi-circle, suggesting they are either parked or waiting.\n\n3. **Traffic and Traffic Flow**: There are several vehicles and cars visible, indicating that the park is currently in use by cyclists, pedestrians, and other riders. The presence of vehicles suggests that this park is likely used for recreational or commuting purposes.\n\n4. **Trees**: There are deciduous trees that appear to have thick foliage, indicating a healthy, mature forest. This type of forest is typically found in warm climates, as deciduous trees are more resilient to seasonal changes and provide shade.\n\n5. **Fence**: The fence along the park borders the edges of the park, which is made up of a thick, sturdy material, likely",
       "parsed_risk": "med",
       "qwen_called": true,
       "input_image": {
@@ -785,11 +1456,11 @@
       "stage1_prompt_tokens": 110,
       "stage1_resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533586.559,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134355.564,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 87.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 44.0,
+        "python_rss_mb": 390.84
       },
       "stage1_image_sent": {
         "source_frame": "frame_000006.jpg",
@@ -798,35 +1469,35 @@
         "height": 540,
         "context_max_side": 960
       },
-      "qwen_seconds": 6.217,
-      "qwen_prompt_tokens": 821,
-      "qwen_completion_tokens": 80,
-      "qwen_total_tokens": 901,
+      "qwen_seconds": 8.985,
+      "qwen_prompt_tokens": 832,
+      "qwen_completion_tokens": 169,
+      "qwen_total_tokens": 1001,
       "qwen_usage": {
-        "prompt_tokens": 821,
-        "completion_tokens": 80,
-        "total_tokens": 901
+        "prompt_tokens": 832,
+        "completion_tokens": 169,
+        "total_tokens": 1001
       },
-      "qwen_reply": "감시 화면에는 사람과 차량이 보이지만 이상 징후는 없음.  \n차량은 주로 정지한 상태이며, 사람도 약간의 움직임이 있지만 정상적인 공공장소 활동으로 보임.  \n전체적으로 평온한 공원 주변의 일상적인 상황임.",
+      "qwen_reply": "감시 화면에서 사람·차량·이상 징후는 없습니다.  \n- **사람**: 왼쪽에 한 명의 사람이 보이지만, 거리에서 걸어가고 있는 일반적인 모습.  \n- **차량**: 차량(세辆)이 도로에 정차하거나 주행 중인 것으로 보이며, 주행 중인 차량은 정상적인 교통 상황.  \n- **이상 징후**: 공격적 행동, 불정상한 움직임, 폭력적 상황 등은 없음.  \n- **환경**: 나무와 공원이 잘 보이며, 정상적인 일상적인 풍경.  \n\n즉, **정상적이고 이상 징후 없음**.",
       "qwen_resources_after": {
         "label": "two_stage_qwen_after",
-        "unix_ts": 1776533626.314,
-        "gpu_memory_used_mb": 7439.0,
+        "unix_ts": 1777134441.834,
+        "gpu_memory_used_mb": 7753.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 96.0,
-        "python_rss_mb": 1343.74
+        "gpu_utilization_percent": 97.0,
+        "python_rss_mb": 423.94
       },
-      "total_seconds": 6.666
+      "total_seconds": 9.437
     }
   ],
   "smol_stage1_cache": {
     "frame_000001.jpg": {
-      "text": "One short English sentence.",
-      "seconds": 0.134,
+      "text": "One short English sentence.\n\nThe image depicts a scene that appears to be a park or a grassy area with several elements that suggest it could be during the early morning or late evening. The scene is relatively calm, with a variety of natural elements contributing to the overall tranquility of the environment.\n\n**Objects present:**\n1. **Green grass**: The grass is lush and bright, indicating a sunny day.\n2. **Trees**: There are tall, green trees that dominate the landscape, providing a natural backdrop to the scene.\n3. **Meadows**: The grass is interspersed with a variety of small, dense meadows, which are typically seen during the late spring or early summer months when flowers bloom and vegetation is lush.\n4. **Vehicles**: Several vehicles are visible, including what looks like a semi-trailer truck and a large semi-trailer truck in the background. This suggests that there might be some traffic or movement around the park.\n5. **Path**: The park is paved with dark-colored stones, indicating it is a dirt or paved path.\n\n**Contextual Analysis and Potential Question:**\n- \"The park is surrounded by trees and has a pleasant, grassy area.\"\n- \"The flowers are",
+      "seconds": 0.553,
       "usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 6,
-        "total_tokens": 116
+        "completion_tokens": 256,
+        "total_tokens": 366
       },
       "image_sent": {
         "source_frame": "frame_000001.jpg",
@@ -837,20 +1508,20 @@
       },
       "resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.44,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.453,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 8.0,
-        "python_rss_mb": 1333.6
+        "gpu_utilization_percent": 89.0,
+        "python_rss_mb": 390.82
       }
     },
     "frame_000002.jpg": {
-      "text": "One short sentence. One short English sentence.",
-      "seconds": 0.065,
+      "text": "One short English sentence.",
+      "seconds": 0.055,
       "usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 10,
-        "total_tokens": 120
+        "completion_tokens": 6,
+        "total_tokens": 116
       },
       "image_sent": {
         "source_frame": "frame_000002.jpg",
@@ -861,20 +1532,20 @@
       },
       "resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.582,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.574,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 26.0,
-        "python_rss_mb": 1333.6
+        "gpu_utilization_percent": 89.0,
+        "python_rss_mb": 390.82
       }
     },
     "frame_000003.jpg": {
-      "text": "This picture shows cars parked on the grass and also we see a blue vehicle and a black vehicle parked under a shed.",
-      "seconds": 0.083,
+      "text": "One short sentence about a park with some cars parked along the side.",
+      "seconds": 0.067,
       "usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 25,
-        "total_tokens": 135
+        "completion_tokens": 15,
+        "total_tokens": 125
       },
       "image_sent": {
         "source_frame": "frame_000003.jpg",
@@ -885,20 +1556,20 @@
       },
       "resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.741,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.711,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 26.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 17.0,
+        "python_rss_mb": 390.82
       }
     },
     "frame_000004.jpg": {
-      "text": "A park with a lot of trees. There are a couple of cars parked near the trees.",
-      "seconds": 0.075,
+      "text": "This is a photograph of a park with a variety of trees and bushes, including some that are tall with lush green leaves. A few cars are parked along the edges of the grass area. In the background, there is a bright sky with a few wisps of clouds.",
+      "seconds": 0.132,
       "usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 20,
-        "total_tokens": 130
+        "completion_tokens": 56,
+        "total_tokens": 166
       },
       "image_sent": {
         "source_frame": "frame_000004.jpg",
@@ -909,20 +1580,20 @@
       },
       "resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533585.888,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134354.916,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 26.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 17.0,
+        "python_rss_mb": 390.83
       }
     },
     "frame_000005.jpg": {
-      "text": "A blue vehicle is parked next to a green tree.",
-      "seconds": 0.063,
+      "text": "One short English sentence.",
+      "seconds": 0.052,
       "usage": {
         "prompt_tokens": 110,
-        "completion_tokens": 12,
-        "total_tokens": 122
+        "completion_tokens": 6,
+        "total_tokens": 116
       },
       "image_sent": {
         "source_frame": "frame_000005.jpg",
@@ -933,16 +1604,16 @@
       },
       "resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533586.031,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134355.041,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 14.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 17.0,
+        "python_rss_mb": 390.84
       }
     },
     "frame_000006.jpg": {
-      "text": "The image shows a scene from an outdoor park or a recreational area, likely a park or a park area with green grass and trees. Here's the detailed description of the objects and elements present:\n\n### Objects and Elements:\n1. **Green Grass:** The background is predominantly lush with green grass, indicating a healthy environment.\n2. **Trees:** Several trees with full green foliage are visible, adding a natural touch to the scene.\n3. **Road:** There is a road in the foreground, suggesting the park is located near a road.\n4. **Parking Vehicles:** There are cars parked on the street, indicating that the park is accessible for public transportation.\n5. **Street Lights:** Street lights are visible in the image, indicating that the park is set up for public use.\n6. **Paved and Sided Road:** The road is wide and paved, and it runs along the park's side.\n7. **Parking Area:** There are a few parked cars, suggesting that the park is accessible to visitors.\n8. **Bush Trees:** Some bushes or trees in the background are taller than the ones in the foreground, providing a sense of depth and scale to the scene.\n\n### Relevant",
-      "seconds": 0.449,
+      "text": "The image depicts a scene from a park with a dog, surrounded by various elements and objects. Here is a detailed description of the objects and their arrangement in the image:\n\n1. **Park Area**: The park is filled with lush green grass and trees, indicating a well-maintained area. The park is enclosed by tall, lush trees, creating a canopy that gives the park a serene and expansive feel.\n\n2. **Vehicles and Vehicles**: There are a few cars and trucks parked along the edges of the park. These vehicles are parked in a semi-circle, suggesting they are either parked or waiting.\n\n3. **Traffic and Traffic Flow**: There are several vehicles and cars visible, indicating that the park is currently in use by cyclists, pedestrians, and other riders. The presence of vehicles suggests that this park is likely used for recreational or commuting purposes.\n\n4. **Trees**: There are deciduous trees that appear to have thick foliage, indicating a healthy, mature forest. This type of forest is typically found in warm climates, as deciduous trees are more resilient to seasonal changes and provide shade.\n\n5. **Fence**: The fence along the park borders the edges of the park, which is made up of a thick, sturdy material, likely",
+      "seconds": 0.452,
       "usage": {
         "prompt_tokens": 110,
         "completion_tokens": 256,
@@ -957,21 +1628,27 @@
       },
       "resources_after": {
         "label": "phase2_smol_after",
-        "unix_ts": 1776533586.559,
-        "gpu_memory_used_mb": 2353.0,
+        "unix_ts": 1777134355.564,
+        "gpu_memory_used_mb": 2544.0,
         "gpu_memory_total_mb": 8188.0,
-        "gpu_utilization_percent": 87.0,
-        "python_rss_mb": 1333.61
+        "gpu_utilization_percent": 44.0,
+        "python_rss_mb": 390.84
       }
     }
   },
   "latency_compare": {
-    "bench_avg_qwen_only_s": 6.137166666666666,
-    "bench_avg_yolo_qwen_total_s": 6.264833333333333,
+    "bench_avg_qwen_only_s": 6.082666666666667,
+    "bench_avg_yolo_qwen_total_s": 5.704,
+    "yolo_smol_parallel": {
+      "avg_wall_parallel_s": 0.238,
+      "avg_total_s": 6.7845,
+      "frames": 6,
+      "note": "wall_parallel: ThreadPool YOLO∥Smol 구간, total: wall+qwen(또는 low 스킵시 wall만)"
+    },
     "two_stage": {
-      "avg_stage1_s": 0.1448,
-      "avg_qwen_s_when_called": 6.0795,
-      "avg_total_s": 6.2243,
+      "avg_stage1_s": 0.2185,
+      "avg_qwen_s_when_called": 6.7187,
+      "avg_total_s": 6.9372,
       "frames": 6,
       "qwen_calls": 6,
       "note": "total = Phase2에서 측정한 Smol stage1_seconds + Phase3 qwen_seconds(또는 low면 stage1만)."

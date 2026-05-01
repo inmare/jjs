@@ -1,0 +1,4 @@
+{"sessionId": "302568", "hypothesisId": "H1", "location": "yolo.py", "message": "yolo module imported", "data": {"log_path": "D:\\Private\\Fiddles\\qwen-vlm\\debug-302568.log", "log_path_exists_parent": true, "np_in_module_globals": true}, "timestamp": 1777247274976, "tid": 19056}
+{"sessionId": "302568", "hypothesisId": "H2_H3", "location": "yolo.py", "message": "run_yolo_crops entry", "data": {"w": 640, "h": 480, "imgsz": [480, 640], "predict_source": null, "yolo_device": "cpu"}, "timestamp": 1777247277901, "tid": 19056}
+{"sessionId": "302568", "hypothesisId": "H2_H3", "location": "yolo.py", "message": "before model.predict", "data": {"pred_kw_keys": ["source", "conf", "verbose", "device", "imgsz"], "imgsz": [480, 640]}, "timestamp": 1777247277911, "tid": 19056}
+{"sessionId": "302568", "hypothesisId": "H2_H3", "location": "yolo.py", "message": "after model.predict OK", "data": {"n_boxes": 0}, "timestamp": 1777247278095, "tid": 19056}

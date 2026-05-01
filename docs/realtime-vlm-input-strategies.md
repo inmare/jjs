@@ -2,7 +2,7 @@
 
 이 문서는 Qwen3-VL + llama.cpp 같은 **이미지당 비전 토큰이 합산**되는 설정을 전제로, **입력·토큰을 줄이는 방법**, **가벼운 VLM 선행(교수님 제안)의 지연 트레이드오프**, **정상(reference) 화면 + 이후 프레임** 아이디어, **밖에서 흔히 쓰는 패턴**을 정리한 것입니다.
 
-비전 토큰·리사이즈 **수치 감**은 [qwen3-vl-image-tokens.md](./qwen3-vl-image-tokens.md) 와 `qwen3_vl_image_tokens.py` 를 참고하면 됩니다.
+비전 토큰·리사이즈 **수치 감**은 [qwen3-vl-image-tokens.md](./qwen3-vl-image-tokens.md) 와 `qwen_vlm/vision/tokens.py` (또는 루트 `qwen3_vl_image_tokens.py` 래퍼) 를 참고하면 됩니다.
 
 ---
 

@@ -9,6 +9,8 @@
 | `data/datasets/demo/` | 스크립트로 받은 짧은 데모 클립(연속 프레임 실험용) |
 | `data/datasets/shanghaitech/` | [ShanghaiTech Campus](https://svip-lab.github.io/dataset/campus_dataset.html) 압축 해제본 |
 | `data/datasets/ucf-crime/` | [UCF-Crime](https://www.crcv.ucf.edu/projects/real-world/) 영상(예: Dropbox 분할 다운로드) |
+| `data/datasets/mmbench/` (예정) | MMBench 등 **공개 VLM 벤치** JSON/이미지 — `run_week_experiments` 와는 별도 파이프로 연결 예정 |
+| (HF, 로컬 폴더 없음) | [HR-Bench](https://huggingface.co/datasets/DreamMr/HR-Bench) — `uv run python scripts/run_hr_bench.py` (객관식, 프레임·YOLO 벤치와 **별도**) |
 
 ## 빠른 시작
 

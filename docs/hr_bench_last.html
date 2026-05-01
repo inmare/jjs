@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>HR-Bench 전략 비교</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.2rem; background: #fafafa; color: #222; }
+    h1 { font-size: 1.2rem; }
+    h2 { font-size: 1rem; margin-top: 1.5rem; }
+    .meta { font-size: 0.9rem; color: #444; margin: 0.8rem 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.82rem; margin-bottom: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.35rem 0.5rem; vertical-align: top; }
+    th { background: #eee; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.reply { white-space: pre-wrap; max-width: 24rem; }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; max-width: 56rem; }
+    .chart-cell { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.5rem; min-height: 14rem; }
+  </style>
+</head>
+<body>
+  <h1>HR-Bench — 전략 비교</h1>
+  <p class="meta">데이터셋: DreamMr/HR-Bench · split: hrbench_4k · 샘플 모드: sequential · max_samples=10 · model(Qwen): qwen · model(Smol): smolvlm</p>
+  <h2>실행 설정 (YOLO·전망)</h2>
+<table><thead><tr><th>설정</th><th>값</th></tr></thead><tbody>
+<tr><td>context_by_long_edge_only</td><td>False</td></tr>
+<tr><td>context_max_side</td><td>960</td></tr>
+<tr><td>context_resize_scale</td><td>0.5</td></tr>
+<tr><td>crop_max_side</td><td>0</td></tr>
+<tr><td>max_crops</td><td>0</td></tr>
+<tr><td>min_crop_area</td><td>0</td></tr>
+<tr><td>min_crop_short_side</td><td>0</td></tr>
+<tr><td>qwen_image_max_long_side</td><td>0</td></tr>
+<tr><td>qwen_only_use_original</td><td>True</td></tr>
+<tr><td>yolo_max_bbox_area_denominator</td><td>4</td></tr>
+<tr><td>yolo_max_bbox_area_numerator</td><td>1</td></tr>
+<tr><td>yolo_model_path</td><td>yolo26n.pt</td></tr>
+<tr><td>yolo_overview_max_side</td><td>480</td></tr>
+<tr><td>yolo_surveillance_classes_only</td><td>False</td></tr>
+<tr><td>yolo_vlm_budget</td><td>True</td></tr>
+</tbody></table>
+
+  <h2>요약 표</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>전략</th><th>평가수</th><th>정답수</th><th>정확도</th>
+        <th>평균초</th><th>평균Qwen prompt tok</th><th>평균Smol prompt tok</th><th>최대 GPU MB</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr><td>qwen_only</td><td class='num'>10</td><td class='num'>9</td><td class='num'>0.9</td><td class='num'>4.2797</td><td class='num'>4171.8</td><td class='num'>—</td><td class='num'>7867.0</td></tr>
+<tr><td>yolo_lowres_crops</td><td class='num'>10</td><td class='num'>9</td><td class='num'>0.9</td><td class='num'>1.1824</td><td class='num'>837.4</td><td class='num'>—</td><td class='num'>7838.0</td></tr>
+<tr><td>yolo_smol_parallel</td><td class='num'>10</td><td class='num'>8</td><td class='num'>0.8</td><td class='num'>1.1375</td><td class='num'>1049.4</td><td class='num'>—</td><td class='num'>7619.0</td></tr>
+<tr><td>yolo_smol_sequential</td><td class='num'>10</td><td class='num'>8</td><td class='num'>0.8</td><td class='num'>1.0901</td><td class='num'>1049.4</td><td class='num'>—</td><td class='num'>7729.0</td></tr>
+    </tbody>
+  </table>
+  
+  <h2>비교 차트 (HTML)</h2>
+  <p class="meta">PNG 저장 없이 동일 지표를 브라우저에서 볼 수 있습니다.</p>
+  <div class="chart-grid">
+    <div class="chart-cell"><canvas id="hrChartAcc"></canvas></div>
+    <div class="chart-cell"><canvas id="hrChartSec"></canvas></div>
+    <div class="chart-cell"><canvas id="hrChartTok"></canvas></div>
+    <div class="chart-cell"><canvas id="hrChartGpu"></canvas></div>
+  </div>
+  <script type="application/json" id="hr-chart-payload">{"labels": ["qwen_only", "yolo_lowres_crops", "yolo_smol_parallel", "yolo_smol_sequential"], "accuracy": [0.9, 0.9, 0.8, 0.8], "mean_seconds": [4.2797, 1.1824, 1.1375, 1.0901], "mean_prompt_tokens": [4171.8, 837.4, 1049.4, 1049.4], "mean_stage1_prompt_tokens": [null, null, null, null], "max_gpu_memory_used_mb": [7867.0, 7838.0, 7619.0, 7729.0]}</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+  (function() {
+    const el = document.getElementById('hr-chart-payload');
+    if (!el || typeof Chart === 'undefined') return;
+    const D = JSON.parse(el.textContent);
+    const labels = D.labels || [];
+    const nz = (arr) => (arr || []).map(v => (v === null || v === undefined) ? 0 : v);
+    function opts(title) {
+      return {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false }, title: { display: true, text: title } },
+        scales: {
+          x: { ticks: { maxRotation: 40, minRotation: 20 } },
+          y: { beginAtZero: true }
+        }
+      };
+    }
+    new Chart(document.getElementById('hrChartAcc'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'accuracy', data: nz(D.accuracy), backgroundColor: '#4682b4' }] },
+      options: opts('Accuracy')
+    });
+    new Chart(document.getElementById('hrChartSec'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 's', data: nz(D.mean_seconds), backgroundColor: '#ff8c00' }] },
+      options: opts('Mean seconds / sample')
+    });
+    new Chart(document.getElementById('hrChartTok'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'tok', data: nz(D.mean_prompt_tokens), backgroundColor: '#2e8b57' }] },
+      options: opts('Mean Qwen prompt tokens')
+    });
+    new Chart(document.getElementById('hrChartGpu'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'MB', data: nz(D.max_gpu_memory_used_mb), backgroundColor: '#9370db' }] },
+      options: opts('Max GPU memory (MB)')
+    });
+  })();
+  </script>
+
+  <h2>qwen_only</h2>
+<table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>4.734</td><td class='num'>4181</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>3.966</td><td class='num'>4181</td><td class='reply'>B</td></tr>
+<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>3.97</td><td class='num'>4181</td><td class='reply'>C</td></tr>
+<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>3.999</td><td class='num'>4181</td><td class='reply'>B</td></tr>
+<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>4.01</td><td class='num'>4163</td><td class='reply'>A</td></tr>
+<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>4.069</td><td class='num'>4163</td><td class='reply'>B</td></tr>
+<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>4.049</td><td class='num'>4163</td><td class='reply'>C</td></tr>
+<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>D</td><td>✓</td><td class='num'>4.12</td><td class='num'>4163</td><td class='reply'>D</td></tr>
+<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>5.208</td><td class='num'>4171</td><td class='reply'>A</td></tr>
+<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>4.672</td><td class='num'>4171</td><td class='reply'>B</td></tr></tbody></table>
+<h2>yolo_lowres_crops</h2>
+<table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.588</td><td class='num'>834</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.083</td><td class='num'>834</td><td class='reply'>B</td></tr>
+<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.004</td><td class='num'>834</td><td class='reply'>C</td></tr>
+<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>1.003</td><td class='num'>834</td><td class='reply'>B</td></tr>
+<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.677</td><td class='num'>839</td><td class='reply'>A</td></tr>
+<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.054</td><td class='num'>839</td><td class='reply'>B</td></tr>
+<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.05</td><td class='num'>839</td><td class='reply'>C</td></tr>
+<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>D</td><td>✓</td><td class='num'>1.126</td><td class='num'>839</td><td class='reply'>D</td></tr>
+<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.048</td><td class='num'>841</td><td class='reply'>A</td></tr>
+<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.191</td><td class='num'>841</td><td class='reply'>B</td></tr></tbody></table>
+<h2>yolo_smol_parallel</h2>
+<table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.151</td><td class='num'>1046</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.129</td><td class='num'>1046</td><td class='reply'>B</td></tr>
+<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.121</td><td class='num'>1046</td><td class='reply'>C</td></tr>
+<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>1.128</td><td class='num'>1046</td><td class='reply'>B</td></tr>
+<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.132</td><td class='num'>1051</td><td class='reply'>A</td></tr>
+<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.12</td><td class='num'>1051</td><td class='reply'>B</td></tr>
+<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.142</td><td class='num'>1051</td><td class='reply'>C</td></tr>
+<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>C</td><td>✗</td><td class='num'>1.205</td><td class='num'>1051</td><td class='reply'>C</td></tr>
+<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.109</td><td class='num'>1053</td><td class='reply'>A</td></tr>
+<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.138</td><td class='num'>1053</td><td class='reply'>B</td></tr></tbody></table>
+<h2>yolo_smol_sequential</h2>
+<table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.113</td><td class='num'>1046</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.058</td><td class='num'>1046</td><td class='reply'>B</td></tr>
+<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.093</td><td class='num'>1046</td><td class='reply'>C</td></tr>
+<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>1.044</td><td class='num'>1046</td><td class='reply'>B</td></tr>
+<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.107</td><td class='num'>1051</td><td class='reply'>A</td></tr>
+<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.087</td><td class='num'>1051</td><td class='reply'>B</td></tr>
+<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.069</td><td class='num'>1051</td><td class='reply'>C</td></tr>
+<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>C</td><td>✗</td><td class='num'>1.079</td><td class='num'>1051</td><td class='reply'>C</td></tr>
+<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.132</td><td class='num'>1053</td><td class='reply'>A</td></tr>
+<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.119</td><td class='num'>1053</td><td class='reply'>B</td></tr></tbody></table>
+</body>
+</html>

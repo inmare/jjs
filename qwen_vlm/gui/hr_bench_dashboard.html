@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>qwen-vlm — HR-Bench</title>
+  <style>
+    :root { font-family: system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+    body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    .toolbar {
+      flex: 0 0 auto; padding: 8px; border-bottom: 1px solid #ccc;
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #fff;
+    }
+    .main { flex: 1; display: flex; min-height: 0; }
+    .controls {
+      flex: 0 0 min(400px, 38vw); overflow: auto; padding: 10px;
+      border-right: 1px solid #ccc; background: #f6f7f9;
+    }
+    .preview { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #e8e8e8; }
+    #iframeReport { flex: 1; border: none; width: 100%; background: #fff; }
+    .log-wrap {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid #ccc;
+      min-height: 160px;
+      max-height: 45vh;
+      background: #1e1e1e;
+    }
+    .log-toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding: 4px 8px;
+      background: #2d2d2d;
+      border-bottom: 1px solid #444;
+    }
+    .log-toolbar span { font-size: 11px; color: #aaa; }
+    textarea.log {
+      flex: 1;
+      min-height: 120px;
+      margin: 0;
+      padding: 8px;
+      border: none;
+      resize: vertical;
+      overflow: auto;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-size: 12px;
+      font-family: Consolas, "D2Coding", monospace;
+      white-space: pre;
+      overflow-wrap: normal;
+      tab-size: 4;
+      cursor: text;
+      user-select: text;
+      -webkit-user-select: text;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    textarea.log:focus { outline: 1px solid #569cd6; outline-offset: -1px; }
+    h1 { font-size: 15px; margin: 0 0 10px 0; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    label.field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; font-size: 12px; }
+    label.field input, label.field select { padding: 5px; font-size: 12px; box-sizing: border-box; width: 100%; }
+    .strat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 8px 0; }
+    .strat-grid label { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+    button { padding: 7px 12px; cursor: pointer; font-size: 12px; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .err { color: #b00020; font-size: 12px; max-width: 28rem; }
+    .hint { font-size: 11px; color: #555; margin-bottom: 8px; }
+    .toolbar label.toolbar-notify { font-size: 12px; display: flex; align-items: center; gap: 6px; margin: 0; user-select: none; }
+    .toast {
+      position: fixed; right: 16px; bottom: 16px; max-width: 340px;
+      padding: 12px 16px; border-radius: 8px; font-size: 13px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18); z-index: 9999;
+      display: none; line-height: 1.4;
+    }
+    .toast.show { display: block; animation: toast-in 0.22s ease; }
+    .toast.ok { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .toast.err { background: #ffebee; color: #b71c1c; border: 1px solid #ef9a9a; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button type="button" id="btnRun">HR-Bench 실행</button>
+    <button type="button" id="btnReload">리포트·차트 새로고침</button>
+    <button type="button" id="btnBrowser">시스템 브라우저로 HTML</button>
+    <button type="button" id="btnDocs">docs 폴더 열기</button>
+    <button type="button" id="btnSavePng">차트 PNG 저장…</button>
+    <button type="button" id="btnCopyLog">로그 복사</button>
+    <button type="button" id="btnClearLog">로그 지우기</button>
+    <label class="toolbar-notify"><input type="checkbox" id="i_notify_done" checked/> 완료 시 알림·소리</label>
+    <span id="status" class="err"></span>
+  </div>
+  <div class="main">
+    <div class="controls">
+      <h1>HR-Bench (4 전략)</h1>
+      <p class="hint">llama-server는 <strong>127.0.0.1:8765</strong> 에서 자동 기동(또는 이미 떠 있으면 재사용). Smol 전략이 있으면 같은 포트에서 Smol↔Qwen GGUF 순차 스왑합니다. YOLO·전망·크롭은 아래에서 바꿀 수 있으며, 생성된 <code>hr_bench_last.html</code>에도 설정 표가 붙습니다.</p>
+      <div id="strategiesBox" class="strat-grid"></div>
+      <label class="field">split
+        <select id="i_split"></select>
+      </label>
+      <div class="row2">
+        <label class="field">max-samples (0=전체)
+          <input id="i_maxs" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">sample-mode
+          <select id="i_mode"><option value="sequential">sequential</option><option value="random">random</option></select>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">start (sequential)
+          <input id="i_start" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">seed (random, 빈칸 가능)
+          <input id="i_seed" type="text"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">context-max-side (긴 변 캡)
+          <input id="i_ctx" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">context-resize-scale (비율 전망, 예: 0.5)
+          <input id="i_ctx_scale" type="text" placeholder="0.5"/>
+        </label>
+      </div>
+      <label class="field"><input id="i_ctx_long_edge" type="checkbox"/> 전망만 긴 변 캡 사용 (비율 무시, <code>--context-by-long-edge</code>)</label>
+      <div class="row2">
+        <label class="field">crop-max-side (0=원본 크롭 그대로)
+          <input id="i_crop" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">max-crops (0=예산 후 전부)
+          <input id="i_max_crops" type="text" inputmode="numeric"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">YOLO 가중치
+          <input id="i_yolo_w" type="text"/>
+        </label>
+        <label class="field">박스 면적 ≤ 원본×N/M
+          <div class="row2" style="margin:0">
+            <input id="i_yolo_anum" type="text" inputmode="numeric" placeholder="N"/>
+            <input id="i_yolo_aden" type="text" inputmode="numeric" placeholder="M"/>
+          </div>
+        </label>
+      </div>
+      <label class="field"><input id="i_yolo_surv" type="checkbox"/> YOLO 감시 클래스만 (COCO 부분집합)</label>
+      <div class="row2">
+        <label class="field">min-crop short / area
+          <div class="row2" style="margin:0">
+            <input id="i_mincs" type="text" inputmode="numeric" placeholder="short"/>
+            <input id="i_minca" type="text" inputmode="numeric" placeholder="area"/>
+          </div>
+        </label>
+        <span></span>
+      </div>
+      <label class="field">YOLO 전망 긴 변 (0 = context와 동일, 기본 480)
+        <input id="i_yolo_ov" type="text" inputmode="numeric"/>
+      </label>
+      <label class="field">qwen-only 긴 변 (0 = context와 동일)
+        <input id="i_qwen_long" type="text" inputmode="numeric"/>
+      </label>
+      <div class="row2">
+        <label class="field">max-tokens
+          <input id="i_max_tok" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">smol-max-tokens
+          <input id="i_smol_tok" type="text" inputmode="numeric"/>
+        </label>
+      </div>
+      <label class="field"><input id="i_qwen_orig" type="checkbox"/> qwen-only 원본 이미지 그대로 전송 (대조군, --qwen-only-use-original)</label>
+      <label class="field"><input id="i_omit_smol" type="checkbox"/> Smol GGUF/mmproj 없으면 Smol 전략만 생략 (--omit-smol-if-unavailable)</label>
+      <label class="field"><input id="i_disable_yolo_budget" type="checkbox"/> YOLO→VLM 픽셀 예산·필터 끄기 (--disable-yolo-vlm-budget, 기본은 켜짐)</label>
+      <label class="field"><input id="i_png" type="checkbox"/> 비교 차트 PNG도 저장 (matplotlib)</label>
+      <label class="field"><input id="i_no_html_samples" type="checkbox"/> HTML에서 샘플 긴 표 생략</label>
+    </div>
+    <div class="preview">
+      <iframe id="iframeReport" title="HR-Bench 리포트 (표 + Chart.js)"></iframe>
+    </div>
+  </div>
+  <div class="log-wrap">
+    <div class="log-toolbar">
+      <span>실행 로그 (선택·복사 가능)</span>
+    </div>
+    <textarea id="log" class="log" readonly spellcheck="false" wrap="off" aria-label="실행 로그"></textarea>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    window.__HR_BOOTSTRAP__ = __BOOTSTRAP_PLACEHOLDER__;
+  </script>
+  <script>
+(function () {
+  const BS = window.__HR_BOOTSTRAP__ || {};
+  const paths = BS.paths || {};
+  const defs = BS.defaults || {};
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(msg) { $("status").textContent = msg || ""; }
+
+  function appendLog(line) {
+    const el = $("log");
+    el.value += line + "\n";
+    el.scrollTop = el.scrollHeight;
+  }
+  window._appendLog = appendLog;
+
+  function _applyReportB64(b64) {
+    if (!b64) return false;
+    const f = $("iframeReport");
+    try {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const html = new TextDecoder("utf-8").decode(bytes);
+      f.removeAttribute("src");
+      f.srcdoc = html;
+      return true;
+    } catch (e) {
+      appendLog("[경고] 리포트 미리보기 주입 실패: " + e);
+      return false;
+    }
+  }
+
+  function refreshIframeFileUri() {
+    const f = $("iframeReport");
+    const uri = paths.reportHtmlUri;
+    if (!uri) return;
+    f.removeAttribute("srcdoc");
+    f.src = uri + (uri.includes("?") ? "&" : "?") + "t=" + Date.now();
+  }
+
+  function loadReportPreviewFromApi() {
+    if (!window.pywebview || !pywebview.api || !pywebview.api.embed_report_preview) {
+      refreshIframeFileUri();
+      return Promise.resolve();
+    }
+    return pywebview.api.embed_report_preview().then(function (r) {
+      if (r && r.html_b64) {
+        if (!_applyReportB64(r.html_b64)) refreshIframeFileUri();
+      } else {
+        refreshIframeFileUri();
+      }
+    }).catch(function (e) {
+      appendLog("[경고] 미리보기 로드 API 실패: " + e);
+      refreshIframeFileUri();
+    });
+  }
+
+  function ensureAudioCtx() {
+    try {
+      if (!window.__hrAudioCtx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) window.__hrAudioCtx = new AC();
+      }
+      if (window.__hrAudioCtx && window.__hrAudioCtx.state === "suspended") {
+        window.__hrAudioCtx.resume();
+      }
+    } catch (e) {}
+  }
+
+  function playDoneChime(success) {
+    var ctx = window.__hrAudioCtx;
+    if (!ctx) return;
+    try {
+      var now = ctx.currentTime;
+      if (success) {
+        [523.25, 659.25].forEach(function (freq, i) {
+          var o = ctx.createOscillator();
+          var g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.frequency.value = freq;
+          o.type = "sine";
+          var t0 = now + i * 0.11;
+          g.gain.setValueAtTime(0.11, t0);
+          g.gain.exponentialRampToValueAtTime(0.008, t0 + 0.18);
+          o.start(t0);
+          o.stop(t0 + 0.2);
+        });
+      } else {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.frequency.value = 165;
+        o.type = "triangle";
+        g.gain.setValueAtTime(0.09, now);
+        g.gain.exponentialRampToValueAtTime(0.008, now + 0.32);
+        o.start(now);
+        o.stop(now + 0.34);
+      }
+    } catch (e) {}
+  }
+
+  function showToast(ok, title, body) {
+    var el = $("toast");
+    el.className = "toast show " + (ok ? "ok" : "err");
+    el.textContent = (title + (body ? "\n" + body : "")).trim();
+    clearTimeout(window.__hrToastTimer);
+    window.__hrToastTimer = setTimeout(function () {
+      el.className = "toast";
+      el.textContent = "";
+    }, ok ? 6500 : 9000);
+  }
+
+  function maybeDesktopNotify(ok) {
+    if (!window.Notification || Notification.permission !== "granted") return;
+    try {
+      if (ok) {
+        new Notification("HR-Bench 완료", { body: "오른쪽 미리보기에 결과를 표시했습니다.", silent: true });
+      } else {
+        new Notification("HR-Bench 실패", { body: "종료 코드가 0이 아닙니다. 로그를 확인하세요.", silent: true });
+      }
+    } catch (e) {}
+  }
+
+  function primeNotifications() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      try { Notification.requestPermission(); } catch (e) {}
+    }
+  }
+
+  window._onBenchFinished = function (code) {
+    $("btnRun").disabled = false;
+    appendLog("---- 종료 코드 " + code + " ----");
+    var ok = (code === 0);
+    setStatus(ok ? "" : "실패 (코드 " + code + ")");
+    loadReportPreviewFromApi().then(function () {
+      var want = $("i_notify_done") && $("i_notify_done").checked;
+      if (want) {
+        playDoneChime(ok);
+        maybeDesktopNotify(ok);
+      }
+      if (ok) {
+        showToast(true, "HR-Bench 완료", "미리보기가 갱신되었습니다.");
+      } else {
+        showToast(false, "HR-Bench 실패", "로그와 종료 코드를 확인하세요.");
+      }
+    });
+  };
+
+  function collectConfig() {
+    const strategies = [];
+    document.querySelectorAll("#strategiesBox input[type=checkbox]:checked").forEach(function (c) {
+      strategies.push(c.value);
+    });
+    return {
+      strategies: strategies,
+      split: $("i_split").value,
+      max_samples: $("i_maxs").value.trim(),
+      sample_mode: $("i_mode").value,
+      start: $("i_start").value.trim(),
+      seed: $("i_seed").value.trim(),
+      context_max_side: $("i_ctx").value.trim(),
+      context_resize_scale: $("i_ctx_scale").value.trim(),
+      context_by_long_edge: $("i_ctx_long_edge").checked,
+      crop_max_side: $("i_crop").value.trim(),
+      max_crops: $("i_max_crops").value.trim(),
+      yolo_weights: $("i_yolo_w").value.trim(),
+      yolo_surveillance_classes_only: $("i_yolo_surv").checked,
+      yolo_max_bbox_area_num: $("i_yolo_anum").value.trim(),
+      yolo_max_bbox_area_den: $("i_yolo_aden").value.trim(),
+      min_crop_short_side: $("i_mincs").value.trim(),
+      min_crop_area: $("i_minca").value.trim(),
+      yolo_overview_max_side: $("i_yolo_ov").value.trim(),
+      qwen_image_max_long_side: $("i_qwen_long").value.trim(),
+      max_tokens: $("i_max_tok").value.trim(),
+      smol_max_tokens: $("i_smol_tok").value.trim(),
+      smol_gguf: (defs.smol_gguf != null ? String(defs.smol_gguf) : ""),
+      smol_mmproj: (defs.smol_mmproj != null ? String(defs.smol_mmproj) : ""),
+      qwen_only_use_original: $("i_qwen_orig").checked,
+      omit_smol_if_unavailable: $("i_omit_smol").checked,
+      disable_yolo_vlm_budget: $("i_disable_yolo_budget").checked,
+      save_png: $("i_png").checked,
+      no_sample_tables: $("i_no_html_samples").checked,
+    };
+  }
+
+  function applyDefaults() {
+    const d = defs;
+    const splits = BS.splits || ["hrbench_4k", "hrbench_8k"];
+    const sel = $("i_split");
+    sel.innerHTML = "";
+    splits.forEach(function (s) {
+      const o = document.createElement("option");
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    });
+    sel.value = d.split || "hrbench_4k";
+    $("i_maxs").value = d.max_samples != null ? String(d.max_samples) : "10";
+    $("i_mode").value = d.sample_mode || "sequential";
+    $("i_start").value = d.start != null ? String(d.start) : "0";
+    $("i_seed").value = d.seed || "";
+    $("i_ctx").value = d.context_max_side != null ? String(d.context_max_side) : "960";
+    $("i_ctx_scale").value = d.context_resize_scale != null ? String(d.context_resize_scale) : "0.5";
+    $("i_ctx_long_edge").checked = !!d.context_by_long_edge;
+    $("i_crop").value = d.crop_max_side != null ? String(d.crop_max_side) : "0";
+    $("i_max_crops").value = d.max_crops != null ? String(d.max_crops) : "0";
+    $("i_yolo_w").value = d.yolo_weights != null ? String(d.yolo_weights) : "";
+    $("i_yolo_surv").checked = !!d.yolo_surveillance_classes_only;
+    $("i_yolo_anum").value = d.yolo_max_bbox_area_num != null ? String(d.yolo_max_bbox_area_num) : "1";
+    $("i_yolo_aden").value = d.yolo_max_bbox_area_den != null ? String(d.yolo_max_bbox_area_den) : "4";
+    $("i_mincs").value = d.min_crop_short_side != null ? String(d.min_crop_short_side) : "0";
+    $("i_minca").value = d.min_crop_area != null ? String(d.min_crop_area) : "0";
+    $("i_yolo_ov").value = d.yolo_overview_max_side != null ? String(d.yolo_overview_max_side) : "480";
+    $("i_qwen_long").value = d.qwen_image_max_long_side != null ? String(d.qwen_image_max_long_side) : "0";
+    $("i_max_tok").value = d.max_tokens != null ? String(d.max_tokens) : "8";
+    $("i_smol_tok").value = d.smol_max_tokens != null ? String(d.smol_max_tokens) : "256";
+    $("i_qwen_orig").checked = d.qwen_only_use_original !== false;
+    $("i_omit_smol").checked = !!d.omit_smol_if_unavailable;
+    $("i_disable_yolo_budget").checked = !!d.disable_yolo_vlm_budget;
+    $("i_png").checked = d.save_png !== false;
+    $("i_no_html_samples").checked = !!d.no_sample_tables;
+
+    const box = $("strategiesBox");
+    box.innerHTML = "";
+    (BS.strategies || []).forEach(function (name) {
+      const id = "st_" + name.replace(/[^a-zA-Z0-9_]/g, "_");
+      const lab = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.id = id;
+      cb.value = name;
+      cb.checked = (d.strategies_checked || []).indexOf(name) >= 0 || (d.strategies_checked || []).length === 0;
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(" " + name));
+      box.appendChild(lab);
+    });
+  }
+
+  $("btnRun").onclick = function () {
+    setStatus("");
+    if (!window.pywebview || !pywebview.api) {
+      setStatus("pywebview API 없음");
+      return;
+    }
+    ensureAudioCtx();
+    primeNotifications();
+    pywebview.api.run_bench(collectConfig()).then(function (r) {
+      if (r && r.error) {
+        setStatus(r.error);
+        return;
+      }
+      if (r && r.started) {
+        $("btnRun").disabled = true;
+        appendLog("[안내] 실행 시작…");
+      }
+    });
+  };
+  $("btnCopyLog").onclick = function () {
+    const el = $("log");
+    var t = el.value || "";
+    if (!t) {
+      setStatus("복사할 로그 없음");
+      return;
+    }
+    function ok() { setStatus("로그를 클립보드에 복사했습니다."); }
+    function fail() { setStatus("복사 실패: 로그 창에서 직접 Ctrl+A → Ctrl+C"); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(ok).catch(function () {
+        try {
+          el.focus();
+          el.select();
+          el.setSelectionRange(0, el.value.length);
+          if (document.execCommand("copy")) ok(); else fail();
+        } catch (e) { fail(); }
+      });
+    } else {
+      try {
+        el.focus();
+        el.select();
+        el.setSelectionRange(0, el.value.length);
+        if (document.execCommand("copy")) ok(); else fail();
+      } catch (e) { fail(); }
+    }
+  };
+  $("btnClearLog").onclick = function () {
+    $("log").value = "";
+    setStatus("");
+  };
+  $("btnReload").onclick = function () {
+    loadReportPreviewFromApi();
+  };
+  $("btnBrowser").onclick = function () {
+    if (window.pywebview && pywebview.api) pywebview.api.open_report_browser();
+  };
+  $("btnDocs").onclick = function () {
+    if (window.pywebview && pywebview.api) pywebview.api.open_docs_folder();
+  };
+  $("btnSavePng").onclick = function () {
+    if (window.pywebview && pywebview.api) pywebview.api.save_png_dialog();
+  };
+
+  applyDefaults();
+  loadReportPreviewFromApi();
+})();
+  </script>
+</body>
+</html>

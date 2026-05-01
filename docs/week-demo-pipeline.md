@@ -1,12 +1,15 @@
 # 주간 데모: 감시 프레임 파이프라인 실험
 
+> **GUI** (`-m qwen_vlm.gui.hr_bench_app`, pywebview)는 **HR-Bench** 전용입니다. 연속 프레임 실험은 `qwen_vlm.run_week_experiments` / `qwen_vlm.pipeline.experiment` CLI를 쓰세요.  
+> **고해상도 객관식 비교**는 [hr-bench-pipeline.md](./hr-bench-pipeline.md) 를 참고하세요.
+
 연속 프레임(또는 영상에서 추출한 프레임)에 대해 **Qwen3-VL(llama.cpp)** 기준으로 다음을 비교·정리합니다.
 
 - **Qwen-only**: 문맥용으로 리사이즈한 **이미지 1장**만 입력.
-- **YOLO + Qwen**: 동일 문맥 1장 + **COCO 기반 감시 프리셋**으로 뽑은 **크롭 최대 K장** 추가(비전 토큰은 장수만큼 **합산**될 수 있음 — [qwen3-vl-image-tokens.md](./qwen3-vl-image-tokens.md) 참고).
+- **YOLO + Qwen**: 동일 문맥 1장 + **COCO 기반 감시 프리셋**으로 뽑은 **크롭 최대 K장** 추가. 기본적으로 [pipeline-yolo-crops-vlm.md](./pipeline-yolo-crops-vlm.md) 의 **픽셀 예산 필터**로 박스 수·면적을 줄여 비전 토큰을 억제합니다(`--disable-yolo-vlm-budget` 로 끔). 장수만큼 토큰이 **합산**될 수 있음 — [qwen3-vl-image-tokens.md](./qwen3-vl-image-tokens.md) 참고.
 - **2단계**: **경량 VLM**(별도 `llama-server`, OpenAI 호환) 또는 실패·미설정 시 **YOLO 휴리스틱**으로 1단계 요약 → **조건부 Qwen**([realtime-vlm-input-strategies.md](./realtime-vlm-input-strategies.md) §2–3와 동일한 완화 논리).
 
-비전 토큰 **근사치**는 입력 해상도로 `qwen3_vl_image_tokens.py` 와 같은 `vendor` 프리셋 규칙을 코드에서 합산합니다. API의 `prompt_tokens`는 텍스트·특수 토큰을 포함하므로 **근사치와 다를 수 있습니다**.
+비전 토큰 **근사치**는 입력 해상도로 `qwen_vlm/vision/tokens.py` (루트 `qwen3_vl_image_tokens.py` 래퍼와 동일)와 같은 `vendor` 프리셋 규칙을 코드에서 합산합니다. API의 `prompt_tokens`는 텍스트·특수 토큰을 포함하므로 **근사치와 다를 수 있습니다**.
 
 ---
 
@@ -52,7 +55,7 @@ uv sync --group dev
 | 26 | handbag |
 | 28 | suitcase |
 
-정의 위치: [yolo_surveillance.py](../yolo_surveillance.py) 의 `FACTORY_SURVEILLANCE_CLASS_IDS`.
+정의 위치: [qwen_vlm/vision/yolo.py](../qwen_vlm/vision/yolo.py) 의 `FACTORY_SURVEILLANCE_CLASS_IDS`.
 
 1단계 **YOLO 폴백** 위험도(`low` / `med` / `high`)는 탐지 수·차량 클래스 유무 등 단순 휴리스틱입니다(`yolo_heuristic_risk`).
 
@@ -127,26 +130,27 @@ flowchart LR
 
 <!-- AUTO_RESULTS_START -->
 
-**자동 기록** (`run_week_experiments.py`): 2026-04-19T02:33:47
+**자동 기록** (`run_week_experiments.py`): 2026-04-26T01:27:22
 
 - **프레임 디렉터리**: `D:\Private\Fiddles\qwen-vlm\data\datasets\demo\frames` (6장)
 - **경량 VLM**: [ggml-org/SmolVLM-256M-Instruct-GGUF](https://huggingface.co/ggml-org/SmolVLM-256M-Instruct-GGUF) — `SmolVLM-256M-Instruct-Q8_0.gguf` + `mmproj-SmolVLM-256M-Instruct-Q8_0.gguf`
 - **Qwen**: 로컬 `Qwen3VL-4B-Instruct-Q8_0` / 별칭 `qwen3-vl-4b-q8`
-- **실행 GPU (torch)**: NVIDIA GeForce RTX 4060
+- **Ultralytics/torch 백엔드**: CPU (CUDA 없음) — VLM·Smol·Qwen은 `llama-server` 별도 프로세스(VRAM/속도는 `resource_sampling_note`·행별 스냅샷 참고)
 
 ### 집계 (bench)
 
 | 지표 | Qwen-only | YOLO+Qwen |
 |------|-----------|-----------|
-| 평균 VLM 시간(s) | 6.137 | 6.265 (YOLO+추론) |
-| 평균 prompt_tokens | 552.0 | 614.2 |
+| 평균 VLM 시간(s) | 6.083 | 5.704 (YOLO+추론) |
+| 평균 prompt_tokens | 552.0 | 754.2 |
 | 평균 approx 비전 토큰(합) | 510.0 | 548.0 |
 
 ### 지연 비교 (평균, 초)
 
-- **Qwen-only (bench)**: 평균 **6.137** s/프레임
-- **YOLO+Qwen (bench)**: 평균 **6.265** s/프레임 (YOLO + VLM)
-- **Smol→Qwen (two-stage)**: Smol 평균 **0.1448** s + Qwen(호출 시) 평균 **6.0795** s → 프레임당 평균 **6.2243** s (end-to-end 합산)
+- **Qwen-only (bench)**: 평균 **6.083** s/프레임
+- **YOLO+Qwen (bench)**: 평균 **5.704** s/프레임 (YOLO + VLM)
+- **YOLO∥Smol→Qwen (병렬)**: wall 병렬 평균 **0.238** s, E2E 합산 평균 **6.785** s — (wall_parallel: ThreadPool YOLO∥Smol 구간, total: wall+qwen(또는 low 스킵시 wall만))
+- **Smol→Qwen (two-stage)**: Smol 평균 **0.2185** s + Qwen(호출 시) 평균 **6.7187** s → 프레임당 평균 **6.9372** s (end-to-end 합산)
   - (total = Phase2에서 측정한 Smol stage1_seconds + Phase3 qwen_seconds(또는 low면 stage1만).)
 
 ### 집계 (two-stage, `--skip-qwen-if-low`)
@@ -158,12 +162,12 @@ flowchart LR
 
 | 프레임 | approx Q-only | approx YOLO+Q | p.tok Q | p.tok Y |
 |--------|---------------|---------------|---------|---------|
-| frame_000001.jpg | 510 | 559 | 552 | 620 |
-| frame_000002.jpg | 510 | 510 | 552 | 566 |
-| frame_000003.jpg | 510 | 536 | 552 | 606 |
-| frame_000004.jpg | 510 | 588 | 552 | 658 |
-| frame_000005.jpg | 510 | 544 | 552 | 614 |
-| frame_000006.jpg | 510 | 551 | 552 | 621 |
+| frame_000001.jpg | 510 | 559 | 552 | 736 |
+| frame_000002.jpg | 510 | 510 | 552 | 621 |
+| frame_000003.jpg | 510 | 536 | 552 | 773 |
+| frame_000004.jpg | 510 | 588 | 552 | 825 |
+| frame_000005.jpg | 510 | 544 | 552 | 781 |
+| frame_000006.jpg | 510 | 551 | 552 | 789 |
 
 > ShanghaiTech 등 별도 프레임 디렉터리로 동일 스크립트를 다시 실행하면 이 블록을 덮어씁니다.
 <!-- AUTO_RESULTS_END -->
@@ -172,6 +176,7 @@ flowchart LR
 
 ## 한계·다음 단계
 
+- **(계획)** 일반 VLM·멀티모달 정확도는 **MMBench**([OpenCompass MMBench](https://github.com/open-compass/mmbench) 등 공개 벤치)로도 측정해 감시 데모·연속 프레임 실험과 **역할을 분리**해 두는 것이 좋다(도메인·질문 형식이 다름). 스크립트/데이터는 추후 `data/datasets/mmbench/` 등에 둘 예정.
 - 데모 MP4는 감시 영상이 아님 — 교수님 보고용 **서사**는 ShanghaiTech / UCF 등 실데이터 프레임으로 재실행 권장.
 - 경량 VLM은 **모델·mmproj·한국어 품질**에 따라 1단계를 영어 JSON으로 고정했습니다(`--stage1-prompt` 변경 가능).
 - PPE·화재·누유 등은 COCO YOLO만으로 부족 — 필요 시 산업 특화 가중치·별도 검출 채널을 문서화하는 편이 좋습니다.

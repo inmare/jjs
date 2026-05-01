@@ -2,6 +2,7 @@
 
 - Qwen 계열 VLM으로 이미지 이해·설명 실험
 - (향후) 앞단에 가벼운 detection 모델을 붙이거나, 고화질/크롭 이미지 등 조건별 벤치마크
+- (향후) **MMBench** 등 공개 멀티모달 벤치마크(정답/선다형)로 VLM 품질을 측정(감시 데모 프레임 실험과는 목적이 다름)
 - (향후) 다른 VLM/GGUF와 **동일 API 패턴**(OpenAI 호환)으로 속도·품질 비교
 
 ---
@@ -11,6 +12,18 @@
 - Python 3.12
 - OS: Windows 11 (기본 경로는 Windows용 `llama-server.exe` 가정)
 - GPU: NVIDIA + [llama.cpp CUDA 빌드](https://github.com/ggml-org/llama.cpp/releases) 권장 (CPU 빌드도 가능하나 매우 느림)
+
+### 저장소 구조
+
+| 경로 | 역할 |
+|------|------|
+| `qwen_vlm/` | VLM·벤치·주간 실험·YOLO·프레임 게이트 **구현** (`pip`/editable 설치 대상) |
+| `scripts/` | 데모 영상·프레임 추출·**Tk GUI** 등 실행 스크립트 |
+| `docs/` | 절차·파이프라인·결과 JSON/HTML |
+| `data/` | 프레임·데이터셋(대용량은 git 제외) |
+| 루트 `main.py` 등 | `qwen_vlm`을 호출하는 **호환 래퍼** (이전 `uv run python main.py` 유지) |
+
+`uv sync` 한 뒤에는 `qwen_vlm` 패키지로 import·`-m` 실행이 모두 됩니다.
 
 ---
 
@@ -72,11 +85,21 @@ uv run python main.py --no-spawn --base-url http://127.0.0.1:8080/v1 --model <�
 
 ---
 
-## 주간 데모: 연속 프레임·YOLO·2단계 VLM
+## HR-Bench (권장): 네 가지 입력 전략 비교
 
-- 절차·데이터 경로·명령어: [docs/week-demo-pipeline.md](docs/week-demo-pipeline.md)
-- 데모 영상 받기: `uv run python scripts/fetch_demo_video.py` → `data/datasets/demo/` (`.gitignore`)
-- YOLO 실험: `uv sync --group dev` 후 `uv run python experiment_pipeline.py bench --help`
+고해상도 객관식 벤치마크에 **Qwen 단독 / YOLO+저해상+크롭 / Smol 병렬 / Smol 순차**를 같은 문제 집합으로 돌려 정확도·시간·토큰·GPU 메모리를 표로 비교합니다.
+
+- **문서**: [docs/hr-bench-pipeline.md](docs/hr-bench-pipeline.md) · 색인 [docs/README.md](docs/README.md)
+- **GUI (HR-Bench)**: `uv sync` 후 `uv run python -m qwen_vlm.gui.hr_bench_app` (pywebview + HTML/Chart.js)
+- **CLI**: `uv run python scripts/run_hr_bench.py --help` (예: `--strategies all`)
+- YOLO 크롭은 기본 **픽셀 예산 필터**로 비전 토큰을 줄입니다(`--disable-yolo-vlm-budget` 로 끔).
+
+## 주간 데모: 연속 프레임·YOLO·2단계 VLM (CLI)
+
+- 절차·데이터: [docs/week-demo-pipeline.md](docs/week-demo-pipeline.md)
+- YOLO·크롭·게이트: [docs/pipeline-yolo-crops-vlm.md](docs/pipeline-yolo-crops-vlm.md)
+- 데모 영상: `uv run python scripts/fetch_demo_video.py` → `data/datasets/demo/`
+- CLI: `uv sync --group dev` 후 `uv run python -m qwen_vlm.pipeline.experiment bench --help`, `uv run python -m qwen_vlm.run_week_experiments --help`
 
 ## 참고: 속도·토큰
 

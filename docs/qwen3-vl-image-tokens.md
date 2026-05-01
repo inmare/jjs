@@ -33,6 +33,8 @@ llama-server 기동 시 로그에 나오는 `load_hparams: image_min_pixels`, `i
 
 HF의 `<|image_pad|>` 개수 등과 **완전 일치**는 아닐 수 있으나, **픽셀 예산·리사이즈 여부**를 가늠하기엔 보통 충분합니다.
 
+YOLO 다중 크롭 경로에서는 [pipeline-yolo-crops-vlm.md](./pipeline-yolo-crops-vlm.md) 의 **VLM 픽셀 예산**으로 보내는 박스 면적 합을 원본 이하로 맞추는 경우가 많습니다(비전 토큰 상한을 실질적으로 줄임).
+
 ## 프리셋별 픽셀·토큰 상한 (짧은 비교표)
 
 | 프리셋 | 용도 | `min_pixels` | `max_pixels` | 토큰(근사) 범위 |
@@ -45,7 +47,7 @@ HF의 `<|image_pad|>` 개수 등과 **완전 일치**는 아닐 수 있으나, *
 
 ## 짧은 표: 해상도 예시 → 리사이즈 후 → 토큰 (`vendor` 프리셋)
 
-아래는 저장소의 `qwen3_vl_image_tokens.py --preset vendor` 와 동일한 계산입니다.
+아래는 저장소의 `qwen_vlm/vision/tokens.py` (`--preset vendor`) 와 동일한 계산입니다. CLI는 루트 `qwen3_vl_image_tokens.py` 래퍼 또는 `uv run python -m qwen_vlm.vision.tokens` 로 실행할 수 있습니다.
 
 | 입력 (W×H) | smart_resize 후 (W×H) | 면적 (px) | 비전 토큰 (근사) |
 |------------|------------------------|-----------|------------------|
@@ -79,7 +81,7 @@ HF의 `<|image_pad|>` 개수 등과 **완전 일치**는 아닐 수 있으나, *
 ## 직접 재계산하기
 
 ```bash
-python qwen3_vl_image_tokens.py --width 1920 --height 1080 --preset vendor
+uv run python qwen3_vl_image_tokens.py --width 1920 --height 1080 --preset vendor
 ```
 
 기본값이 `vendor` 이므로 `--preset` 은 생략 가능합니다.
