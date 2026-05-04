@@ -12,6 +12,8 @@
 | 로컬 PC (pip·가상환경·CUDA PyTorch 안내가 필요하면) | [사용법.md](사용법.md) |
 | Google Colab (브라우저만, 데스크톱 GUI 없음) | [사용법-Colab.md](사용법-Colab.md) · [notebooks/colab_quickstart.ipynb](notebooks/colab_quickstart.ipynb) |
 
+[![Colab에서 열기](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/inmare/jjs/blob/main/notebooks/colab_quickstart.ipynb)
+
 자세한 옵션·파이프라인은 계속해서 [docs/README.md](docs/README.md)와 아래 각 절을 보시면 됩니다.
 
 ---
