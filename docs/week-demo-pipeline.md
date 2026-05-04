@@ -1,7 +1,8 @@
 # 주간 데모: 감시 프레임 파이프라인 실험
 
-> **GUI** (`-m qwen_vlm.gui.hr_bench_app`, pywebview)는 **HR-Bench** 전용입니다. 연속 프레임 실험은 `qwen_vlm.run_week_experiments` / `qwen_vlm.pipeline.experiment` CLI를 쓰세요.  
-> **고해상도 객관식 비교**는 [hr-bench-pipeline.md](./hr-bench-pipeline.md) 를 참고하세요.
+> **실험 GUI**: `uv run python scripts/experiment_gui.py`(또는 `-m qwen_vlm.gui.hr_bench_app`) 한 창에 **HR-Bench** 탭과 **연속 프레임 비교** 탭이 있습니다. 연속 비교 실행은 내부적으로 `python -m qwen_vlm.pipeline.experiment sequence-compare` 로 이어지며, 기본 결과는 `docs/sequence_compare_last.json` · `sequence_compare_last.html` 입니다.  
+> 같은 파이프라인을 배치·스크립트로 돌리려면 아래 **`run_week_experiments`** / **`experiment_pipeline`** CLI를 사용하세요.  
+> HR-Bench 고해상 객관식은 [hr-bench-pipeline.md](./hr-bench-pipeline.md) 를 참고하세요.
 
 연속 프레임(또는 영상에서 추출한 프레임)에 대해 **Qwen3-VL(llama.cpp)** 기준으로 다음을 비교·정리합니다.
 
@@ -36,6 +37,17 @@ uv sync --group dev
 
 - `ultralytics` + (의존) `torch`: YOLO.
 - `opencv-python-headless`: `ffmpeg` 가 없을 때 프레임 추출 폴백.
+
+### GUI에서 연속 프레임 비교 (`sequence-compare`)
+
+위 의존성을 맞춘 뒤 `uv run python scripts/experiment_gui.py` → **연속 프레임** 탭에서 프레임 디렉터리·`base_url`·`model`·게이트·YOLO 필드를 채우고 실행합니다. 생성물은 보통:
+
+- `docs/sequence_compare_last.json`
+- `docs/sequence_compare_last.html`(대시보드 미리보기·외부 브라우저 열기에 사용)
+
+평탄한 폴더의 `jpg`/`jpeg`/`png`, 또는 `qwen_vlm.pipeline.experiment.list_frames`와 동일 규칙의 `testing/frames/<시퀀스>/` 구조를 허용합니다(GUI 검증과 동일).
+
+CLI 대안은 아래 `experiment_pipeline` 계열 또는 `python -m qwen_vlm.pipeline.experiment sequence-compare --help` 입니다.
 
 ---
 

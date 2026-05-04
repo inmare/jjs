@@ -1,6 +1,6 @@
 # YOLO 크롭 · 좌표 메타 · VLM 입력 (정리)
 
-> 동일한 YOLO·좌표(클래스 비노출) 설계는 **HR-Bench** 파이프라인(`qwen_vlm/hr_bench/strategies.py`)에서도 재사용됩니다. 진입점: [hr-bench-pipeline.md](./hr-bench-pipeline.md).
+> 동일한 YOLO·좌표(클래스 비노출) 설계는 **HR-Bench** 파이프라인(`qwen_vlm/hr_bench/strategies.py`)과 **실험 GUI**(`scripts/experiment_gui.py` → HR-Bench 탭·연속 프레임 탭의 YOLO 옵션)에서도 재사용됩니다. HR-Bench 절차: [hr-bench-pipeline.md](./hr-bench-pipeline.md).
 
 이 문서는 `qwen_vlm.vision.yolo.run_yolo_crops`, `qwen_vlm.experiment_pipeline` 의 벤치/병렬/two-stage 경로, 그리고 **클래스명 없이 좌표 + 이미지**만 Qwen(Smol)에 넘기는 현재 설계를 요약한다.
 

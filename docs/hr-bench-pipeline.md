@@ -53,23 +53,32 @@ uv run python scripts/run_hr_bench.py --max-samples 10 \
 
 실행 로그에는 **전략 번호**, **샘플 k/n 및 퍼센트**, **데이터셋 행·HR 인덱스**, **정답/오답(gt vs pred)** 가 순서대로 출력됩니다.
 
-## GUI
+## GUI (권장 진입점)
+
+HR-Bench 탭만 쓸 때도 **저장소 루트에서** 다음을 쓰는 것을 권장합니다. 스크립트는 `sys.executable -m qwen_vlm.gui.hr_bench_app` 과 동치이며, GUI가 띄우는 서브프로세스도 `sys.executable -m qwen_vlm.cli.hr_bench` 를 쓰므로 **현재 `uv run` 인터프리터와 코드가 일치**합니다.
 
 ```bash
-uv sync
-uv run python -m qwen_vlm.gui.hr_bench_app
+uv sync --group dev
+uv run python scripts/experiment_gui.py
 ```
 
-체크박스로 전략 선택 후 실행합니다. 결과는 기본적으로 `docs/hr_bench_last.json`, `docs/hr_bench_last.html`, 선택 시 `docs/hr_bench_last_charts.png`.
+동일 기능: `uv run python -m qwen_vlm.gui.hr_bench_app`
 
-- **HTML (내장 창)**: `pywebview` 로 별도 창에서 `file://` HTML 을 띄웁니다. Windows 에는 [WebView2 런타임](https://developer.microsoft.com/microsoft-edge/webview2/) 이 필요할 수 있습니다.
-- **PNG 다른 이름 저장**: 실행 후 생성된 차트를 원하는 경로로 복사합니다.
+같은 창에 **연속 프레임 비교** 탭이 있으며, 거기서 `sequence-compare` 를 돌리면 `docs/sequence_compare_last.json` 등이 생성됩니다(연속 프레임 절차: [week-demo-pipeline.md](week-demo-pipeline.md)).
+
+구현 모듈: `qwen_vlm/gui/hr_bench_app.py`, 대시보드 템플릿 `qwen_vlm/gui/hr_bench_dashboard.html`.
+
+체크박스로 전략 선택 후 **HR-Bench 실행**하면, 결과는 기본적으로 `docs/hr_bench_last.json`, `docs/hr_bench_last.html`, 선택 시 `docs/hr_bench_last_charts.png`.
+
+- **미리보기**: 부모 문서가 인라인 HTML이라 `iframe` 에 `docs/hr_bench_last.html` 내용을 `srcdoc` 으로 넣어 표시합니다(`file://` 차단 회피).
+- **외부 브라우저**: 보고용으로 기본 브라우저에서 동일 HTML을 열 수 있습니다.
+- **WebView2**: Windows 에서 [WebView2 런타임](https://developer.microsoft.com/microsoft-edge/webview2/) 이 필요할 수 있습니다.
 
 ## 서버·VRAM
 
 - `yolo_smol_*` 는 Qwen + Smol + YOLO가 부하를 줄 수 있습니다. VRAM이 빠듯하면 전략을 나누어 실행하거나 `max_crops` / 해상도 캡을 낮추세요.
 - Smol↔Qwen 스왑을 쓰려면 **8765 포트에 다른 llama-server가 떠 있으면 안 됩니다**(비어 있는 포트 필요).
 
-## 연속 프레임·게이트 실험 (별도)
+## 연속 프레임·게이트 실험
 
-로컬 `frame_*.jpg` 주간 파이프라인은 `qwen_vlm/run_week_experiments.py`, `qwen_vlm/pipeline/experiment.py` 를 사용합니다. 요약은 [week-demo-pipeline.md](week-demo-pipeline.md), YOLO·크롭·예산 필터는 [pipeline-yolo-crops-vlm.md](pipeline-yolo-crops-vlm.md)를 참고하세요.
+로컬 `frame_*.jpg` 디렉터리에 대한 **연속 비교 한 번 실행**은 GUI의 해당 탭(→ `pipeline.experiment sequence-compare`) 또는 CLI로 실행합니다. 여러 설정을 주간 단위로 돌려 자동 표를 채우는 경우는 `qwen_vlm/run_week_experiments.py`(루트 래퍼 `run_week_experiments.py`)를 씁니다. 요약은 [week-demo-pipeline.md](week-demo-pipeline.md), YOLO·크롭·예산 필터는 [pipeline-yolo-crops-vlm.md](pipeline-yolo-crops-vlm.md)를 참고하세요.
