@@ -109,8 +109,9 @@ class SingleLlamaSwapController:
             model=self._smol_alias,
             ctx_size=self._ctx,
             log_file=self._slog,
+            no_jinja=True,
         )
-        wait_for_server(self.base, self._to)
+        wait_for_server(self.base, self._to, child=self._proc)
         self._kind = "smol"
 
     def start_qwen(self) -> None:
@@ -128,7 +129,7 @@ class SingleLlamaSwapController:
             ctx_size=self._ctx,
             log_file=self._qlog,
         )
-        wait_for_server(self.base, self._to)
+        wait_for_server(self.base, self._to, child=self._proc)
         self._kind = "qwen"
 
     def ensure_qwen(self) -> None:

@@ -17,7 +17,10 @@ Phase 3 은 GPU 메모리를 많이 쓴다(두 VLM + YOLO). 8GB 환경에서는 
   uv run python run_week_experiments.py
   # 또는: uv run python -m qwen_vlm.pipeline.week
 
-ShanghaiTech 프레임은 `data/datasets/shanghaitech_frames/` 등에 두고 `--frames-dir` 로 지정합니다.
+ShanghaiTech 테스트 프레임은 보통 압축 해제 후
+``data/datasets/shanghaitech/shanghaitech/testing/frames/<시퀀스>/`` 에 있으며,
+``--frames-dir`` 에는 그 상위( ``.../testing/frames`` )를 주면 이름순 첫 시퀀스 폴더에서
+연속 이미지를 고릅니다. GT 마스크는 형제 폴더 ``test_frame_mask``, ``test_pixel_mask`` 를 참고합니다.
 """
 from __future__ import annotations
 
@@ -293,7 +296,9 @@ def main() -> None:
     p.add_argument(
         "--frames-dir",
         type=Path,
-        default=ROOT / "data" / "datasets" / "demo" / "frames",
+        default=Path(
+            "data/datasets/shanghaitech/shanghaitech/testing/frames"
+        ),
     )
     p.add_argument(
         "--single-image",
@@ -470,7 +475,9 @@ def main() -> None:
     )
     pq, fq = _popen_server(cmd_qwen, log_q)
     try:
-        wait_for_server(f"http://127.0.0.1:{QWEN_PORT}/v1", args.qwen_timeout)
+        wait_for_server(
+            f"http://127.0.0.1:{QWEN_PORT}/v1", args.qwen_timeout, child=pq
+        )
         client_q = OpenAI(
             base_url=f"http://127.0.0.1:{QWEN_PORT}/v1", api_key=api_key
         )
@@ -513,7 +520,9 @@ def main() -> None:
     precached_stage1: dict[str, dict] = {}
     ps, fs = _popen_server(cmd_smol, log_s)
     try:
-        wait_for_server(f"http://127.0.0.1:{SMOL_PORT}/v1", args.smol_timeout)
+        wait_for_server(
+            f"http://127.0.0.1:{SMOL_PORT}/v1", args.smol_timeout, child=ps
+        )
         client_s = OpenAI(
             base_url=f"http://127.0.0.1:{SMOL_PORT}/v1", api_key=api_key
         )
@@ -532,6 +541,7 @@ def main() -> None:
                 prompt=STAGE1_PROMPT_EN,
                 image_data_urls=[low_url],
                 max_tokens=256,
+                content_image_first=True,
             )
             precached_stage1[fp.name] = {
                 "text": txt,
@@ -557,8 +567,12 @@ def main() -> None:
     ps3, fs3 = _popen_server(cmd_smol, log_s3)
     rows_parallel: list[dict] = []
     try:
-        wait_for_server(f"http://127.0.0.1:{QWEN_PORT}/v1", args.qwen_timeout)
-        wait_for_server(f"http://127.0.0.1:{SMOL_PORT}/v1", args.smol_timeout)
+        wait_for_server(
+            f"http://127.0.0.1:{QWEN_PORT}/v1", args.qwen_timeout, child=pq3
+        )
+        wait_for_server(
+            f"http://127.0.0.1:{SMOL_PORT}/v1", args.smol_timeout, child=ps3
+        )
         client_q = OpenAI(
             base_url=f"http://127.0.0.1:{QWEN_PORT}/v1", api_key=api_key
         )

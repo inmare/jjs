@@ -79,11 +79,23 @@ def image_to_data_url(image: str | Path) -> tuple[str, str]:
     return f"data:image/jpeg;base64,{b64}", str(p)
 
 
-def wait_for_server(base: str, timeout_s: float) -> None:
+def wait_for_server(
+    base: str,
+    timeout_s: float,
+    *,
+    child: subprocess.Popen | None = None,
+) -> None:
     """OpenAI 호환 ``base``(예: ``http://127.0.0.1:8765/v1``)에 GET ``/models`` 가 뜰 때까지 대기."""
     deadline = time.perf_counter() + timeout_s
     url = f"{base.rstrip('/')}/models"
     while time.perf_counter() < deadline:
+        if child is not None:
+            rc = child.poll()
+            if rc is not None:
+                raise RuntimeError(
+                    "llama-server 가 기동 전 종료했습니다 "
+                    f"(exit={rc}). GGUF·mmproj 경로(절대 경로 권장)·stderr 로그를 확인하세요."
+                )
         try:
             with urllib.request.urlopen(url, timeout=2) as r:
                 if r.status == 200:
@@ -128,10 +140,18 @@ def chat_vlm_multi(
     prompt: str,
     image_data_urls: list[str],
     max_tokens: int,
+    content_image_first: bool = False,
 ) -> tuple[str, object | None]:
-    content: list[dict] = [{"type": "text", "text": prompt}]
-    for url in image_data_urls:
-        content.append({"type": "image_url", "image_url": {"url": url}})
+    """``content_image_first``: SmolVLM(Idefics3) 등 Hugging Face 권장 순서(image→text). Qwen 계열 기본은 text→image."""
+    if content_image_first:
+        content = [
+            {"type": "image_url", "image_url": {"url": url}} for url in image_data_urls
+        ]
+        content.append({"type": "text", "text": prompt})
+    else:
+        content = [{"type": "text", "text": prompt}]
+        for url in image_data_urls:
+            content.append({"type": "image_url", "image_url": {"url": url}})
     resp = client.chat.completions.create(
         model=model,
         max_tokens=max_tokens,
@@ -168,15 +188,19 @@ def start_llama_server(
     model: str,
     ctx_size: int,
     log_file: str | Path,
+    no_jinja: bool = False,
 ) -> tuple[subprocess.Popen, str, TextIO]:
     """
     ``llama-server`` 를 백그라운드로 띄우고, OpenAI 호환 base URL(…/v1)과 **열린** stderr 로그 핸들을 돌려준다.
 
+    프로세스 ``cwd`` 는 ``llama-server`` 바이너리 폴더이므로 ``-m``/``--mmproj`` 는 **절대 경로**로 넘긴다
+    (저장소 루트 기준 ``vendor/...`` 상대 인자가 깨지지 않게).
+
     호출 측은 ``finally`` 에서 (1) ``proc.terminate`` 등으로 프로세스를 끊고, (2) ``log_f.close()`` 할 것.
     """
-    llama = Path(llama_server)
-    g = Path(gguf)
-    m = Path(mmproj)
+    llama = Path(llama_server).expanduser().resolve()
+    g = Path(gguf).expanduser().resolve()
+    m = Path(mmproj).expanduser().resolve()
     for label, p in ("llama-server", llama), ("GGUF", g), ("mmproj", m):
         if not p.is_file():
             raise FileNotFoundError(f"[오류] {label} 파일이 없습니다: {p}")
@@ -186,19 +210,25 @@ def start_llama_server(
         str(g),
         "--mmproj",
         str(m),
-        "--host",
-        host,
-        "--port",
-        str(port),
-        "-ngl",
-        str(ngl),
-        "-fa",
-        flash_attn,
-        "-a",
-        model,
-        "--ctx-size",
-        str(ctx_size),
     ]
+    if no_jinja:
+        cmd.append("--no-jinja")
+    cmd.extend(
+        [
+            "--host",
+            host,
+            "--port",
+            str(port),
+            "-ngl",
+            str(ngl),
+            "-fa",
+            flash_attn,
+            "-a",
+            model,
+            "--ctx-size",
+            str(ctx_size),
+        ]
+    )
     creationflags = 0
     if sys.platform == "win32":
         creationflags = subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore[attr-defined]
@@ -239,7 +269,7 @@ def run_spawned_server(args: argparse.Namespace) -> int:
         return 1
     try:
         t0 = time.perf_counter()
-        wait_for_server(api_base, args.server_timeout)
+        wait_for_server(api_base, args.server_timeout, child=proc)
         load_s = time.perf_counter() - t0
         client = OpenAI(base_url=api_base, api_key=args.api_key)
         t1 = time.perf_counter()

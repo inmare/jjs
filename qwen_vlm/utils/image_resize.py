@@ -4,15 +4,22 @@ from __future__ import annotations
 from PIL import Image
 
 
+def resize_max_side_dims(w: int, h: int, max_side: int) -> tuple[int, int]:
+    """긴 변 캡만 적용한 (w,h). ``resize_max_side`` 와 같은 비율."""
+    m = max(w, h)
+    if m <= max_side:
+        return w, h
+    scale = max_side / m
+    return max(1, int(w * scale)), max(1, int(h * scale))
+
+
 def resize_max_side(img: Image.Image, max_side: int) -> Image.Image:
     """긴 변이 `max_side` 를 넘지 않도록 비율 유지 축소."""
     w, h = img.size
-    m = max(w, h)
-    if m <= max_side:
+    nw, nh = resize_max_side_dims(w, h, max_side)
+    if (nw, nh) == (w, h):
         return img
-    scale = max_side / m
-    nw, nh = int(w * scale), int(h * scale)
-    return img.resize((max(nw, 1), max(nh, 1)), Image.Resampling.LANCZOS)
+    return img.resize((nw, nh), Image.Resampling.LANCZOS)
 
 
 def resize_uniform_scale(img: Image.Image, scale: float) -> Image.Image:

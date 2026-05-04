@@ -367,6 +367,260 @@ def write_single_image_experiment_html(json_path: Path, html_path: Path) -> bool
     return True
 
 
+def _jpeg_thumb_data_url(image_path: Path | str, max_side: int = 280) -> str | None:
+    """HTML 삽입용 JPEG 썸네일(data URL). 원본이 없거나 열 수 없으면 ``None``."""
+    try:
+        import io
+
+        from PIL import Image
+
+        p = Path(str(image_path)).expanduser().resolve()
+        if not p.is_file():
+            return None
+        im = Image.open(p).convert("RGB")
+        try:
+            resample = Image.Resampling.LANCZOS
+        except AttributeError:
+            resample = Image.LANCZOS  # type: ignore[attr-defined]
+        im.thumbnail((max_side, max_side), resample)
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=82, optimize=True)
+        b64 = base64.standard_b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/jpeg;base64,{b64}"
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def write_sequence_compare_html(
+    payload: dict[str, Any],
+    html_path: Path,
+) -> None:
+    """``compare_sequence_yolo_qwen_baseline_vs_gated`` 결과 dict 를 요약·프레임 표 HTML 로 저장."""
+    meta = payload.get("meta") or {}
+    summ = payload.get("summary") or {}
+    base_rows: list[dict[str, Any]] = list(payload.get("baseline") or [])
+    gated_rows: list[dict[str, Any]] = list(payload.get("gated") or [])
+    gated_by_frame = {str(r.get("frame", "")): r for r in gated_rows}
+    frames_dir = str(meta.get("frames_dir") or "").strip()
+
+    def _yolo_qwen_vlm_ok(r: dict[str, Any]) -> bool:
+        yq = r.get("yolo_qwen") or {}
+        if yq.get("vlm_skipped") or yq.get("yolo_skipped"):
+            return False
+        return True
+
+    def _yq_preview(r: dict[str, Any]) -> str:
+        yq = r.get("yolo_qwen") or {}
+        prev = yq.get("reply_preview") or (yq.get("reply") or "")[:400]
+        return str(prev)
+
+    def _gpath(r: dict[str, Any]) -> str:
+        fg = r.get("frame_gating")
+        if not fg:
+            return "—"
+        return str(fg.get("path") or fg.get("mode") or "—")
+
+    def _tok_triplet(
+        pt: object | None, ct: object | None, tt: object | None
+    ) -> str:
+        if pt is None and ct is None and tt is None:
+            return "—"
+        return f"{pt if pt is not None else '—'}/{ct if ct is not None else '—'}/{tt if tt is not None else '—'}"
+
+    def _fmt_baseline_yq(br: dict[str, Any]) -> tuple[str, str]:
+        yq = br.get("yolo_qwen") or {}
+        if not _yolo_qwen_vlm_ok(br):
+            return ("—", "—")
+        sec = yq.get("total_seconds")
+        tok = _tok_triplet(
+            yq.get("prompt_tokens"),
+            yq.get("completion_tokens"),
+            yq.get("total_tokens"),
+        )
+        return (html.escape(str(sec) if sec is not None else "—"), html.escape(tok))
+
+    def _fmt_gated_qo(gr: dict[str, Any]) -> tuple[str, str]:
+        qo = gr.get("qwen_only") or {}
+        if qo.get("vlm_skipped"):
+            return (
+                html.escape("생략"),
+                html.escape("0 / 0 / 0"),
+            )
+        sec = qo.get("seconds")
+        tok = _tok_triplet(
+            qo.get("prompt_tokens"),
+            qo.get("completion_tokens"),
+            qo.get("total_tokens"),
+        )
+        return (
+            html.escape(str(sec) if sec is not None else "—"),
+            html.escape(tok),
+        )
+
+    def _fmt_gated_yq(gr: dict[str, Any]) -> tuple[str, str]:
+        yq = gr.get("yolo_qwen") or {}
+        sec = yq.get("total_seconds")
+        sec_s = html.escape(str(sec) if sec is not None else "—")
+        if yq.get("yolo_skipped") and yq.get("vlm_skipped"):
+            return (sec_s, html.escape("0 / 0 / 0"))
+        if yq.get("vlm_skipped"):
+            return (sec_s, html.escape("0 / 0 / 0 (VLM 생략)"))
+        tok = _tok_triplet(
+            yq.get("prompt_tokens"),
+            yq.get("completion_tokens"),
+            yq.get("total_tokens"),
+        )
+        return (sec_s, html.escape(tok))
+
+    rows_html: list[str] = []
+    for br in base_rows:
+        fn = str(br.get("frame", ""))
+        gr = gated_by_frame.get(fn, {})
+        imgs = gr.get("images") or br.get("images") or {}
+        src = imgs.get("source_path") if isinstance(imgs, dict) else None
+        thumb = _jpeg_thumb_data_url(src, 300) if src else None
+        if thumb:
+            img_cell = (
+                f'<td class="thumbcell"><img class="thumb" src="{thumb}" '
+                f'title="{html.escape(str(src))}" alt=""/></td>'
+            )
+        else:
+            rel = _relpath_for_html(str(src) if src else "", ROOT)
+            img_cell = f'<td class="thumbcell"><span class="noimg">{html.escape(rel)}</span></td>'
+
+        b_sec, b_tok = _fmt_baseline_yq(br)
+        gq_sec, gq_tok = _fmt_gated_qo(gr)
+        gy_sec, gy_tok = _fmt_gated_yq(gr)
+
+        rows_html.append(
+            "<tr>"
+            f"{img_cell}"
+            f"<td class='fname'>{html.escape(fn)}</td>"
+            f"<td class='num'>{b_sec}</td><td class='num tok'>{b_tok}</td>"
+            f"<td class='num'>{gq_sec}</td><td class='num tok'>{gq_tok}</td>"
+            f"<td class='num'>{gy_sec}</td><td class='num tok'>{gy_tok}</td>"
+            f"<td class='p'>{html.escape(_gpath(gr))}</td>"
+            f"<td class='reply'>{html.escape(_yq_preview(gr))}</td>"
+            "</tr>"
+        )
+
+    cmp_rows = f"""
+  <h2>처리 시간·토큰 비교 (요약)</h2>
+  <p class="note">「베이스」는 매 프레임 YOLO+크롭 Qwen만 실행합니다. 「게이트」는 <strong>Qwen-only</strong>(전망 1장)와 <strong>YOLO+Qwen</strong>이 각각 언제 호출·생략됐는지의 합계입니다.
+  프레임 합산 시간은 YOLO+게이트 구간 전체 wall time 과는 다를 수 있습니다.</p>
+  <table class="cmp">
+    <thead>
+      <tr>
+        <th>구분</th>
+        <th>VLM 호출 수</th>
+        <th>합계 시간(초)<br/><span class="sub">프레임별 합산</span></th>
+        <th>prompt 토큰 합</th>
+        <th>completion 합</th>
+        <th>total 토큰 합</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>베이스 YOLO+Qwen</td>
+        <td class="num">{html.escape(str(summ.get("baseline_yolo_qwen_vlm_calls", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("baseline_yolo_qwen_wall_seconds_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("baseline_yolo_qwen_prompt_tokens_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("baseline_yolo_qwen_completion_tokens_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("baseline_yolo_qwen_total_tokens_sum", "")))}</td>
+      </tr>
+      <tr>
+        <td>게이트 Qwen-only</td>
+        <td class="num">{html.escape(str(summ.get("gated_qwen_only_vlm_calls", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_qwen_only_wall_seconds_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_qwen_only_prompt_tokens_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_qwen_only_completion_tokens_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_qwen_only_total_tokens_sum", "")))}</td>
+      </tr>
+      <tr>
+        <td>게이트 YOLO+Qwen (VLM 호출분만 토큰 합산)</td>
+        <td class="num">{html.escape(str(summ.get("gated_yolo_qwen_vlm_calls", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_yolo_qwen_wall_seconds_sum", "")))}<br/><span class="sub">YOLO 포함·프레임별 total</span></td>
+        <td class="num">{html.escape(str(summ.get("gated_yolo_qwen_prompt_tokens_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_yolo_qwen_completion_tokens_sum", "")))}</td>
+        <td class="num">{html.escape(str(summ.get("gated_yolo_qwen_total_tokens_sum", "")))}</td>
+      </tr>
+    </tbody>
+  </table>
+"""
+
+    body = f"""<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>연속 프레임 — YOLO+Qwen 베이스라인 vs 게이트</title>
+  <style>
+    body {{ font-family: system-ui, "Malgun Gothic", sans-serif; margin: 1rem; background: #fafafa; color: #222; }}
+    h1 {{ font-size: 1.2rem; }}
+    h2 {{ font-size: 1.05rem; margin-top: 1.25rem; }}
+    table {{ border-collapse: collapse; width: 100%; font-size: 0.82rem; margin-top: 0.6rem; }}
+    th, td {{ border: 1px solid #ccc; padding: 0.35rem 0.45rem; vertical-align: top; }}
+    th {{ background: #eee; text-align: left; }}
+    table.cmp th, table.cmp td {{ font-size: 0.8rem; }}
+    td.num {{ text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }}
+    td.tok {{ font-size: 0.75rem; }}
+    td.reply {{ white-space: pre-wrap; max-height: 10rem; overflow: auto; font-size: 0.78rem; }}
+    td.p {{ font-size: 0.78rem; max-width: 7rem; }}
+    td.fname {{ font-family: Consolas, monospace; font-size: 0.78rem; }}
+    td.thumbcell {{ width: 10rem; text-align: center; background: #f6f6f6; }}
+    img.thumb {{ max-height: 140px; max-width: 180px; object-fit: contain; vertical-align: middle; border-radius: 4px; }}
+    span.noimg {{ font-size: 0.72rem; color: #666; }}
+    .sum {{ background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem; max-width: 48rem; }}
+    .sum dt {{ font-weight: 600; margin-top: 0.35rem; }}
+    .sum dd {{ margin: 0.1rem 0 0 0.8rem; }}
+    .note {{ font-size: 0.8rem; color: #444; max-width: 52rem; line-height: 1.45; }}
+    span.sub {{ font-weight: 400; font-size: 0.72rem; color: #666; }}
+  </style>
+</head>
+<body>
+  <h1>YOLO+Qwen 매 프레임(베이스라인) vs 프레임 게이트</h1>
+  <p>생성: {html.escape(str(meta.get("generated_at", "")))}
+   · <strong>frames_dir</strong>: {html.escape(frames_dir or "—")}
+   · frame_gate: {html.escape(str(meta.get("frame_gate", "")))}</p>
+  <div class="sum">
+    <dl>
+      <dt>프레임 수</dt><dd>{html.escape(str(summ.get("frames", "")))}</dd>
+      <dt>베이스라인 — YOLO+Qwen VLM 호출 수</dt><dd>{html.escape(str(summ.get("baseline_yolo_qwen_vlm_calls", "")))}</dd>
+      <dt>게이트 — YOLO+Qwen VLM 호출 수</dt><dd>{html.escape(str(summ.get("gated_yolo_qwen_vlm_calls", "")))}</dd>
+      <dt>절약(베이스 대비 YOLO+Qwen VLM 스킵 수)</dt><dd>{html.escape(str(summ.get("saved_yolo_qwen_vlm_calls_vs_baseline", "")))}</dd>
+      <dt>게이트 — Qwen-only VLM 호출 수</dt><dd>{html.escape(str(summ.get("gated_qwen_only_vlm_calls", "")))}</dd>
+      <dt>게이트 파이프라인 wall 시간 (베이스 / 게이트 / 합계)</dt><dd>{html.escape(str(meta.get("seconds_baseline", "")))} s · {html.escape(str(meta.get("seconds_gated", "")))} s · {html.escape(str(meta.get("seconds_total", "")))} s</dd>
+    </dl>
+  </div>
+{cmp_rows}
+  <h2>프레임별 — 이미지 · 시간·토큰 · 응답</h2>
+  <p class="note">썸네일은 리포트 생성 시점에 디스크에서 읽어 JPEG 로 넣습니다. p/c/t = prompt / completion / total (서버 보고).</p>
+  <table>
+    <thead>
+      <tr>
+        <th>이미지</th>
+        <th>프레임</th>
+        <th>베이스 Y+Q<br/>초</th>
+        <th>베이스<br/>p/c/t</th>
+        <th>게이트 Q-only<br/>초</th>
+        <th>게이트 Q-only<br/>p/c/t</th>
+        <th>게이트 Y+Q<br/>초</th>
+        <th>게이트 Y+Q<br/>p/c/t</th>
+        <th>게이트 경로</th>
+        <th>게이트 Y+Q 응답(일부)</th>
+      </tr>
+    </thead>
+    <tbody>
+{chr(10).join(rows_html)}
+    </tbody>
+  </table>
+</body>
+</html>
+"""
+    html_path.parent.mkdir(parents=True, exist_ok=True)
+    html_path.write_text(body, encoding="utf-8")
+
+
 EXPERIMENT_HTML_TEMPLATE = r"""<!DOCTYPE html>
 <html lang="ko">
 <head>

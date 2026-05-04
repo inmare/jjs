@@ -1,7 +1,10 @@
 """HR-Bench용 4가지 입력 전략 (PIL·MCQ 기준). experiment_pipeline 유틸 재사용."""
 from __future__ import annotations
 
+import base64
 import concurrent.futures
+import copy
+import io
 import time
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -10,13 +13,16 @@ from openai import OpenAI
 from PIL import Image
 
 from qwen_vlm.main import chat_vlm_multi, pil_to_data_url
+from qwen_vlm.hr_bench.prompt_build import (
+    HR_BENCH_SMOL_STAGE1_PROMPT_EN,
+    compose_hr_bench_mc_with_supplementary_en,
+    hr_bench_yolo_context_sentence_en,
+    summarize_smol_for_hr_bench_mc_en,
+)
 from qwen_vlm.pipeline.experiment import (
-    STAGE1_PROMPT_EN,
-    _merge_parallel_stage1,
     parse_risk_from_stage1,
     prep_context_image,
     prep_yolo_crop_for_vlm,
-    vlm_yolo_crops_coordinate_preamble_ko,
     yolo_heuristic_risk,
 )
 from qwen_vlm.reporting.experiment_metrics import resource_snapshot, usage_to_dict
@@ -30,6 +36,26 @@ _SMOL_STRATEGY_NAMES = frozenset({"yolo_smol_parallel", "yolo_smol_sequential"})
 
 def noop_log(_: str) -> None:
     pass
+
+
+def _jpeg_data_url_thumb(img: Image.Image, *, max_side: int = 900, quality: int = 82) -> str:
+    rgb = img.convert("RGB").copy()
+    thumb = resize_max_side(rgb, max_side) if max_side > 0 else rgb
+    if thumb is rgb:
+        thumb = thumb.copy()
+    buf = io.BytesIO()
+    thumb.save(buf, format="JPEG", quality=quality, optimize=True)
+    b64 = base64.standard_b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/jpeg;base64,{b64}"
+
+
+def _yolo_budget_kwargs(full_img: Image.Image, cfg: HRBenchStrategyConfig) -> dict[str, Any]:
+    """원본 크기 기준 면적·실제 VLM 픽셀 예산 필터(YOLO 캔버스 좌표)."""
+    return {
+        "original_full_image_size": (full_img.width, full_img.height),
+        "vlm_overview_max_side_for_budget": cfg.yolo_overview_max_side,
+        "crop_max_side_for_budget": cfg.crop_max_side,
+    }
 
 
 STRATEGIES_ALL = (
@@ -57,15 +83,15 @@ class HRBenchStrategyConfig:
     yolo_device: str = "cpu"  # ultralytics predict device; cpu 권장(llama GPU 분리)
     # YOLO 전략 전용: VLM에 보낼 전망의 긴 변 최대 픽셀.
     # 0이면 ctx(context_resize_scale 적용본)를 그대로 사용.
-    # > 0이면 원본에서 직접 이 크기로 축소한 초저해상 전망을 사용해 토큰을 줄임.
-    # YOLO 탐지 및 크롭은 ctx 기준으로 유지되므로 정확도 손실 최소화.
-    yolo_overview_max_side: int = 480
+    # > 0이면 원본에서 긴 변을 이 크기 이하로 축소한 전망(Smol 및 Qwen #0 동일 소스).
+    # YOLO 탐지 및 크롭은 ctx 기준으로 유지.
+    yolo_overview_max_side: int = 960
     # True면 qwen_only 전략에서 원본 이미지를 그대로 VLM에 전달(리사이즈 없음).
     # 실험 대조군 역할. qwen_image_max_long_side > 0 이면 그 값으로 캡.
     qwen_only_use_original: bool = True
     qwen_image_max_long_side: int = 0
     max_tokens: int = 8
-    stage1_prompt: str = STAGE1_PROMPT_EN
+    stage1_prompt: str = HR_BENCH_SMOL_STAGE1_PROMPT_EN
     smol_max_tokens: int = 256
 
 
@@ -90,8 +116,8 @@ def _yolo_make_overview(
 ) -> Image.Image:
     """YOLO 전략용 VLM 전망 이미지 반환.
 
-    yolo_overview_max_side > 0이면 원본에서 직접 축소한 초저해상 이미지를 반환해
-    토큰 수를 줄인다. 0이면 ctx(context_resize_scale 적용본)를 그대로 반환.
+    yolo_overview_max_side > 0이면 원본에서 긴 변을 이 픽셀 이하로 축소한 전망을 반환(Smol 및 Qwen 슬롯 #0 동일 소스).
+    0이면 ctx(context_resize_scale 적용본)를 그대로 반환.
     """
     if yolo_overview_max_side > 0:
         return resize_max_side(img, yolo_overview_max_side)
@@ -152,6 +178,12 @@ def run_sample_qwen_only(
     res = resource_snapshot(label="hr_qwen_only_after")
     pt = getattr(usage, "prompt_tokens", None) if usage else None
     log(f"  [qwen_only] 완료 {elapsed:.2f}s prompt_tokens={pt}")
+    dbg = {
+        "thumbnail_original_jpeg_url": _jpeg_data_url_thumb(img),
+        "qwen_sent_thumbnail_url": _jpeg_data_url_thumb(vis),
+        "qwen_prompt": mcq_prompt,
+        "qwen_sent_image_sizes": [list(vis.size)],
+    }
     return {
         "raw_reply": raw,
         "seconds": round(elapsed, 3),
@@ -162,6 +194,7 @@ def run_sample_qwen_only(
         "wall_parallel_seconds": None,
         "yolo_seconds": None,
         "smol_seconds": None,
+        "hr_debug": dbg,
     }
 
 
@@ -194,6 +227,7 @@ def run_sample_yolo_lowres_crops(
         min_crop_area=cfg.min_crop_area,
         vlm_budget=cfg.yolo_vlm_budget,
         **_yolo_run_common_kwargs(cfg),
+        **_yolo_budget_kwargs(img, cfg),
     )
     t_yolo = time.perf_counter() - t_y0
     log(
@@ -205,15 +239,23 @@ def run_sample_yolo_lowres_crops(
         rc = prep_yolo_crop_for_vlm(c, cfg.crop_max_side)
         urls_y.append(pil_to_data_url(rc))
     bboxes_ov = _scale_bboxes(bboxes, ctx_w, ctx_h, ov_w, ov_h)
-    preamble = vlm_yolo_crops_coordinate_preamble_ko(
-        orig_w=ov_w,
-        orig_h=ov_h,
-        context_max_side=None,
-        context_resize_scale=None,
+    yolo_sentence_en = hr_bench_yolo_context_sentence_en(
+        overview_w=ov_w,
+        overview_h=ov_h,
+        canvas_w=ctx_w,
+        canvas_h=ctx_h,
+        n_raw_detections=n_det,
+        n_crops_sent=len(crops),
+        bboxes_ov=bboxes_ov,
         crop_max_side=cfg.crop_max_side,
-        bboxes_xyxy_orig=bboxes_ov,
+        context_resize_scale=cfg.context_resize_scale,
+        context_max_side=cfg.context_max_side if cfg.context_resize_scale is None else None,
     )
-    y_prompt = f"{preamble}\n\n{mcq_prompt}"
+    y_prompt = compose_hr_bench_mc_with_supplementary_en(
+        mcq_prompt,
+        yolo_context_sentence_en=yolo_sentence_en,
+        compact_vlm_sentence_en=None,
+    )
     log(f"  [yolo+crops] Qwen 다중이미지({len(urls_y)}장)…")
     t_q0 = time.perf_counter()
     raw, usage = chat_vlm_multi(
@@ -229,6 +271,22 @@ def run_sample_yolo_lowres_crops(
     pt = getattr(usage, "prompt_tokens", None) if usage else None
     total = t_yolo + t_q
     log(f"  [yolo+crops] Qwen {t_q:.2f}s · 합계 {total:.2f}s prompt_tokens={pt}")
+    crop_thumbs = [
+        _jpeg_data_url_thumb(prep_yolo_crop_for_vlm(c, cfg.crop_max_side))
+        for c in crops
+    ]
+    dbg = {
+        "thumbnail_original_jpeg_url": _jpeg_data_url_thumb(img),
+        "yolo_canvas_size_px": {"w": ctx_w, "h": ctx_h},
+        "overview_thumbnail_url": _jpeg_data_url_thumb(overview_img),
+        "overview_sent_size": [ov_w, ov_h],
+        "crop_thumbnails_jpeg_urls": crop_thumbs,
+        "yolo_bbox_xyxy_on_canvas": [list(b) for b in bboxes],
+        "yolo_bbox_xyxy_overview": [list(b) for b in bboxes_ov],
+        "yolo_summary": summary,
+        "yolo_context_sentence_en": yolo_sentence_en,
+        "qwen_prompt": y_prompt,
+    }
     return {
         "raw_reply": raw,
         "seconds": round(total, 3),
@@ -242,6 +300,7 @@ def run_sample_yolo_lowres_crops(
         "stage1_prompt_tokens": None,
         "wall_parallel_seconds": None,
         "smol_seconds": None,
+        "hr_debug": dbg,
     }
 
 
@@ -268,6 +327,7 @@ def run_sample_yolo_smol_parallel(
     overview_img = _yolo_make_overview(img, low, cfg.yolo_overview_max_side)
     low_wh = overview_img.size
     low_url = pil_to_data_url(overview_img)
+    log(f"  [yolo∥smol] 전망 {low_wh[0]}×{low_wh[1]} · YOLO(ctx {low_w}×{low_h} 기준)…")
     t_par0 = time.perf_counter()
 
     def _run_yolo() -> tuple[Any, ...]:
@@ -280,6 +340,7 @@ def run_sample_yolo_smol_parallel(
             min_crop_area=cfg.min_crop_area,
             vlm_budget=cfg.yolo_vlm_budget,
             **_yolo_run_common_kwargs(cfg),
+            **_yolo_budget_kwargs(img, cfg),
         )
         dt = time.perf_counter() - t0
         return crops, bboxes, summary, n_det, all_cls, dt
@@ -293,6 +354,7 @@ def run_sample_yolo_smol_parallel(
                 prompt=cfg.stage1_prompt,
                 image_data_urls=[low_url],
                 max_tokens=cfg.smol_max_tokens,
+                content_image_first=True,
             )
             return "ok", txt, usage_s, time.perf_counter() - t0
         except Exception as e:
@@ -321,20 +383,23 @@ def run_sample_yolo_smol_parallel(
     )
 
     bboxes_ov = _scale_bboxes(bboxes, low_w, low_h, low_wh[0], low_wh[1])
-    stage1_merged = _merge_parallel_stage1(
-        orig_w=low_wh[0],
-        orig_h=low_wh[1],
-        bboxes=bboxes_ov,
-        smol_ok=smol_ok,
-        smol_text=s_body,
-    )
-    preamble = vlm_yolo_crops_coordinate_preamble_ko(
-        orig_w=low_wh[0],
-        orig_h=low_wh[1],
-        context_max_side=None,
-        context_resize_scale=None,
+    yolo_sentence_en = hr_bench_yolo_context_sentence_en(
+        overview_w=low_wh[0],
+        overview_h=low_wh[1],
+        canvas_w=low_w,
+        canvas_h=low_h,
+        n_raw_detections=n_det,
+        n_crops_sent=len(crops),
+        bboxes_ov=bboxes_ov,
         crop_max_side=cfg.crop_max_side,
-        bboxes_xyxy_orig=bboxes_ov,
+        context_resize_scale=cfg.context_resize_scale,
+        context_max_side=cfg.context_max_side if cfg.context_resize_scale is None else None,
+    )
+    smol_summary_en = summarize_smol_for_hr_bench_mc_en(s_body, ok=smol_ok)
+    q_prompt = compose_hr_bench_mc_with_supplementary_en(
+        mcq_prompt,
+        yolo_context_sentence_en=yolo_sentence_en,
+        compact_vlm_sentence_en=smol_summary_en,
     )
     risk = (
         parse_risk_from_stage1(s_body)
@@ -348,14 +413,6 @@ def run_sample_yolo_smol_parallel(
         rc = prep_yolo_crop_for_vlm(c, cfg.crop_max_side)
         qwen_image_urls.append(pil_to_data_url(rc))
 
-    q_prompt = (
-        f"{preamble}\n\n"
-        "다음은 **잘라내기 좌표(위)** 와 **경량 VLM(Smol) 응답** 입니다(탐지 클래스·점수는 사용하지 않음). "
-        "이미지 #0=전망(저해상도), #1~=좌표에 따른 잘라내기(리사이즈). "
-        "텍스트와 픽셀이 맞지 않으면 **이미지**를 기준으로 판단하세요.\n\n"
-        f"{stage1_merged}\n\n"
-        f"{mcq_prompt}"
-    )
     log(f"  [yolo∥smol] Qwen {len(qwen_image_urls)}장…")
     if after_smol_start_qwen is not None:
         client_qwen = after_smol_start_qwen()
@@ -372,6 +429,30 @@ def run_sample_yolo_smol_parallel(
     res_q = resource_snapshot(label="hr_parallel_qwen_after")
     pt = getattr(usage, "prompt_tokens", None) if usage else None
     total = wall_parallel + t_q
+    crop_thumbs = [
+        _jpeg_data_url_thumb(prep_yolo_crop_for_vlm(c, cfg.crop_max_side))
+        for c in crops
+    ]
+    dbg = {
+        "thumbnail_original_jpeg_url": _jpeg_data_url_thumb(img),
+        "yolo_canvas_size_px": {"w": low_w, "h": low_h},
+        "overview_thumbnail_url": _jpeg_data_url_thumb(overview_img),
+        "overview_sent_size": list(low_wh),
+        "crop_thumbnails_jpeg_urls": crop_thumbs,
+        "yolo_bbox_xyxy_on_canvas": [list(b) for b in bboxes],
+        "yolo_bbox_xyxy_overview": [list(b) for b in bboxes_ov],
+        "smol_prompt": cfg.stage1_prompt,
+        "smol_reply_text": s_body or "",
+        "smol_reply_preview": (
+            (s_body or "")[:4000] + ("…" if smol_ok and len(s_body or "") > 4000 else "")
+        ),
+        "smol_ok": smol_ok,
+        "yolo_context_sentence_en": yolo_sentence_en,
+        "compact_vision_sentence_en": smol_summary_en,
+        "qwen_prompt": q_prompt,
+        "parsed_risk": risk,
+    }
+
     log(f"  [yolo∥smol] Qwen {t_q:.2f}s · 총 {total:.2f}s prompt_tokens={pt}")
     return {
         "raw_reply": raw,
@@ -389,6 +470,7 @@ def run_sample_yolo_smol_parallel(
         "n_crops_sent": len(crops),
         "parsed_risk": risk,
         "smol_ok": smol_ok,
+        "hr_debug": dbg,
     }
 
 
@@ -425,6 +507,7 @@ def run_sample_yolo_smol_sequential(
         min_crop_area=cfg.min_crop_area,
         vlm_budget=cfg.yolo_vlm_budget,
         **_yolo_run_common_kwargs(cfg),
+        **_yolo_budget_kwargs(img, cfg),
     )
     t_yolo = time.perf_counter() - t_y0
     log(
@@ -444,6 +527,7 @@ def run_sample_yolo_smol_sequential(
             prompt=cfg.stage1_prompt,
             image_data_urls=[low_url],
             max_tokens=cfg.smol_max_tokens,
+            content_image_first=True,
         )
         smol_ok = True
     except Exception as e:
@@ -456,33 +540,28 @@ def run_sample_yolo_smol_sequential(
     )
 
     bboxes_ov = _scale_bboxes(bboxes, low_w, low_h, low_wh[0], low_wh[1])
-    stage1_merged = _merge_parallel_stage1(
-        orig_w=low_wh[0],
-        orig_h=low_wh[1],
-        bboxes=bboxes_ov,
-        smol_ok=smol_ok,
-        smol_text=s_body,
-    )
-    preamble = vlm_yolo_crops_coordinate_preamble_ko(
-        orig_w=low_wh[0],
-        orig_h=low_wh[1],
-        context_max_side=None,
-        context_resize_scale=None,
+    yolo_sentence_en = hr_bench_yolo_context_sentence_en(
+        overview_w=low_wh[0],
+        overview_h=low_wh[1],
+        canvas_w=low_w,
+        canvas_h=low_h,
+        n_raw_detections=n_det,
+        n_crops_sent=len(crops),
+        bboxes_ov=bboxes_ov,
         crop_max_side=cfg.crop_max_side,
-        bboxes_xyxy_orig=bboxes_ov,
+        context_resize_scale=cfg.context_resize_scale,
+        context_max_side=cfg.context_max_side if cfg.context_resize_scale is None else None,
     )
+    smol_summary_en = summarize_smol_for_hr_bench_mc_en(s_body, ok=smol_ok)
     qwen_image_urls: list[str] = [low_url]
     for c in crops:
         rc = prep_yolo_crop_for_vlm(c, cfg.crop_max_side)
         qwen_image_urls.append(pil_to_data_url(rc))
 
-    q_prompt = (
-        f"{preamble}\n\n"
-        "다음은 **잘라내기 좌표(위)** 와 **경량 VLM(Smol) 응답** 입니다(탐지 클래스·점수는 사용하지 않음). "
-        "이미지 #0=전망(저해상도), #1~=좌표에 따른 잘라내기(리사이즈). "
-        "텍스트와 픽셀이 맞지 않으면 **이미지**를 기준으로 판단하세요.\n\n"
-        f"{stage1_merged}\n\n"
-        f"{mcq_prompt}"
+    q_prompt = compose_hr_bench_mc_with_supplementary_en(
+        mcq_prompt,
+        yolo_context_sentence_en=yolo_sentence_en,
+        compact_vlm_sentence_en=smol_summary_en,
     )
     log(f"  [yolo→smol→qwen] Qwen {len(qwen_image_urls)}장…")
     if after_smol_start_qwen is not None:
@@ -501,6 +580,28 @@ def run_sample_yolo_smol_sequential(
     pt = getattr(usage, "prompt_tokens", None) if usage else None
     total = t_yolo + t_smol + t_q
     log(f"  [yolo→smol→qwen] Qwen {t_q:.2f}s · 총 {total:.2f}s prompt_tokens={pt}")
+    crop_thumbs = [
+        _jpeg_data_url_thumb(prep_yolo_crop_for_vlm(c, cfg.crop_max_side))
+        for c in crops
+    ]
+    dbg = {
+        "thumbnail_original_jpeg_url": _jpeg_data_url_thumb(img),
+        "yolo_canvas_size_px": {"w": low_w, "h": low_h},
+        "overview_thumbnail_url": _jpeg_data_url_thumb(overview_img),
+        "overview_sent_size": list(low_wh),
+        "crop_thumbnails_jpeg_urls": crop_thumbs,
+        "yolo_bbox_xyxy_on_canvas": [list(b) for b in bboxes],
+        "yolo_bbox_xyxy_overview": [list(b) for b in bboxes_ov],
+        "smol_prompt": cfg.stage1_prompt,
+        "smol_reply_text": s_body or "",
+        "smol_reply_preview": (
+            (s_body or "")[:4000] + ("…" if smol_ok and len(s_body or "") > 4000 else "")
+        ),
+        "smol_ok": smol_ok,
+        "yolo_context_sentence_en": yolo_sentence_en,
+        "compact_vision_sentence_en": smol_summary_en,
+        "qwen_prompt": q_prompt,
+    }
     return {
         "raw_reply": raw,
         "seconds": round(total, 3),
@@ -515,6 +616,7 @@ def run_sample_yolo_smol_sequential(
         "n_detections": n_det,
         "n_crops_sent": len(crops),
         "smol_ok": smol_ok,
+        "hr_debug": dbg,
     }
 
 
@@ -531,7 +633,13 @@ def run_strategy_on_indices(
     log: LogFn = noop_log,
     smol_single_server_hooks: SmolSingleServerHooks | None = None,
 ) -> list[dict[str, Any]]:
-    from qwen_vlm.hr_bench.io import format_mcq_prompt, norm_gt, parse_pred, to_pil
+    from qwen_vlm.hr_bench.io import (
+        format_mcq_prompt,
+        norm_gt,
+        parse_pred,
+        snapshot_hr_dataset_row,
+        to_pil,
+    )
 
     if strategy not in STRATEGIES_ALL:
         raise ValueError(f"unknown strategy {strategy!r}")
@@ -547,20 +655,25 @@ def run_strategy_on_indices(
     rows: list[dict[str, Any]] = []
     n_run = len(indices)
     for pos, i in enumerate(indices):
-        row = ds[i]
-        gt = norm_gt(row.get("answer"))
-        idx = int(row.get("index", i))
-        mcq = format_mcq_prompt(row)
+        snapshot = snapshot_hr_dataset_row(ds, i)
+        gt = norm_gt(snapshot.get("answer"))
+        idx = int(snapshot.get("index", i))
+        mcq = format_mcq_prompt(snapshot)
         done_before_pct = 100.0 * pos / n_run if n_run else 0.0
         log(
             f"[{strategy}] ({pos + 1}/{n_run}, 이전까지 {done_before_pct:.0f}% 완료) "
             f"ds행={i} · HR idx={idx} · 풀이 중…"
         )
-        try:
-            pil = to_pil(row.get("image"))
-        except Exception as e:
-            log(f"  건너뜀: 이미지 로드 실패 {e}")
+        pil = snapshot.get("image")
+        if pil is None:
+            log("  건너뜀: image 컬럼 없음")
             continue
+        if not isinstance(pil, Image.Image):
+            try:
+                pil = to_pil(pil)
+            except Exception as e:
+                log(f"  건너뜀: 이미지 로드 실패 {e}")
+                continue
 
         try:
             if smol_single_server_hooks is not None and strategy in _SMOL_STRATEGY_NAMES:
@@ -641,6 +754,10 @@ def run_strategy_on_indices(
             f"[{strategy}]   → 샘플 {pos + 1}/{n_run} 완료 ({done_pct:.1f}%) · "
             f"ds행={i} idx={idx} · {mark} (gt={gt!s} pred={pred!s})"
         )
+        meta_out = dict(meta)
+        dbg = meta_out.pop("hr_debug", None)
+        meta_out["hr_debug"] = copy.deepcopy(dbg) if isinstance(dbg, dict) else dbg
+
         rows.append(
             {
                 "dataset_row_index": i,
@@ -650,7 +767,7 @@ def run_strategy_on_indices(
                 "correct": ok,
                 "raw_reply": str(raw)[:2000],
                 "strategy": strategy,
-                **meta,
+                **meta_out,
             }
         )
     return rows

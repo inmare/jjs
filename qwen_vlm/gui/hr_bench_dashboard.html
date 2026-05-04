@@ -11,6 +11,15 @@
       flex: 0 0 auto; padding: 8px; border-bottom: 1px solid #ccc;
       display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #fff;
     }
+    .tabbar {
+      flex: 0 0 auto; padding: 4px 8px; gap: 6px; display: flex; align-items: center;
+      background: #e8eaef; border-bottom: 1px solid #ccc;
+    }
+    .tabbar button.tab {
+      padding: 6px 14px; font-size: 12px; border: 1px solid #bbb; background: #fff;
+      border-radius: 4px 4px 0 0; cursor: pointer; margin-bottom: -1px;
+    }
+    .tabbar button.tab.active { background: #f6f7f9; border-bottom-color: #f6f7f9; font-weight: 600; }
     .main { flex: 1; display: flex; min-height: 0; }
     .controls {
       flex: 0 0 min(400px, 38vw); overflow: auto; padding: 10px;
@@ -85,6 +94,7 @@
 <body>
   <div class="toolbar">
     <button type="button" id="btnRun">HR-Bench 실행</button>
+    <button type="button" id="btnSeqRun" style="display:none">연속 프레임 비교 실행</button>
     <button type="button" id="btnReload">리포트·차트 새로고침</button>
     <button type="button" id="btnBrowser">시스템 브라우저로 HTML</button>
     <button type="button" id="btnDocs">docs 폴더 열기</button>
@@ -94,10 +104,15 @@
     <label class="toolbar-notify"><input type="checkbox" id="i_notify_done" checked/> 완료 시 알림·소리</label>
     <span id="status" class="err"></span>
   </div>
+  <div class="tabbar" role="tablist">
+    <button type="button" class="tab active" id="tabHr" role="tab" aria-selected="true">HR-Bench</button>
+    <button type="button" class="tab" id="tabSeq" role="tab" aria-selected="false">연속 프레임 비교</button>
+  </div>
   <div class="main">
     <div class="controls">
+      <div id="stackHr">
       <h1>HR-Bench (4 전략)</h1>
-      <p class="hint">llama-server는 <strong>127.0.0.1:8765</strong> 에서 자동 기동(또는 이미 떠 있으면 재사용). Smol 전략이 있으면 같은 포트에서 Smol↔Qwen GGUF 순차 스왑합니다. YOLO·전망·크롭은 아래에서 바꿀 수 있으며, 생성된 <code>hr_bench_last.html</code>에도 설정 표가 붙습니다.</p>
+      <p class="hint">llama-server는 <strong>127.0.0.1:8765</strong> 에서 자동 기동(또는 이미 떠 있으면 재사용). Smol 전략이 있으면 같은 포트에서 Smol↔Qwen GGUF 순차 스왑합니다(스왑 시 Smol 쪽 <code>--no-jinja</code> 등 패키지 최신 로직 사용). 실행은 이 창을 연 Python과 <strong>동일 인터프리터</strong>로 진행되어 워크스페이스 코드 변경이 바로 적용됩니다. YOLO·전망·크롭은 아래에서 바꿀 수 있으며, 생성된 <code>hr_bench_last.html</code>에도 설정 표가 붙습니다.</p>
       <div id="strategiesBox" class="strat-grid"></div>
       <label class="field">split
         <select id="i_split"></select>
@@ -156,7 +171,7 @@
         </label>
         <span></span>
       </div>
-      <label class="field">YOLO 전망 긴 변 (0 = context와 동일, 기본 480)
+      <label class="field">YOLO 전망 긴 변 (0 = context와 동일, 기본 960; Smol·Qwen #0 동일 전망)
         <input id="i_yolo_ov" type="text" inputmode="numeric"/>
       </label>
       <label class="field">qwen-only 긴 변 (0 = context와 동일)
@@ -175,6 +190,104 @@
       <label class="field"><input id="i_disable_yolo_budget" type="checkbox"/> YOLO→VLM 픽셀 예산·필터 끄기 (--disable-yolo-vlm-budget, 기본은 켜짐)</label>
       <label class="field"><input id="i_png" type="checkbox"/> 비교 차트 PNG도 저장 (matplotlib)</label>
       <label class="field"><input id="i_no_html_samples" type="checkbox"/> HTML에서 샘플 긴 표 생략</label>
+      </div>
+      <div id="stackSeq" style="display:none">
+      <h1>연속 프레임 — YOLO+Qwen 베이스 vs 게이트</h1>
+      <p class="hint">베이스라인은 매 프레임 <strong>YOLO + 크롭 Qwen</strong>만 실행합니다. 게이트 쪽은 <code>docs/sequence_compare_last.json</code>·<code>.html</code>에 저장됩니다(HTML에 시간·토큰 요약과 프레임 썸네일 포함). llama-server가 <strong>127.0.0.1:8765</strong>에서 떠 있어야 합니다. ShanghaiTech 공식 트리 기본값: <code>data/datasets/shanghaitech/shanghaitech/testing/frames</code> — 그 아래 <code>&lt;시퀀스&gt;/000.jpg…</code> 가 있으면 이름순 <strong>첫 시퀀스</strong>에서 최대 <code>max-frames</code>장을 고릅니다. 다른 클립을 쓰려면 <code>--frames-dir</code>에 그 시퀀스 폴더를 직접 지정하면 됩니다. (해당 프레임 GT: <code>test_frame_mask</code>, <code>test_pixel_mask</code> — 현재 파이프라인은 프레임만 읽고 마스크는 참고용 경로만 부트스트랩에 둡니다.)</p>
+      <label class="field">프레임 디렉터리 (--frames-dir)
+        <input id="s_frames" type="text" spellcheck="false"/>
+      </label>
+      <div class="row2">
+        <label class="field">max-frames
+          <input id="s_maxf" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">YOLO device
+          <input id="s_ydev" type="text" placeholder="cpu / cuda:0"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">OpenAI base-url
+          <input id="s_base" type="text"/>
+        </label>
+        <label class="field">api-key
+          <input id="s_key" type="text"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">model
+          <input id="s_model" type="text"/>
+        </label>
+        <label class="field">max-tokens
+          <input id="s_tok" type="text" inputmode="numeric"/>
+        </label>
+      </div>
+      <label class="field">프롬프트
+        <textarea id="s_prompt" rows="3" style="width:100%;box-sizing:border-box;font-size:12px;padding:6px;"></textarea>
+      </label>
+      <div class="row2">
+        <label class="field">context-max-side
+          <input id="s_ctx" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">context-resize-scale
+          <input id="s_cs" type="text" placeholder="0.5"/>
+        </label>
+      </div>
+      <label class="field"><input id="s_ctx_long" type="checkbox"/> 전망 긴 변만 캡 (--context-by-long-edge)</label>
+      <div class="row2">
+        <label class="field">crop-max-side
+          <input id="s_crop" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">max-crops
+          <input id="s_mc" type="text" inputmode="numeric"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">min-crop short / area
+          <div class="row2" style="margin:0">
+            <input id="s_mincs" type="text" inputmode="numeric"/>
+            <input id="s_minca" type="text" inputmode="numeric"/>
+          </div>
+        </label>
+        <label class="field">yolo-model
+          <input id="s_yolo" type="text"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">박스 면적 N / M
+          <div class="row2" style="margin:0">
+            <input id="s_an" type="text" inputmode="numeric"/>
+            <input id="s_ad" type="text" inputmode="numeric"/>
+          </div>
+        </label>
+        <label class="field">frame-gate
+          <select id="s_fg">
+            <option value="yolo">yolo</option>
+            <option value="mse">mse</option>
+            <option value="mse_then_yolo">mse_then_yolo</option>
+            <option value="off">off (자동→yolo)</option>
+          </select>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">mse-threshold
+          <input id="s_mse" type="text" inputmode="decimal"/>
+        </label>
+        <label class="field">crop-gate-max-shift
+          <input id="s_cgs" type="text" inputmode="decimal"/>
+        </label>
+      </div>
+      <div class="row2">
+        <label class="field">gate-min-crops (0=끔)
+          <input id="s_gmin" type="text" inputmode="numeric"/>
+        </label>
+        <label class="field">gate-max-crops (0=끔)
+          <input id="s_gmax" type="text" inputmode="numeric"/>
+        </label>
+      </div>
+      <label class="field"><input id="s_clg" type="checkbox"/> 크롭 위치 안정 게이트 (--use-crop-layout-gate)</label>
+      <label class="field"><input id="s_surv" type="checkbox"/> YOLO 감시 클래스만</label>
+      <label class="field"><input id="s_nobudg" type="checkbox"/> YOLO VLM 픽셀 예산 끄기</label>
+      </div>
     </div>
     <div class="preview">
       <iframe id="iframeReport" title="HR-Bench 리포트 (표 + Chart.js)"></iframe>
@@ -196,6 +309,8 @@
   const BS = window.__HR_BOOTSTRAP__ || {};
   const paths = BS.paths || {};
   const defs = BS.defaults || {};
+  const seqDefs = BS.sequence || {};
+  let activeView = "hr";
 
   function $(id) { return document.getElementById(id); }
   function setStatus(msg) { $("status").textContent = msg || ""; }
@@ -226,7 +341,7 @@
 
   function refreshIframeFileUri() {
     const f = $("iframeReport");
-    const uri = paths.reportHtmlUri;
+    const uri = activeView === "seq" ? paths.sequenceHtmlUri : paths.reportHtmlUri;
     if (!uri) return;
     f.removeAttribute("srcdoc");
     f.src = uri + (uri.includes("?") ? "&" : "?") + "t=" + Date.now();
@@ -247,6 +362,28 @@
       appendLog("[경고] 미리보기 로드 API 실패: " + e);
       refreshIframeFileUri();
     });
+  }
+
+  function loadSequencePreviewFromApi() {
+    if (!window.pywebview || !pywebview.api || !pywebview.api.embed_sequence_preview) {
+      refreshIframeFileUri();
+      return Promise.resolve();
+    }
+    return pywebview.api.embed_sequence_preview().then(function (r) {
+      if (r && r.html_b64) {
+        if (!_applyReportB64(r.html_b64)) refreshIframeFileUri();
+      } else {
+        refreshIframeFileUri();
+      }
+    }).catch(function (e) {
+      appendLog("[경고] 연속 프레임 미리보기 실패: " + e);
+      refreshIframeFileUri();
+    });
+  }
+
+  function refreshPreviewForActiveTab() {
+    if (activeView === "seq") return loadSequencePreviewFromApi();
+    return loadReportPreviewFromApi();
   }
 
   function ensureAudioCtx() {
@@ -306,13 +443,24 @@
     }, ok ? 6500 : 9000);
   }
 
-  function maybeDesktopNotify(ok) {
+  function maybeDesktopNotifyHr(ok) {
     if (!window.Notification || Notification.permission !== "granted") return;
     try {
       if (ok) {
         new Notification("HR-Bench 완료", { body: "오른쪽 미리보기에 결과를 표시했습니다.", silent: true });
       } else {
         new Notification("HR-Bench 실패", { body: "종료 코드가 0이 아닙니다. 로그를 확인하세요.", silent: true });
+      }
+    } catch (e) {}
+  }
+
+  function maybeDesktopNotifySeq(ok) {
+    if (!window.Notification || Notification.permission !== "granted") return;
+    try {
+      if (ok) {
+        new Notification("연속 프레임 비교 완료", { body: "sequence_compare_last.html 을 미리보기에 표시했습니다.", silent: true });
+      } else {
+        new Notification("연속 프레임 비교 실패", { body: "종료 코드가 0이 아닙니다.", silent: true });
       }
     } catch (e) {}
   }
@@ -333,7 +481,7 @@
       var want = $("i_notify_done") && $("i_notify_done").checked;
       if (want) {
         playDoneChime(ok);
-        maybeDesktopNotify(ok);
+        maybeDesktopNotifyHr(ok);
       }
       if (ok) {
         showToast(true, "HR-Bench 완료", "미리보기가 갱신되었습니다.");
@@ -342,6 +490,40 @@
       }
     });
   };
+
+  window._onSequenceFinished = function (code) {
+    $("btnSeqRun").disabled = false;
+    appendLog("---- 연속 프레임 비교 종료 코드 " + code + " ----");
+    var ok = (code === 0);
+    setStatus(ok ? "" : "실패 (코드 " + code + ")");
+    loadSequencePreviewFromApi().then(function () {
+      var want = $("i_notify_done") && $("i_notify_done").checked;
+      if (want) {
+        playDoneChime(ok);
+        maybeDesktopNotifySeq(ok);
+      }
+      if (ok) {
+        showToast(true, "비교 완료", "docs/sequence_compare_last.html 미리보기를 갱신했습니다.");
+      } else {
+        showToast(false, "비교 실패", "로그를 확인하세요.");
+      }
+    });
+  };
+
+  function setActiveView(v) {
+    activeView = v;
+    var hr = v === "hr";
+    $("stackHr").style.display = hr ? "block" : "none";
+    $("stackSeq").style.display = hr ? "none" : "block";
+    $("tabHr").className = "tab" + (hr ? " active" : "");
+    $("tabSeq").className = "tab" + (hr ? "" : " active");
+    $("tabHr").setAttribute("aria-selected", hr ? "true" : "false");
+    $("tabSeq").setAttribute("aria-selected", hr ? "false" : "true");
+    $("btnRun").style.display = hr ? "" : "none";
+    $("btnSeqRun").style.display = hr ? "none" : "";
+    $("iframeReport").title = hr ? "HR-Bench 리포트" : "연속 프레임 비교 리포트";
+    refreshPreviewForActiveTab();
+  }
 
   function collectConfig() {
     const strategies = [];
@@ -380,6 +562,67 @@
     };
   }
 
+  function collectSeqConfig() {
+    return {
+      frames_dir: $("s_frames").value.trim(),
+      max_frames: $("s_maxf").value.trim(),
+      base_url: $("s_base").value.trim(),
+      api_key: $("s_key").value.trim(),
+      model: $("s_model").value.trim(),
+      prompt: $("s_prompt").value,
+      max_tokens: $("s_tok").value.trim(),
+      context_max_side: $("s_ctx").value.trim(),
+      context_resize_scale: $("s_cs").value.trim(),
+      context_by_long_edge: $("s_ctx_long").checked,
+      crop_max_side: $("s_crop").value.trim(),
+      max_crops: $("s_mc").value.trim(),
+      min_crop_short_side: $("s_mincs").value.trim(),
+      min_crop_area: $("s_minca").value.trim(),
+      yolo_model: $("s_yolo").value.trim(),
+      yolo_surveillance_classes_only: $("s_surv").checked,
+      yolo_max_bbox_area_num: $("s_an").value.trim(),
+      yolo_max_bbox_area_den: $("s_ad").value.trim(),
+      yolo_device: $("s_ydev").value.trim(),
+      frame_gate: $("s_fg").value,
+      mse_threshold: $("s_mse").value.trim(),
+      use_crop_layout_gate: $("s_clg").checked,
+      crop_gate_max_shift: $("s_cgs").value.trim(),
+      gate_min_crops_for_vlm: $("s_gmin").value.trim(),
+      gate_max_crops_for_vlm: $("s_gmax").value.trim(),
+      disable_yolo_vlm_budget: $("s_nobudg").checked,
+    };
+  }
+
+  function applySeqDefaults() {
+    const s = seqDefs;
+    $("s_frames").value = s.frames_dir != null ? String(s.frames_dir) : "";
+    $("s_maxf").value = s.max_frames != null ? String(s.max_frames) : "6";
+    $("s_base").value = s.base_url != null ? String(s.base_url) : "";
+    $("s_key").value = s.api_key != null ? String(s.api_key) : "";
+    $("s_model").value = s.model != null ? String(s.model) : "";
+    $("s_prompt").value = s.prompt != null ? String(s.prompt) : "";
+    $("s_tok").value = s.max_tokens != null ? String(s.max_tokens) : "256";
+    $("s_ctx").value = s.context_max_side != null ? String(s.context_max_side) : "960";
+    $("s_cs").value = s.context_resize_scale != null ? String(s.context_resize_scale) : "0.5";
+    $("s_ctx_long").checked = !!s.context_by_long_edge;
+    $("s_crop").value = s.crop_max_side != null ? String(s.crop_max_side) : "0";
+    $("s_mc").value = s.max_crops != null ? String(s.max_crops) : "0";
+    $("s_mincs").value = s.min_crop_short_side != null ? String(s.min_crop_short_side) : "0";
+    $("s_minca").value = s.min_crop_area != null ? String(s.min_crop_area) : "0";
+    $("s_yolo").value = s.yolo_model != null ? String(s.yolo_model) : "";
+    $("s_an").value = s.yolo_max_bbox_area_num != null ? String(s.yolo_max_bbox_area_num) : "1";
+    $("s_ad").value = s.yolo_max_bbox_area_den != null ? String(s.yolo_max_bbox_area_den) : "4";
+    $("s_ydev").value = s.yolo_device != null ? String(s.yolo_device) : "cpu";
+    $("s_fg").value = s.frame_gate != null ? String(s.frame_gate) : "yolo";
+    $("s_mse").value = s.mse_threshold != null ? String(s.mse_threshold) : "2.5";
+    $("s_clg").checked = s.use_crop_layout_gate !== false;
+    $("s_cgs").value = s.crop_gate_max_shift != null ? String(s.crop_gate_max_shift) : "0.02";
+    $("s_gmin").value = s.gate_min_crops_for_vlm != null ? String(s.gate_min_crops_for_vlm) : "0";
+    $("s_gmax").value = s.gate_max_crops_for_vlm != null ? String(s.gate_max_crops_for_vlm) : "0";
+    $("s_surv").checked = !!s.yolo_surveillance_classes_only;
+    $("s_nobudg").checked = !!s.disable_yolo_vlm_budget;
+  }
+
   function applyDefaults() {
     const d = defs;
     const splits = BS.splits || ["hrbench_4k", "hrbench_8k"];
@@ -406,7 +649,7 @@
     $("i_yolo_aden").value = d.yolo_max_bbox_area_den != null ? String(d.yolo_max_bbox_area_den) : "4";
     $("i_mincs").value = d.min_crop_short_side != null ? String(d.min_crop_short_side) : "0";
     $("i_minca").value = d.min_crop_area != null ? String(d.min_crop_area) : "0";
-    $("i_yolo_ov").value = d.yolo_overview_max_side != null ? String(d.yolo_overview_max_side) : "480";
+    $("i_yolo_ov").value = d.yolo_overview_max_side != null ? String(d.yolo_overview_max_side) : "960";
     $("i_qwen_long").value = d.qwen_image_max_long_side != null ? String(d.qwen_image_max_long_side) : "0";
     $("i_max_tok").value = d.max_tokens != null ? String(d.max_tokens) : "8";
     $("i_smol_tok").value = d.smol_max_tokens != null ? String(d.smol_max_tokens) : "256";
@@ -451,6 +694,29 @@
       }
     });
   };
+  $("btnSeqRun").onclick = function () {
+    setStatus("");
+    if (!window.pywebview || !pywebview.api) {
+      setStatus("pywebview API 없음");
+      return;
+    }
+    ensureAudioCtx();
+    primeNotifications();
+    pywebview.api.run_sequence_compare(collectSeqConfig()).then(function (r) {
+      if (r && r.error) {
+        setStatus(r.error);
+        return;
+      }
+      if (r && r.started) {
+        $("btnSeqRun").disabled = true;
+        appendLog("[안내] 연속 프레임 비교 시작…");
+      }
+    });
+  };
+
+  $("tabHr").onclick = function () { setActiveView("hr"); };
+  $("tabSeq").onclick = function () { setActiveView("seq"); };
+
   $("btnCopyLog").onclick = function () {
     const el = $("log");
     var t = el.value || "";
@@ -483,10 +749,16 @@
     setStatus("");
   };
   $("btnReload").onclick = function () {
-    loadReportPreviewFromApi();
+    refreshPreviewForActiveTab();
   };
   $("btnBrowser").onclick = function () {
-    if (window.pywebview && pywebview.api) pywebview.api.open_report_browser();
+    if (window.pywebview && pywebview.api) {
+      if (activeView === "seq" && pywebview.api.open_sequence_browser) {
+        pywebview.api.open_sequence_browser();
+      } else {
+        pywebview.api.open_report_browser();
+      }
+    }
   };
   $("btnDocs").onclick = function () {
     if (window.pywebview && pywebview.api) pywebview.api.open_docs_folder();
@@ -496,6 +768,7 @@
   };
 
   applyDefaults();
+  applySeqDefaults();
   loadReportPreviewFromApi();
 })();
   </script>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <base href="file:///D:/Private/Fiddles/qwen-vlm/docs/"/>
   <title>HR-Bench 전략 비교</title>
   <style>
     body { font-family: system-ui, sans-serif; margin: 1.2rem; background: #fafafa; color: #222; }
@@ -16,11 +17,34 @@
     td.reply { white-space: pre-wrap; max-width: 24rem; }
     .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; max-width: 56rem; }
     .chart-cell { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.5rem; min-height: 14rem; }
+    .problem-picks { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0; }
+    button.hr-btn-pick {
+      cursor: pointer; font: inherit; padding: 0.35rem 0.65rem;
+      border: 1px solid #bbb; border-radius: 6px; background: #fff;
+    }
+    button.hr-btn-pick[aria-pressed="true"] { background: #e3f2fd; border-color: #1976d2; }
+    .problem-panel-wrap { margin-top: 0.75rem; background: #fff; border: 1px solid #ccc;
+      padding: 0.85rem; border-radius: 8px; max-width: 72rem; }
+    .hr-problem-detail h4 { margin: 0.6rem 0 0.2rem 0; font-size: 0.95rem; }
+    section.hr-strategy-block {
+      margin: 1rem 0; padding-bottom: 0.75rem; border-bottom: 1px dashed #ddd; }
+    .hr-strategy-block:last-child { border-bottom: none; }
+    .hr-bbox-wrap { margin: 0.25rem 0; }
+    .hr-bbox-hint { font-size: 0.72rem; color: #666; }
+    .hr-dbg-block { margin: 0.5rem 0; }
+    .hr-crops { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-start; }
+    .hr-crops figure { margin: 0; max-width: 14rem; font-size: 0.72rem; color: #555; }
+    .hr-pre {
+      white-space: pre-wrap; word-break: break-word; font-size: 0.72rem;
+      background: #f6f8fa; border: 1px solid #e1e4e8; padding: 0.5rem; border-radius: 6px;
+      max-height: 26rem; overflow: auto;
+    }
+    .mono-tight code { font-size: 0.78rem; }
   </style>
 </head>
 <body>
   <h1>HR-Bench — 전략 비교</h1>
-  <p class="meta">데이터셋: DreamMr/HR-Bench · split: hrbench_4k · 샘플 모드: sequential · max_samples=10 · model(Qwen): qwen · model(Smol): smolvlm</p>
+  <p class="meta">데이터셋: DreamMr/HR-Bench · split: hrbench_4k · 샘플 모드: sequential · max_samples=2 · model(Qwen): qwen · model(Smol): smolvlm</p>
   <h2>실행 설정 (YOLO·전망)</h2>
 <table><thead><tr><th>설정</th><th>값</th></tr></thead><tbody>
 <tr><td>context_by_long_edge_only</td><td>False</td></tr>
@@ -35,7 +59,7 @@
 <tr><td>yolo_max_bbox_area_denominator</td><td>4</td></tr>
 <tr><td>yolo_max_bbox_area_numerator</td><td>1</td></tr>
 <tr><td>yolo_model_path</td><td>yolo26n.pt</td></tr>
-<tr><td>yolo_overview_max_side</td><td>480</td></tr>
+<tr><td>yolo_overview_max_side</td><td>960</td></tr>
 <tr><td>yolo_surveillance_classes_only</td><td>False</td></tr>
 <tr><td>yolo_vlm_budget</td><td>True</td></tr>
 </tbody></table>
@@ -49,10 +73,10 @@
       </tr>
     </thead>
     <tbody>
-<tr><td>qwen_only</td><td class='num'>10</td><td class='num'>9</td><td class='num'>0.9</td><td class='num'>4.2797</td><td class='num'>4171.8</td><td class='num'>—</td><td class='num'>7867.0</td></tr>
-<tr><td>yolo_lowres_crops</td><td class='num'>10</td><td class='num'>9</td><td class='num'>0.9</td><td class='num'>1.1824</td><td class='num'>837.4</td><td class='num'>—</td><td class='num'>7838.0</td></tr>
-<tr><td>yolo_smol_parallel</td><td class='num'>10</td><td class='num'>8</td><td class='num'>0.8</td><td class='num'>1.1375</td><td class='num'>1049.4</td><td class='num'>—</td><td class='num'>7619.0</td></tr>
-<tr><td>yolo_smol_sequential</td><td class='num'>10</td><td class='num'>8</td><td class='num'>0.8</td><td class='num'>1.0901</td><td class='num'>1049.4</td><td class='num'>—</td><td class='num'>7729.0</td></tr>
+<tr><td>qwen_only</td><td class='num'>2</td><td class='num'>2</td><td class='num'>1.0</td><td class='num'>7.4295</td><td class='num'>4181.0</td><td class='num'>—</td><td class='num'>7801.0</td></tr>
+<tr><td>yolo_lowres_crops</td><td class='num'>2</td><td class='num'>2</td><td class='num'>1.0</td><td class='num'>2.3985</td><td class='num'>1537.0</td><td class='num'>—</td><td class='num'>7783.0</td></tr>
+<tr><td>yolo_smol_parallel</td><td class='num'>2</td><td class='num'>2</td><td class='num'>1.0</td><td class='num'>1.6665</td><td class='num'>1591.0</td><td class='num'>150.0</td><td class='num'>7550.0</td></tr>
+<tr><td>yolo_smol_sequential</td><td class='num'>2</td><td class='num'>2</td><td class='num'>1.0</td><td class='num'>1.7585</td><td class='num'>1630.0</td><td class='num'>150.0</td><td class='num'>7563.0</td></tr>
     </tbody>
   </table>
   
@@ -64,7 +88,7 @@
     <div class="chart-cell"><canvas id="hrChartTok"></canvas></div>
     <div class="chart-cell"><canvas id="hrChartGpu"></canvas></div>
   </div>
-  <script type="application/json" id="hr-chart-payload">{"labels": ["qwen_only", "yolo_lowres_crops", "yolo_smol_parallel", "yolo_smol_sequential"], "accuracy": [0.9, 0.9, 0.8, 0.8], "mean_seconds": [4.2797, 1.1824, 1.1375, 1.0901], "mean_prompt_tokens": [4171.8, 837.4, 1049.4, 1049.4], "mean_stage1_prompt_tokens": [null, null, null, null], "max_gpu_memory_used_mb": [7867.0, 7838.0, 7619.0, 7729.0]}</script>
+  <script type="application/json" id="hr-chart-payload">{"labels": ["qwen_only", "yolo_lowres_crops", "yolo_smol_parallel", "yolo_smol_sequential"], "accuracy": [1.0, 1.0, 1.0, 1.0], "mean_seconds": [7.4295, 2.3985, 1.6665, 1.7585], "mean_prompt_tokens": [4181.0, 1537.0, 1591.0, 1630.0], "mean_stage1_prompt_tokens": [null, null, 150.0, 150.0], "max_gpu_memory_used_mb": [7801.0, 7783.0, 7550.0, 7563.0]}</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
   (function() {
@@ -109,51 +133,246 @@
 
   <h2>qwen_only</h2>
 <table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
-<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>4.734</td><td class='num'>4181</td><td class='reply'>A</td></tr>
-<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>3.966</td><td class='num'>4181</td><td class='reply'>B</td></tr>
-<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>3.97</td><td class='num'>4181</td><td class='reply'>C</td></tr>
-<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>3.999</td><td class='num'>4181</td><td class='reply'>B</td></tr>
-<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>4.01</td><td class='num'>4163</td><td class='reply'>A</td></tr>
-<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>4.069</td><td class='num'>4163</td><td class='reply'>B</td></tr>
-<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>4.049</td><td class='num'>4163</td><td class='reply'>C</td></tr>
-<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>D</td><td>✓</td><td class='num'>4.12</td><td class='num'>4163</td><td class='reply'>D</td></tr>
-<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>5.208</td><td class='num'>4171</td><td class='reply'>A</td></tr>
-<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>4.672</td><td class='num'>4171</td><td class='reply'>B</td></tr></tbody></table>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>8.7</td><td class='num'>4181</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>6.159</td><td class='num'>4181</td><td class='reply'>B</td></tr></tbody></table>
 <h2>yolo_lowres_crops</h2>
 <table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
-<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.588</td><td class='num'>834</td><td class='reply'>A</td></tr>
-<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.083</td><td class='num'>834</td><td class='reply'>B</td></tr>
-<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.004</td><td class='num'>834</td><td class='reply'>C</td></tr>
-<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>1.003</td><td class='num'>834</td><td class='reply'>B</td></tr>
-<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.677</td><td class='num'>839</td><td class='reply'>A</td></tr>
-<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.054</td><td class='num'>839</td><td class='reply'>B</td></tr>
-<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.05</td><td class='num'>839</td><td class='reply'>C</td></tr>
-<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>D</td><td>✓</td><td class='num'>1.126</td><td class='num'>839</td><td class='reply'>D</td></tr>
-<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.048</td><td class='num'>841</td><td class='reply'>A</td></tr>
-<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.191</td><td class='num'>841</td><td class='reply'>B</td></tr></tbody></table>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>2.696</td><td class='num'>1537</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>2.101</td><td class='num'>1537</td><td class='reply'>B</td></tr></tbody></table>
 <h2>yolo_smol_parallel</h2>
 <table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
-<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.151</td><td class='num'>1046</td><td class='reply'>A</td></tr>
-<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.129</td><td class='num'>1046</td><td class='reply'>B</td></tr>
-<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.121</td><td class='num'>1046</td><td class='reply'>C</td></tr>
-<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>1.128</td><td class='num'>1046</td><td class='reply'>B</td></tr>
-<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.132</td><td class='num'>1051</td><td class='reply'>A</td></tr>
-<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.12</td><td class='num'>1051</td><td class='reply'>B</td></tr>
-<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.142</td><td class='num'>1051</td><td class='reply'>C</td></tr>
-<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>C</td><td>✗</td><td class='num'>1.205</td><td class='num'>1051</td><td class='reply'>C</td></tr>
-<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.109</td><td class='num'>1053</td><td class='reply'>A</td></tr>
-<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.138</td><td class='num'>1053</td><td class='reply'>B</td></tr></tbody></table>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.679</td><td class='num'>1583</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.654</td><td class='num'>1599</td><td class='reply'>B</td></tr></tbody></table>
 <h2>yolo_smol_sequential</h2>
 <table><thead><tr><th>ds#</th><th>idx</th><th>정답</th><th>예측</th><th>O/X</th><th>초</th><th>prompt_tok</th><th>응답(앞)</th></tr></thead><tbody>
-<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.113</td><td class='num'>1046</td><td class='reply'>A</td></tr>
-<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.058</td><td class='num'>1046</td><td class='reply'>B</td></tr>
-<tr><td class='num'>2</td><td class='num'>2</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.093</td><td class='num'>1046</td><td class='reply'>C</td></tr>
-<tr><td class='num'>3</td><td class='num'>3</td><td>D</td><td>B</td><td>✗</td><td class='num'>1.044</td><td class='num'>1046</td><td class='reply'>B</td></tr>
-<tr><td class='num'>4</td><td class='num'>4</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.107</td><td class='num'>1051</td><td class='reply'>A</td></tr>
-<tr><td class='num'>5</td><td class='num'>5</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.087</td><td class='num'>1051</td><td class='reply'>B</td></tr>
-<tr><td class='num'>6</td><td class='num'>6</td><td>C</td><td>C</td><td>✓</td><td class='num'>1.069</td><td class='num'>1051</td><td class='reply'>C</td></tr>
-<tr><td class='num'>7</td><td class='num'>7</td><td>D</td><td>C</td><td>✗</td><td class='num'>1.079</td><td class='num'>1051</td><td class='reply'>C</td></tr>
-<tr><td class='num'>8</td><td class='num'>8</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.132</td><td class='num'>1053</td><td class='reply'>A</td></tr>
-<tr><td class='num'>9</td><td class='num'>9</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.119</td><td class='num'>1053</td><td class='reply'>B</td></tr></tbody></table>
+<tr><td class='num'>0</td><td class='num'>0</td><td>A</td><td>A</td><td>✓</td><td class='num'>1.673</td><td class='num'>1587</td><td class='reply'>A</td></tr>
+<tr><td class='num'>1</td><td class='num'>1</td><td>B</td><td>B</td><td>✓</td><td class='num'>1.844</td><td class='num'>1673</td><td class='reply'>B</td></tr></tbody></table>
+  
+<h2 id="hr-problems">문제별 정보 더 보기</h2>
+<p class="meta">데이터셋 행 번호를 클릭하면 해당 샘플만 아래 패널에 표시합니다. 디버깅 이미지는 HTML과 같은 폴더의
+<code>&lt;stem&gt;_img/</code> 에 저장되고, 패널에는 상대 경로(<code>./stem_img/...</code>)가 들어갑니다.
+페이지 헤더의 <code>&lt;base href&gt;</code> 와 브라우저가 URL 을 재해석해 <code>file://</code> 직접 열기·로컬 HTTP 서버 둘 다에서
+로드하기 쉽게 했습니다. 원본 미리보기·YOLO 크롭·Smol 문자열 등은 결과 JSON 과 동일하게 참고용입니다.</p>
+<div class="problem-picks" id="hr-problem-picks"></div>
+<div class="problem-panel-wrap" id="hr-problem-panel-wrap" hidden>
+  <div id="hr-problem-panel"></div>
+</div>
+<script type="application/json" id="hr-problem-payload">{"ordered_ids": [0, 1], "by_dataset_row": {"0": {"dataset_row_index": 0, "hr_index": 0, "ground_truth_letter": "A", "strategies": {"qwen_only": {"strategy": "qwen_only", "correct": true, "pred_letter": "A", "raw_reply": "A", "prompt_tokens": 4181, "stage1_prompt_tokens": null, "n_crops_sent": null, "n_detections": null, "parsed_risk": null, "smol_ok": null, "yolo_seconds": null, "smol_seconds": null, "seconds": 8.7, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds0_qwen_only/thumbnail_original.jpg", "qwen_sent_thumbnail_url": "./hr_bench_last_img/ds0_qwen_only/qwen_sent_thumbnail.jpg", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27B\nB) 37B\nC) 27D\nD) 27E", "qwen_sent_image_sizes": [[4032, 4032]]}}, "yolo_lowres_crops": {"strategy": "yolo_lowres_crops", "correct": true, "pred_letter": "A", "raw_reply": "A", "prompt_tokens": 1537, "stage1_prompt_tokens": null, "n_crops_sent": 1, "n_detections": 2, "parsed_risk": null, "smol_ok": null, "yolo_seconds": 0.702, "smol_seconds": null, "seconds": 2.696, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds0_yolo_lowres_crops/thumbnail_original.jpg", "yolo_canvas_size_px": {"w": 2016, "h": 2016}, "overview_thumbnail_url": "./hr_bench_last_img/ds0_yolo_lowres_crops/overview_thumbnail.jpg", "overview_sent_size": [960, 960], "crop_thumbnails_jpeg_urls": ["./hr_bench_last_img/ds0_yolo_lowres_crops/crop_01.jpg"], "yolo_bbox_xyxy_on_canvas": [[986, 1206, 1520, 1929]], "yolo_bbox_xyxy_overview": [[469, 574, 723, 918]], "yolo_summary": "person:0.79", "yolo_context_sentence_en": "Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27B\nB) 37B\nC) 27D\nD) 27E\n\nThe following lines are EXTRA hints for the MULTIPLE CHOICE problem above—not part of the formal question wording. Prefer the attached images whenever these hints contradict what you see in pixels.\n\nYOLO-derived context (English summary): Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas."}}, "yolo_smol_parallel": {"strategy": "yolo_smol_parallel", "correct": true, "pred_letter": "A", "raw_reply": "A", "prompt_tokens": 1583, "stage1_prompt_tokens": 150, "n_crops_sent": 1, "n_detections": 2, "parsed_risk": "med", "smol_ok": true, "yolo_seconds": 0.538, "smol_seconds": 0.217, "seconds": 1.679, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds0_yolo_smol_parallel/thumbnail_original.jpg", "yolo_canvas_size_px": {"w": 2016, "h": 2016}, "overview_thumbnail_url": "./hr_bench_last_img/ds0_yolo_smol_parallel/overview_thumbnail.jpg", "overview_sent_size": [960, 960], "crop_thumbnails_jpeg_urls": ["./hr_bench_last_img/ds0_yolo_smol_parallel/crop_01.jpg"], "yolo_bbox_xyxy_on_canvas": [[986, 1206, 1520, 1929]], "yolo_bbox_xyxy_overview": [[469, 574, 723, 918]], "smol_prompt": "Describe this image briefly in plain English so another vision model can use it as extra context for a separate multiple-choice task. Mention salient objects, people, approximate layout/spatial relationships, rough setting, and readable text whenever it visibly matters. Use a few short sentences; plain prose only (no bullets, markdown, JSON, or rigid schemas).", "smol_reply_text": "The woman is looking upwards, holding a phone. She is standing in front of a closed shutter, to her left. To her right is a person, who seems to be gesturing.", "smol_reply_preview": "The woman is looking upwards, holding a phone. She is standing in front of a closed shutter, to her left. To her right is a person, who seems to be gesturing.", "smol_ok": true, "yolo_context_sentence_en": "Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.", "compact_vision_sentence_en": "The woman is looking upwards, holding a phone. She is standing in front of a closed shutter, to her left. To her right is a person, who seems to be gesturing.", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27B\nB) 37B\nC) 27D\nD) 27E\n\nThe following lines are EXTRA hints for the MULTIPLE CHOICE problem above—not part of the formal question wording. Prefer the attached images whenever these hints contradict what you see in pixels.\n\nYOLO-derived context (English summary): Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.\n\nCompact auxiliary vision cue (English summary): The woman is looking upwards, holding a phone. She is standing in front of a closed shutter, to her left. To her right is a person, who seems to be gesturing.", "parsed_risk": "med"}}, "yolo_smol_sequential": {"strategy": "yolo_smol_sequential", "correct": true, "pred_letter": "A", "raw_reply": "A", "prompt_tokens": 1587, "stage1_prompt_tokens": 150, "n_crops_sent": 1, "n_detections": 2, "parsed_risk": null, "smol_ok": true, "yolo_seconds": 0.558, "smol_seconds": 0.187, "seconds": 1.673, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds0_yolo_smol_sequential/thumbnail_original.jpg", "yolo_canvas_size_px": {"w": 2016, "h": 2016}, "overview_thumbnail_url": "./hr_bench_last_img/ds0_yolo_smol_sequential/overview_thumbnail.jpg", "overview_sent_size": [960, 960], "crop_thumbnails_jpeg_urls": ["./hr_bench_last_img/ds0_yolo_smol_sequential/crop_01.jpg"], "yolo_bbox_xyxy_on_canvas": [[986, 1206, 1520, 1929]], "yolo_bbox_xyxy_overview": [[469, 574, 723, 918]], "smol_prompt": "Describe this image briefly in plain English so another vision model can use it as extra context for a separate multiple-choice task. Mention salient objects, people, approximate layout/spatial relationships, rough setting, and readable text whenever it visibly matters. Use a few short sentences; plain prose only (no bullets, markdown, JSON, or rigid schemas).", "smol_reply_text": "In this picture, I can see a woman standing and holding a mobile in her hand. I can see the door and a window. On the door, I can see some papers. The background is blurred.", "smol_reply_preview": "In this picture, I can see a woman standing and holding a mobile in her hand. I can see the door and a window. On the door, I can see some papers. The background is blurred.", "smol_ok": true, "yolo_context_sentence_en": "Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.", "compact_vision_sentence_en": "In this picture, I can see a woman standing and holding a mobile in her hand. I can see the door and a window. On the door, I can see some papers. The background is blurred.", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27B\nB) 37B\nC) 27D\nD) 27E\n\nThe following lines are EXTRA hints for the MULTIPLE CHOICE problem above—not part of the formal question wording. Prefer the attached images whenever these hints contradict what you see in pixels.\n\nYOLO-derived context (English summary): Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.\n\nCompact auxiliary vision cue (English summary): In this picture, I can see a woman standing and holding a mobile in her hand. I can see the door and a window. On the door, I can see some papers. The background is blurred."}}}}, "1": {"dataset_row_index": 1, "hr_index": 1, "ground_truth_letter": "B", "strategies": {"qwen_only": {"strategy": "qwen_only", "correct": true, "pred_letter": "B", "raw_reply": "B", "prompt_tokens": 4181, "stage1_prompt_tokens": null, "n_crops_sent": null, "n_detections": null, "parsed_risk": null, "smol_ok": null, "yolo_seconds": null, "smol_seconds": null, "seconds": 6.159, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds1_qwen_only/thumbnail_original.jpg", "qwen_sent_thumbnail_url": "./hr_bench_last_img/ds1_qwen_only/qwen_sent_thumbnail.jpg", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27E\nB) 27B\nC) 37B\nD) 27D", "qwen_sent_image_sizes": [[4032, 4032]]}}, "yolo_lowres_crops": {"strategy": "yolo_lowres_crops", "correct": true, "pred_letter": "B", "raw_reply": "B", "prompt_tokens": 1537, "stage1_prompt_tokens": null, "n_crops_sent": 1, "n_detections": 2, "parsed_risk": null, "smol_ok": null, "yolo_seconds": 0.525, "smol_seconds": null, "seconds": 2.101, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds1_yolo_lowres_crops/thumbnail_original.jpg", "yolo_canvas_size_px": {"w": 2016, "h": 2016}, "overview_thumbnail_url": "./hr_bench_last_img/ds1_yolo_lowres_crops/overview_thumbnail.jpg", "overview_sent_size": [960, 960], "crop_thumbnails_jpeg_urls": ["./hr_bench_last_img/ds1_yolo_lowres_crops/crop_01.jpg"], "yolo_bbox_xyxy_on_canvas": [[986, 1206, 1520, 1929]], "yolo_bbox_xyxy_overview": [[469, 574, 723, 918]], "yolo_summary": "person:0.79", "yolo_context_sentence_en": "Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27E\nB) 27B\nC) 37B\nD) 27D\n\nThe following lines are EXTRA hints for the MULTIPLE CHOICE problem above—not part of the formal question wording. Prefer the attached images whenever these hints contradict what you see in pixels.\n\nYOLO-derived context (English summary): Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas."}}, "yolo_smol_parallel": {"strategy": "yolo_smol_parallel", "correct": true, "pred_letter": "B", "raw_reply": "B", "prompt_tokens": 1599, "stage1_prompt_tokens": 150, "n_crops_sent": 1, "n_detections": 2, "parsed_risk": "med", "smol_ok": true, "yolo_seconds": 0.509, "smol_seconds": 0.218, "seconds": 1.654, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds1_yolo_smol_parallel/thumbnail_original.jpg", "yolo_canvas_size_px": {"w": 2016, "h": 2016}, "overview_thumbnail_url": "./hr_bench_last_img/ds1_yolo_smol_parallel/overview_thumbnail.jpg", "overview_sent_size": [960, 960], "crop_thumbnails_jpeg_urls": ["./hr_bench_last_img/ds1_yolo_smol_parallel/crop_01.jpg"], "yolo_bbox_xyxy_on_canvas": [[986, 1206, 1520, 1929]], "yolo_bbox_xyxy_overview": [[469, 574, 723, 918]], "smol_prompt": "Describe this image briefly in plain English so another vision model can use it as extra context for a separate multiple-choice task. Mention salient objects, people, approximate layout/spatial relationships, rough setting, and readable text whenever it visibly matters. Use a few short sentences; plain prose only (no bullets, markdown, JSON, or rigid schemas).", "smol_reply_text": "In this image, I can see a woman standing and she is holding a mobile phone. To the right side, there is a white colored door with a wooden curtain. I can see a window behind her and there is a reflection of a window frame on the glass.", "smol_reply_preview": "In this image, I can see a woman standing and she is holding a mobile phone. To the right side, there is a white colored door with a wooden curtain. I can see a window behind her and there is a reflection of a window frame on the glass.", "smol_ok": true, "yolo_context_sentence_en": "Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.", "compact_vision_sentence_en": "In this image, I can see a woman standing and she is holding a mobile phone. To the right side, there is a white colored door with a wooden curtain. I can see a window behind her and there is a reflection of a window frame on the glass.", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27E\nB) 27B\nC) 37B\nD) 27D\n\nThe following lines are EXTRA hints for the MULTIPLE CHOICE problem above—not part of the formal question wording. Prefer the attached images whenever these hints contradict what you see in pixels.\n\nYOLO-derived context (English summary): Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.\n\nCompact auxiliary vision cue (English summary): In this image, I can see a woman standing and she is holding a mobile phone. To the right side, there is a white colored door with a wooden curtain. I can see a window behind her and there is a reflection of a window frame on the glass.", "parsed_risk": "med"}}, "yolo_smol_sequential": {"strategy": "yolo_smol_sequential", "correct": true, "pred_letter": "B", "raw_reply": "B", "prompt_tokens": 1673, "stage1_prompt_tokens": 150, "n_crops_sent": 1, "n_detections": 2, "parsed_risk": null, "smol_ok": true, "yolo_seconds": 0.517, "smol_seconds": 0.364, "seconds": 1.844, "hr_debug": {"thumbnail_original_jpeg_url": "./hr_bench_last_img/ds1_yolo_smol_sequential/thumbnail_original.jpg", "yolo_canvas_size_px": {"w": 2016, "h": 2016}, "overview_thumbnail_url": "./hr_bench_last_img/ds1_yolo_smol_sequential/overview_thumbnail.jpg", "overview_sent_size": [960, 960], "crop_thumbnails_jpeg_urls": ["./hr_bench_last_img/ds1_yolo_smol_sequential/crop_01.jpg"], "yolo_bbox_xyxy_on_canvas": [[986, 1206, 1520, 1929]], "yolo_bbox_xyxy_overview": [[469, 574, 723, 918]], "smol_prompt": "Describe this image briefly in plain English so another vision model can use it as extra context for a separate multiple-choice task. Mention salient objects, people, approximate layout/spatial relationships, rough setting, and readable text whenever it visibly matters. Use a few short sentences; plain prose only (no bullets, markdown, JSON, or rigid schemas).", "smol_reply_text": "The picture shows a woman standing outside with a small sign to her right, which reads \"27\". This could be a security camera or a security booth. \n\nShe seems to be looking to the side and to the right. There are some objects on the window behind her which seems to be a curtain, possibly to keep the blinds open. \n\nThere is a small object on the wall to the left of the picture with a visible red color. The sign on the wall has numbers that are difficult to read, possibly numbers for security or to identify the security. \n\nThe picture is blurred but it gives an idea of an outdoor scene with clear surroundings.", "smol_reply_preview": "The picture shows a woman standing outside with a small sign to her right, which reads \"27\". This could be a security camera or a security booth. \n\nShe seems to be looking to the side and to the right. There are some objects on the window behind her which seems to be a curtain, possibly to keep the blinds open. \n\nThere is a small object on the wall to the left of the picture with a visible red color. The sign on the wall has numbers that are difficult to read, possibly numbers for security or to identify the security. \n\nThe picture is blurred but it gives an idea of an outdoor scene with clear surroundings.", "smol_ok": true, "yolo_context_sentence_en": "Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.", "compact_vision_sentence_en": "The picture shows a woman standing outside with a small sign to her right, which reads \"27\". This could be a security camera or a security booth. She seems to be looking to the side and to the right. There are some objects on the window behind her which seems to be a curtain, possibly to keep the blinds open. There is a small object on the wall to the left of the picture with a visible red color. The sign on the wall has numbers that are difficult to read, possibly numbers for security or to identify the security. The picture is blurred but it gives an idea of an outdoor scene with clear surroundings.", "qwen_prompt": "Answer the following multiple choice question for the given image.\nReply with a single line containing ONLY the letter: A, B, C, or D (no other text).\n\nWhat is the number displayed above the entrance where the woman is standing?\nA) 27E\nB) 27B\nC) 37B\nD) 27D\n\nThe following lines are EXTRA hints for the MULTIPLE CHOICE problem above—not part of the formal question wording. Prefer the attached images whenever these hints contradict what you see in pixels.\n\nYOLO-derived context (English summary): Image slot #0 is a low-resolution overview about 960×960 px; object detection ran on an RGB frame uniformly scaled (0.5×) to roughly 2016×2016 px from the benchmark raster; YOLO reported 2 raw boxes and attached 1 extra tiles. supplementary thumbnails #1–#1 line up with these overview-space RECTS (c1[469,574,723,918]) and patches keep native crop resolution versus the detector canvas.\n\nCompact auxiliary vision cue (English summary): The picture shows a woman standing outside with a small sign to her right, which reads \"27\". This could be a security camera or a security booth. She seems to be looking to the side and to the right. There are some objects on the window behind her which seems to be a curtain, possibly to keep the blinds open. There is a small object on the wall to the left of the picture with a visible red color. The sign on the wall has numbers that are difficult to read, possibly numbers for security or to identify the security. The picture is blurred but it gives an idea of an outdoor scene with clear surroundings."}}}}}, "strategy_order": ["qwen_only", "yolo_lowres_crops", "yolo_smol_parallel", "yolo_smol_sequential"]}</script>
+<script>
+(function() {
+  const el = document.getElementById('hr-problem-payload');
+  const picks = document.getElementById('hr-problem-picks');
+  const wrap = document.getElementById('hr-problem-panel-wrap');
+  const panel = document.getElementById('hr-problem-panel');
+  if (!el || !picks || !panel || !wrap) return;
+  let PAYLOAD;
+  try { PAYLOAD = JSON.parse(el.textContent); } catch (e) { return; }
+  const by = PAYLOAD.by_dataset_row || {};
+  const ids = PAYLOAD.ordered_ids || [];
+  const stratOrder = PAYLOAD.strategy_order || [];
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML.replace(/\n/g, '<br>');
+  }
+  function escAttr(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
+  }
+  function normalizeImgSrc(href) {
+    var s = String(href || '').trim();
+    if (!s) return '';
+    if (/^(data:|https?:|file:)/i.test(s)) return s;
+    try {
+      var b = document.baseURI || window.location.href;
+      return new URL(s, b).href;
+    } catch (err) {
+      return s;
+    }
+  }
+  function imgSrcEscaped(href) {
+    return escAttr(normalizeImgSrc(href));
+  }
+  function renderImgs(debug) {
+    if (!debug) return '';
+    let html = '';
+    if (debug.thumbnail_original_jpeg_url) {
+      html += '<div class="hr-dbg-block"><strong>원본(썸네일)</strong><br/><img src="'
+        + imgSrcEscaped(debug.thumbnail_original_jpeg_url) + '" class="hr-dbg-thumb"/></div>';
+    }
+    if (debug.overview_thumbnail_url) {
+      var srcOv = imgSrcEscaped(debug.overview_thumbnail_url);
+      var hasBox = Array.isArray(debug.yolo_bbox_xyxy_overview)
+        && debug.yolo_bbox_xyxy_overview.length > 0
+        && Array.isArray(debug.overview_sent_size)
+        && debug.overview_sent_size.length >= 2;
+      if (hasBox) {
+        try {
+          var ove = encodeURIComponent(JSON.stringify(debug.overview_sent_size));
+          var bxe = encodeURIComponent(JSON.stringify(debug.yolo_bbox_xyxy_overview));
+          html += '<div class="hr-dbg-block"><strong>VLM 전망 + 탐지 박스</strong>'
+            + '<span class="hr-bbox-hint"> (전망 픽셀 좌표, 썸네일 축소에 맞춤)</span><br/>';
+          html += '<div class="hr-bbox-wrap" data-ovs-e="' + escAttr(ove) + '" data-boxes-e="'
+            + escAttr(bxe) + '">';
+          html += '<img alt="overview" src="' + srcOv + '" class="hr-dbg-thumb hr-ov-underlay"/>';
+          html += '</div></div>';
+        } catch (err) {
+          html += '<div class="hr-dbg-block"><strong>VLM 전망 썸네일</strong><br/><img src="'
+            + srcOv + '" class="hr-dbg-thumb"/></div>';
+        }
+      } else {
+        html += '<div class="hr-dbg-block"><strong>VLM 전망 썸네일</strong><br/><img src="'
+          + srcOv + '" class="hr-dbg-thumb"/></div>';
+      }
+    }
+    var crops = debug.crop_thumbnails_jpeg_urls || [];
+    if (crops.length) {
+      html += '<div class="hr-dbg-block"><strong>크롭 ' + crops.length + '개</strong><div class="hr-crops">';
+      for (var i = 0; i < crops.length; i++) {
+        html += '<figure><figcaption>크롭 ' + (i + 1) + '</figcaption><img src="' + imgSrcEscaped(crops[i])
+          + '" class="hr-dbg-thumb"/></figure>';
+      }
+      html += '</div></div>';
+    }
+    if (debug.qwen_sent_thumbnail_url) {
+      html += '<div class="hr-dbg-block"><strong>Qwen에 전송한 이미지 썸네일</strong><br/><img src="'
+        + imgSrcEscaped(debug.qwen_sent_thumbnail_url) + '" class="hr-dbg-thumb"/></div>';
+    }
+    return html;
+  }
+  function initOverviewBBoxes(panel) {
+    if (!panel || !panel.querySelectorAll) return;
+    panel.querySelectorAll('.hr-bbox-wrap').forEach(function(wrap) {
+      var oRaw = wrap.getAttribute('data-ovs-e');
+      var bRaw = wrap.getAttribute('data-boxes-e');
+      if (!oRaw || !bRaw) return;
+      var ovs, boxes;
+      try {
+        ovs = JSON.parse(decodeURIComponent(oRaw));
+        boxes = JSON.parse(decodeURIComponent(bRaw));
+      } catch (e) { return; }
+      if (!boxes || boxes.length === 0 || !ovs || ovs.length < 2) return;
+      var ovW = ovs[0], ovH = ovs[1];
+      var img = wrap.querySelector('img');
+      if (!img) return;
+      function draw() {
+        var nw = img.naturalWidth;
+        var nh = img.naturalHeight;
+        if (!nw || !nh || !ovW || !ovH) return;
+        var sx = nw / ovW;
+        var sy = nh / ovH;
+        var svgNS = 'http://www.w3.org/2000/svg';
+        var prev = wrap.querySelector('svg.hr-bbox-layer');
+        if (prev) prev.remove();
+        var svg = document.createElementNS(svgNS, 'svg');
+        svg.setAttribute('class', 'hr-bbox-layer');
+        svg.setAttribute('width', String(nw));
+        svg.setAttribute('height', String(nh));
+        svg.style.position = 'absolute';
+        svg.style.left = '0';
+        svg.style.top = '0';
+        svg.style.pointerEvents = 'none';
+        boxes.forEach(function(b) {
+          if (!b || b.length < 4) return;
+          var r = document.createElementNS(svgNS, 'rect');
+          var x1 = Number(b[0]) * sx, y1 = Number(b[1]) * sy;
+          var x2 = Number(b[2]) * sx, y2 = Number(b[3]) * sy;
+          var rx1 = Math.min(x1, x2), ry1 = Math.min(y1, y2);
+          var rw = Math.abs(x2 - x1), rh = Math.abs(y2 - y1);
+          r.setAttribute('x', String(rx1));
+          r.setAttribute('y', String(ry1));
+          r.setAttribute('width', String(rw));
+          r.setAttribute('height', String(rh));
+          r.setAttribute('fill', 'rgba(233,30,99,0.06)');
+          r.setAttribute('stroke', '#e91e63');
+          r.setAttribute('stroke-width', '2');
+          svg.appendChild(r);
+        });
+        wrap.style.position = 'relative';
+        wrap.style.display = 'inline-block';
+        wrap.style.maxWidth = '100%';
+        img.style.display = 'block';
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        wrap.appendChild(svg);
+      }
+      if (img.complete && img.naturalWidth) draw();
+      else img.addEventListener('load', draw);
+    });
+  }
+  function renderDebugText(debug) {
+    if (!debug) return '';
+    var t = '';
+    if (debug.smol_prompt)
+      t += '<h4>Smol 프롬프트(텍스트)</h4><pre class="hr-pre">' + esc(debug.smol_prompt) + '</pre>';
+    var smolRaw = debug.smol_reply_text != null && String(debug.smol_reply_text).length
+      ? String(debug.smol_reply_text)
+      : (debug.smol_reply_preview || '');
+    if (smolRaw)
+      t += '<h4>Smol 원문 답변(전체)</h4><pre class="hr-pre">' + esc(smolRaw) + '</pre>';
+    if (debug.compact_vision_sentence_en)
+      t += '<h4>Qwen으로 보낸 Smol 영어 요약</h4><pre class="hr-pre">' + esc(debug.compact_vision_sentence_en) + '</pre>';
+    else if (debug.stage1_merged_block)
+      t += '<h4>레거시 1단계 블록</h4><pre class="hr-pre">' + esc(debug.stage1_merged_block) + '</pre>';
+    if (debug.yolo_context_sentence_en)
+      t += '<h4>YOLO 영어 요약 문장</h4><pre class="hr-pre">' + esc(debug.yolo_context_sentence_en) + '</pre>';
+    else if (debug.coordinate_preamble)
+      t += '<h4>YOLO 좌표 서문(레거시)</h4><pre class="hr-pre">' + esc(debug.coordinate_preamble) + '</pre>';
+    if (debug.qwen_prompt)
+      t += '<h4>Qwen 사용자 프롬프트 전체</h4><pre class="hr-pre">' + esc(debug.qwen_prompt) + '</pre>';
+    if (debug.yolo_bbox_xyxy_on_canvas)
+      t += '<h4>YOLO bbox (탐지 캔버스 xyxy)</h4><pre class="hr-pre">'
+        + esc(JSON.stringify(debug.yolo_bbox_xyxy_on_canvas, null, 2)) + '</pre>';
+    if (debug.yolo_canvas_size_px)
+      t += '<p><strong>YOLO 캔버스:</strong> ' + esc(JSON.stringify(debug.yolo_canvas_size_px)) + '</p>';
+    if (debug.parsed_risk)
+      t += '<p><strong>parsed risk:</strong> ' + esc(debug.parsed_risk) + '</p>';
+    if (debug.qwen_sent_image_sizes)
+      t += '<p><strong>Qwen 입력 크기(px):</strong> ' + esc(JSON.stringify(debug.qwen_sent_image_sizes)) + '</p>';
+    return t;
+  }
+  function renderOne(dsKey) {
+    const P = by[String(dsKey)];
+    if (!P) return;
+    var html = '<div class="hr-problem-detail">';
+    html += '<h3>행 ' + esc(P.dataset_row_index) + ' · HR 인덱스 ' + esc(P.hr_index)
+      + ' · 정답 <strong>' + esc(P.ground_truth_letter) + '</strong></h3>';
+    stratOrder.forEach(function(stratName) {
+      const S = (P.strategies || {})[stratName];
+      if (!S) return;
+      var ok = S.correct ? ' ✓' : ' ✗';
+      html += '<section class="hr-strategy-block"><h4>' + esc(stratName) + ok + '</h4>';
+      html += '<p>예측: <code>' + esc(S.pred_letter) + '</code> · tok ' + esc(S.prompt_tokens) + '</p>';
+      html += '<p class="mono-tight">모델 답(앞 300자): <code>'
+        + esc((S.raw_reply || '').substring(0, 300)) + '</code></p>';
+      html += renderImgs(S.hr_debug);
+      html += renderDebugText(S.hr_debug);
+      html += '</section>';
+    });
+    html += '</div>';
+    panel.innerHTML = html;
+    wrap.hidden = false;
+    initOverviewBBoxes(panel);
+  }
+  ids.forEach(function(did) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'hr-btn-pick';
+    const P = by[String(did)];
+    btn.textContent = '#' + did + ' (HR ' + (P && P.hr_index !== undefined ? P.hr_index : '?') + ')';
+    btn.addEventListener('click', function() {
+      picks.querySelectorAll('button').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
+      btn.setAttribute('aria-pressed', 'true');
+      renderOne(did);
+    });
+    picks.appendChild(btn);
+  });
+})();
+</script>
+
 </body>
 </html>

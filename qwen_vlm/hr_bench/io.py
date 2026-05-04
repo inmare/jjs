@@ -9,7 +9,7 @@ import re
 import sys
 import urllib.request
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from PIL import Image
 
@@ -39,9 +39,17 @@ D) {D}"""
 
 def to_pil(image_field: Any) -> Image.Image:
     if isinstance(image_field, Image.Image):
-        return image_field.convert("RGB")
+        # datasets 가 행 간 동일 디코드 버퍼를 가리키는 PIL 을 줄 때 `.copy()` 만으로는
+        # 픽셀이 이전 행과 공유되는 사례가 있어 RGB 바이트를 새 버퍼로 복사한다.
+        rgb = image_field.convert("RGB")
+        return Image.frombytes("RGB", rgb.size, rgb.tobytes())
     if isinstance(image_field, dict) and "bytes" in image_field:
-        return Image.open(io.BytesIO(image_field["bytes"])).convert("RGB")
+        raw = image_field["bytes"]
+        if isinstance(raw, memoryview):
+            raw = raw.tobytes()
+        elif isinstance(raw, bytearray):
+            raw = bytes(raw)
+        return Image.open(io.BytesIO(raw)).convert("RGB")
     if isinstance(image_field, (bytes, bytearray)):
         return Image.open(io.BytesIO(image_field)).convert("RGB")
     if isinstance(image_field, str):
@@ -157,14 +165,41 @@ def select_indices(
     return list(range(start, end))
 
 
-def format_mcq_prompt(row: dict[str, Any]) -> str:
-    q = row.get("question") or ""
+def snapshot_hr_dataset_row(ds: Any, i: int) -> dict[str, Any]:
+    """``ds[i]`` 한 건을 컬럼 단위로 새 dict 로 복사한다.
+
+    HuggingFace ``datasets`` 가 반환하는 행 객체·내부 버퍼 재사용 때문에
+    다음 인덱스를 읽으면 이전 ``row['question']`` 등이 바뀌는 사례가 있어,
+    MCQ·정답 문자열이 샘플 간 뒤섞이지 않게 스냅샷을 만든다.
+    ``image`` 컬럼은 즉시 :func:`to_pil` 로 고정해 행 간 이미지 버퍼가 섞이지 않게 한다.
+    """
+    row = ds[i]
+    names = getattr(ds, "column_names", None)
+    if names is None:
+        if isinstance(row, dict):
+            out = dict(row)
+        else:
+            out = {str(k): row[k] for k in row}  # type: ignore[misc]
+    else:
+        out = {c: row[c] for c in names}
+    if out.get("image") is not None:
+        out["image"] = to_pil(out["image"])
+    return out
+
+
+def format_mcq_prompt(row: Mapping[str, Any]) -> str:
+    def _tx(k: str) -> str:
+        v = row.get(k)
+        if v is None:
+            return ""
+        return v if isinstance(v, str) else str(v)
+
     return MCQ_PROMPT.format(
-        question=q,
-        A=str(row.get("A") or ""),
-        B=str(row.get("B") or ""),
-        C=str(row.get("C") or ""),
-        D=str(row.get("D") or ""),
+        question=_tx("question"),
+        A=_tx("A"),
+        B=_tx("B"),
+        C=_tx("C"),
+        D=_tx("D"),
     )
 
 

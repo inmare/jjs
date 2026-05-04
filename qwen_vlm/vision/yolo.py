@@ -5,7 +5,6 @@ import os
 import tempfile
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 
 # COCO (Ultralytics YOLOv8): 사람·차량·휴대물 — 공장·캠퍼스 안전 스토리에 맞춘 부분집합
@@ -62,6 +61,9 @@ def run_yolo_crops(
     context_resize_scale: float | None = None,
     max_bbox_area_numerator: int = 1,
     max_bbox_area_denominator: int = 4,
+    original_full_image_size: tuple[int, int] | None = None,
+    vlm_overview_max_side_for_budget: int = 0,
+    crop_max_side_for_budget: int = 0,
 ) -> tuple[
     list[Image.Image],
     list[tuple[int, int, int, int]],
@@ -90,14 +92,21 @@ def run_yolo_crops(
     context_resize_scale: 설정 시 전망을 가로·세로 이 비율로 본다는 가정으로 예산·투영 중복.
     max_bbox_area_numerator / max_bbox_area_denominator: 원본 대비 최대 박스 면적 상한
         (기본: 면적 < 원본×numerator/denominator 만 유지 → 1/4).
+    original_full_image_size: ``(W,H)`` 데이터셋 **원본** 크기.
+        넘기면 면적·픽셀 예산이 해당 원본 픽셀 수 기준으로 잡히고,
+        VLM 입력 전망(``vlm_overview_max_side_for_budget``)·크롭 리사이즈(``crop_max_side_for_budget``)에
+        맞춰 실제 픽셀 합 예산을 쓴다. ``None`` 이면 YOLO 입력 이미지 크기만으로 예산(기존 동작).
+    vlm_overview_max_side_for_budget: 원본 전망이 이 값으로 줄어든다는 가정; 0이면 ctx 전망 크기.
+    crop_max_side_for_budget: 크롭 VLM 업로드 시 ``crop_max_side`` 와 같은 캡(0은 미적용 가정).
+
     predict_source: 디스크 경로가 있으면 ``model.predict(str(path))`` 로 Ultralytics 가
         이미지를 읽게 함(원본 스크립트와 동일). ``None`` 이면 PIL 을 임시 JPEG 로 저장 후 추론.
     yolo_device: 기본 ``\"cpu\"`` — llama-server(Qwen) GPU 와 VRAM 을 나누지 않음.
     """
-    from qwen_vlm.vision.yolo_vlm_budget import apply_yolo_vlm_budget_filters
+    from qwen_vlm.vision.yolo_vlm_budget import apply_yolo_vlm_budget_filters, bbox_pixel_area
 
-    rgb = image.convert("RGB")
-    w, h = rgb.size
+    rgb_work = image.convert("RGB").copy()
+    w, h = rgb_work.size
     imgsz = yolo_imgsz_from_image_size((w, h))
 
     tmp_path: str | None = None
@@ -107,7 +116,7 @@ def run_yolo_crops(
         else:
             fd, tmp_path = tempfile.mkstemp(suffix=".jpg")
             os.close(fd)
-            rgb.save(tmp_path, format="JPEG", quality=95)
+            rgb_work.save(tmp_path, format="JPEG", quality=95)
             src = tmp_path
         pred_kw: dict[str, object] = {
             "source": src,
@@ -134,12 +143,10 @@ def run_yolo_crops(
     conf_arr = boxes.conf.cpu().numpy()
     all_cls = {int(x) for x in cls.tolist()}
     n_det = len(boxes)
-    areas = (xyxy[:, 2] - xyxy[:, 0]) * (xyxy[:, 3] - xyxy[:, 1])
-    order = np.argsort(-areas)
 
-    candidates: list[tuple[tuple[int, int, int, int], int, float]] = []
-    for idx in order:
-        x1, y1, x2, y2 = map(int, xyxy[idx])
+    raw_dets: list[tuple[tuple[int, int, int, int], int, float]] = []
+    for idx_raw in range(n_det):
+        x1, y1, x2, y2 = map(int, xyxy[idx_raw])
         x1, y1 = max(0, x1), max(0, y1)
         x2, y2 = min(w, x2), min(h, y2)
         if x2 <= x1 or y2 <= y1:
@@ -151,7 +158,18 @@ def run_yolo_crops(
         if min_crop_area > 0 and area < min_crop_area:
             continue
         box = (x1, y1, x2, y2)
-        candidates.append((box, int(cls[idx]), float(conf_arr[idx])))
+        raw_dets.append((box, int(cls[idx_raw]), float(conf_arr[idx_raw])))
+
+    seen_coord: set[tuple[int, int, int, int]] = set()
+    dedup_first: list[tuple[tuple[int, int, int, int], int, float]] = []
+    for box, c_i, cf in raw_dets:
+        if box in seen_coord:
+            continue
+        seen_coord.add(box)
+        dedup_first.append((box, c_i, cf))
+
+    dedup_first.sort(key=lambda t: bbox_pixel_area(t[0]), reverse=True)
+    candidates = dedup_first
 
     bboxes_work = [c[0] for c in candidates]
     if vlm_budget and bboxes_work:
@@ -165,6 +183,9 @@ def run_yolo_crops(
             context_resize_scale=context_resize_scale,
             max_area_numerator=max_bbox_area_numerator,
             max_area_denominator=max_bbox_area_denominator,
+            original_image_size=original_full_image_size,
+            vlm_overview_max_side=vlm_overview_max_side_for_budget,
+            crop_max_side_for_budget=crop_max_side_for_budget,
         )
 
     meta_by_box: dict[tuple[int, int, int, int], tuple[int, float]] = {}
@@ -181,7 +202,7 @@ def run_yolo_crops(
         if box not in meta_by_box:
             continue
         x1, y1, x2, y2 = box
-        crops.append(rgb.crop((x1, y1, x2, y2)))
+        crops.append(rgb_work.crop((x1, y1, x2, y2)).copy())
         bboxes.append(box)
         c, cf = meta_by_box[box]
         name = FACTORY_SURVEILLANCE_LABELS.get(c, f"class_{c}")

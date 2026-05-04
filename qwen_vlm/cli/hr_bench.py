@@ -169,11 +169,11 @@ def main() -> int:
     p.add_argument(
         "--yolo-overview-max-side",
         type=int,
-        default=480,
+        default=960,
         help=(
             "YOLO 전략 전용 전망 긴 변 상한(픽셀). "
             "0이면 context-resize-scale/context-max-side 와 동일. "
-            "> 0이면 원본에서 이 크기로 직접 축소한 초저해상 전망 사용 → 토큰 절감 (기본 480)"
+            "> 0이면 원본에서 긴 변을 이 크기 이하로 축소한 전망(#0)·Smol 입력 (기본 960)"
         ),
     )
     p.add_argument(
@@ -344,7 +344,7 @@ def main() -> int:
                 return 1
             own_server = True
             try:
-                wait_for_server(base, args.server_timeout)
+                wait_for_server(base, args.server_timeout, child=proc)
             except RuntimeError as e:
                 if log_f is not None:
                     log_f.close()

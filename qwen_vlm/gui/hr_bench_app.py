@@ -24,20 +24,63 @@ from pathlib import Path
 from typing import Any
 
 from qwen_vlm.hr_bench.io import HR_BENCH_YOLO_WEIGHTS
+from qwen_vlm.hr_bench.report import inline_hr_compare_materialized_images_for_srcdoc
 from qwen_vlm.hr_bench.strategies import STRATEGIES_ALL
 from qwen_vlm.main import ROOT
+from qwen_vlm.pipeline.experiment import DEFAULT_PROMPT_KO, list_frames
 from qwen_vlm.pipeline.week import SMOL_GGUF, SMOL_MMPROJ
 from qwen_vlm.utils.stdio_utf8 import configure_stdio_utf8
 from qwen_vlm.utils.subprocess_util import (
     child_env_for_utf8_stdio,
-    decode_process_stdout_stderr,
+    run_subprocess_stream_text_lines,
 )
+
+
+def _gui_subprocess_cli_prefix(module: str) -> list[str]:
+    """
+    ``HR-Bench 실행`` / 연속 프레임 비교가 띄우는 하위 프로세스 접두.
+
+    ``uv run python -m …`` 대신 ``sys.executable -m …`` 를 쓰면, 이 GUI를 연
+    인터프리터(예: ``uv run python scripts/experiment_gui.py``)와 동일 환경으로
+    패키지 코드(Smol ``--no-jinja``·API 순서 등)가 바로 반영된다.
+    """
+    return [sys.executable, "-m", module]
+
 
 _DOCS = ROOT / "docs"
 HR_BENCH_JSON = _DOCS / "hr_bench_last.json"
 HR_BENCH_HTML = _DOCS / "hr_bench_last.html"
 HR_BENCH_PNG = _DOCS / "hr_bench_last_charts.png"
+SEQUENCE_COMPARE_JSON = _DOCS / "sequence_compare_last.json"
+SEQUENCE_COMPARE_HTML = _DOCS / "sequence_compare_last.html"
 _DASHBOARD_TEMPLATE = Path(__file__).resolve().parent / "hr_bench_dashboard.html"
+
+
+def _rel_posix_from_root(path: Path | str) -> str:
+    """``ROOT`` 기준 상대 경로(posix). 저장소 밖이면 절대 posix 로 남긴다."""
+    p = Path(path).expanduser()
+    if not p.is_absolute():
+        p = ROOT / p
+    p = p.resolve()
+    try:
+        return p.relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return p.as_posix().replace("\\", "/")
+
+
+def _enrich_bootstrap_file_uris(boot: dict[str, Any]) -> None:
+    """``file://`` 미리보기용 URI 를 상대 ``paths`` 로부터 채운다."""
+    paths = boot.get("paths")
+    if not isinstance(paths, dict):
+        return
+    for rel_key, uri_key in (
+        ("reportHtml", "reportHtmlUri"),
+        ("sequenceHtml", "sequenceHtmlUri"),
+    ):
+        rel = paths.get(rel_key)
+        if not rel:
+            continue
+        paths[uri_key] = (ROOT / str(rel)).resolve().as_uri()
 
 
 def default_gui_bootstrap() -> dict[str, Any]:
@@ -46,11 +89,12 @@ def default_gui_bootstrap() -> dict[str, Any]:
         "strategies": list(STRATEGIES_ALL),
         "splits": ["hrbench_4k", "hrbench_8k"],
         "paths": {
-            "reportHtml": str(HR_BENCH_HTML.resolve()),
-            "reportHtmlUri": HR_BENCH_HTML.resolve().as_uri(),
-            "reportJson": str(HR_BENCH_JSON.resolve()),
-            "pngOut": str(HR_BENCH_PNG.resolve()),
-            "docsDir": str(_DOCS.resolve()),
+            "reportHtml": _rel_posix_from_root(HR_BENCH_HTML),
+            "reportJson": _rel_posix_from_root(HR_BENCH_JSON),
+            "pngOut": _rel_posix_from_root(HR_BENCH_PNG),
+            "docsDir": _rel_posix_from_root(_DOCS),
+            "sequenceHtml": _rel_posix_from_root(SEQUENCE_COMPARE_HTML),
+            "sequenceJson": _rel_posix_from_root(SEQUENCE_COMPARE_JSON),
         },
         "defaults": {
             "strategies_checked": list(STRATEGIES_ALL),
@@ -70,7 +114,7 @@ def default_gui_bootstrap() -> dict[str, Any]:
             "yolo_surveillance_classes_only": False,
             "yolo_max_bbox_area_num": "1",
             "yolo_max_bbox_area_den": "4",
-            "yolo_overview_max_side": "480",
+            "yolo_overview_max_side": "960",
             "qwen_only_use_original": True,
             "qwen_image_max_long_side": "0",
             "max_tokens": "8",
@@ -79,8 +123,46 @@ def default_gui_bootstrap() -> dict[str, Any]:
             "no_sample_tables": False,
             "omit_smol_if_unavailable": False,
             "disable_yolo_vlm_budget": False,
-            "smol_gguf": str(SMOL_GGUF),
-            "smol_mmproj": str(SMOL_MMPROJ),
+            "smol_gguf": _rel_posix_from_root(SMOL_GGUF),
+            "smol_mmproj": _rel_posix_from_root(SMOL_MMPROJ),
+        },
+        "sequence": {
+            "frames_dir": (
+                "data/datasets/shanghaitech/shanghaitech/testing/frames"
+            ),
+            "frame_mask_dir": (
+                "data/datasets/shanghaitech/shanghaitech/testing/"
+                "test_frame_mask"
+            ),
+            "pixel_mask_dir": (
+                "data/datasets/shanghaitech/shanghaitech/testing/"
+                "test_pixel_mask"
+            ),
+            "max_frames": "6",
+            "base_url": "http://127.0.0.1:8765/v1",
+            "api_key": "sk-local",
+            "model": "qwen3-vl-4b-q8",
+            "prompt": DEFAULT_PROMPT_KO,
+            "max_tokens": "256",
+            "context_max_side": "960",
+            "context_resize_scale": "0.5",
+            "context_by_long_edge": False,
+            "crop_max_side": "0",
+            "max_crops": "0",
+            "min_crop_short_side": "0",
+            "min_crop_area": "0",
+            "yolo_model": "yolo26n.pt",
+            "yolo_surveillance_classes_only": False,
+            "yolo_max_bbox_area_num": "1",
+            "yolo_max_bbox_area_den": "4",
+            "yolo_device": "cpu",
+            "frame_gate": "yolo",
+            "mse_threshold": "2.5",
+            "use_crop_layout_gate": True,
+            "crop_gate_max_shift": "0.02",
+            "gate_min_crops_for_vlm": "0",
+            "gate_max_crops_for_vlm": "0",
+            "disable_yolo_vlm_budget": False,
         },
     }
 
@@ -102,7 +184,7 @@ def validate_gui_config(cfg: dict[str, Any]) -> str | None:
         int(str(cfg.get("max_crops") or "0").strip())
         int(str(cfg.get("yolo_max_bbox_area_num") or "1").strip())
         int(str(cfg.get("yolo_max_bbox_area_den") or "4").strip())
-        int(str(cfg.get("yolo_overview_max_side") or "480").strip())
+        int(str(cfg.get("yolo_overview_max_side") or "960").strip())
     except ValueError:
         return "숫자 필드(max-samples, context, crop, max-crops, yolo 면적 N/M, yolo-overview-max-side)를 확인하세요."
     if not cfg.get("context_by_long_edge"):
@@ -132,16 +214,12 @@ def hr_bench_command_from_gui_config(cfg: dict[str, Any]) -> list[str]:
         cfg: ``collectConfig()`` 와 동일 키 (strategies, split, …).
 
     Returns:
-        subprocess 에 그대로 넘길 argv (``uv`` 로 시작).
+        subprocess 에 그대로 넘길 argv (``sys.executable -m …`` 로 시작).
     """
     strategies: list[str] = list(cfg.get("strategies") or [])
     strat_arg = ",".join(strategies)
     cmd: list[str] = [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "qwen_vlm.cli.hr_bench",
+        *_gui_subprocess_cli_prefix("qwen_vlm.cli.hr_bench"),
         "--split",
         str(cfg.get("split") or "hrbench_4k").strip(),
         "--max-samples",
@@ -167,7 +245,7 @@ def hr_bench_command_from_gui_config(cfg: dict[str, Any]) -> list[str]:
         "--min-crop-area",
         str(cfg.get("min_crop_area") or "0").strip() or "0",
         "--yolo-overview-max-side",
-        str(cfg.get("yolo_overview_max_side") or "480").strip() or "480",
+        str(cfg.get("yolo_overview_max_side") or "960").strip() or "960",
         "--qwen-image-max-long-side",
         str(cfg.get("qwen_image_max_long_side") or "0").strip() or "0",
         "--max-tokens",
@@ -175,9 +253,9 @@ def hr_bench_command_from_gui_config(cfg: dict[str, Any]) -> list[str]:
         "--smol-max-tokens",
         str(cfg.get("smol_max_tokens") or "256").strip() or "256",
         "--json-out",
-        str(HR_BENCH_JSON),
+        _rel_posix_from_root(HR_BENCH_JSON),
         "--html-out",
-        str(HR_BENCH_HTML),
+        _rel_posix_from_root(HR_BENCH_HTML),
     ]
     if str(cfg.get("sample_mode") or "") == "sequential":
         cmd.extend(["--start", str(int(str(cfg.get("start") or "0").strip()))])
@@ -188,9 +266,9 @@ def hr_bench_command_from_gui_config(cfg: dict[str, Any]) -> list[str]:
     cmd.extend(
         [
             "--smol-gguf",
-            str(cfg.get("smol_gguf") or SMOL_GGUF).strip(),
+            _rel_posix_from_root(str(cfg.get("smol_gguf") or "").strip() or SMOL_GGUF),
             "--smol-mmproj",
-            str(cfg.get("smol_mmproj") or SMOL_MMPROJ).strip(),
+            _rel_posix_from_root(str(cfg.get("smol_mmproj") or "").strip() or SMOL_MMPROJ),
         ]
     )
     if cfg.get("omit_smol_if_unavailable"):
@@ -208,9 +286,123 @@ def hr_bench_command_from_gui_config(cfg: dict[str, Any]) -> list[str]:
     if cfg.get("disable_yolo_vlm_budget"):
         cmd.append("--disable-yolo-vlm-budget")
     if cfg.get("save_png"):
-        cmd.extend(["--png-out", str(HR_BENCH_PNG)])
+        cmd.extend(["--png-out", _rel_posix_from_root(HR_BENCH_PNG)])
     if cfg.get("no_sample_tables"):
         cmd.append("--no-sample-tables")
+    return cmd
+
+
+def validate_sequence_config(cfg: dict[str, Any]) -> str | None:
+    """``run_sequence_compare`` 직전 검증."""
+    d = str(cfg.get("frames_dir") or "").strip()
+    if not d:
+        return "프레임 디렉터리 경로를 입력하세요."
+    p = Path(d).expanduser()
+    if not p.is_absolute():
+        p = ROOT / p
+    rp = p.resolve()
+    if not rp.is_dir():
+        return f"프레임 디렉터리가 없습니다: {rp}"
+    if not list_frames(rp, 1):
+        return (
+            f"프레임(jpg/jpeg/png)을 찾지 못했습니다: {rp} — "
+            "평탄한 폴더 또는 testing/frames/<시퀀스>/ 구조인지 확인하세요."
+        )
+    try:
+        int(str(cfg.get("max_frames") or "0").strip())
+        int(str(cfg.get("context_max_side") or "0").strip())
+        int(str(cfg.get("crop_max_side") or "0").strip())
+        int(str(cfg.get("max_crops") or "0").strip())
+        int(str(cfg.get("max_tokens") or "0").strip())
+        int(str(cfg.get("yolo_max_bbox_area_num") or "1").strip())
+        int(str(cfg.get("yolo_max_bbox_area_den") or "4").strip())
+        int(str(cfg.get("gate_min_crops_for_vlm") or "0").strip())
+        int(str(cfg.get("gate_max_crops_for_vlm") or "0").strip())
+        float(str(cfg.get("mse_threshold") or "0").strip())
+        float(str(cfg.get("crop_gate_max_shift") or "0.02").strip())
+    except ValueError:
+        return "연속 프레임 탭의 숫자 필드를 확인하세요."
+    if not cfg.get("context_by_long_edge"):
+        sc = str(cfg.get("context_resize_scale") or "").strip()
+        if sc:
+            try:
+                if float(sc) <= 0:
+                    return "context-resize-scale 는 양수이거나 비워 두세요."
+            except ValueError:
+                return "context-resize-scale 는 숫자이거나 비워 두세요."
+    den = int(str(cfg.get("yolo_max_bbox_area_den") or "4").strip())
+    if den <= 0:
+        return "yolo-max-bbox-area-den 은 1 이상이어야 합니다."
+    fg = str(cfg.get("frame_gate") or "").strip().lower()
+    if fg not in ("mse", "yolo", "mse_then_yolo", "off", "none", ""):
+        return "frame_gate 는 mse | yolo | mse_then_yolo | off 중 하나여야 합니다."
+    return None
+
+
+def sequence_compare_command_from_gui_config(cfg: dict[str, Any]) -> list[str]:
+    """GUI 설정으로 ``sequence-compare`` CLI argv 생성."""
+    cmd: list[str] = [
+        *_gui_subprocess_cli_prefix("qwen_vlm.pipeline.experiment"),
+        "sequence-compare",
+        "--frames-dir",
+        _rel_posix_from_root(str(cfg.get("frames_dir") or "").strip()),
+        "--max-frames",
+        str(cfg.get("max_frames") or "6").strip(),
+        "--base-url",
+        str(cfg.get("base_url") or "http://127.0.0.1:8765/v1").strip(),
+        "--api-key",
+        str(cfg.get("api_key") or "sk-local").strip(),
+        "--model",
+        str(cfg.get("model") or "qwen3-vl-4b-q8").strip(),
+        "--prompt",
+        str(cfg.get("prompt") or DEFAULT_PROMPT_KO).strip(),
+        "--max-tokens",
+        str(cfg.get("max_tokens") or "256").strip(),
+        "--context-max-side",
+        str(cfg.get("context_max_side") or "960").strip(),
+        "--crop-max-side",
+        str(cfg.get("crop_max_side") or "0").strip(),
+        "--max-crops",
+        str(cfg.get("max_crops") or "0").strip(),
+        "--min-crop-short-side",
+        str(cfg.get("min_crop_short_side") or "0").strip() or "0",
+        "--min-crop-area",
+        str(cfg.get("min_crop_area") or "0").strip() or "0",
+        "--yolo-model",
+        str(cfg.get("yolo_model") or "yolo26n.pt").strip(),
+        "--yolo-max-bbox-area-num",
+        str(cfg.get("yolo_max_bbox_area_num") or "1").strip(),
+        "--yolo-max-bbox-area-den",
+        str(cfg.get("yolo_max_bbox_area_den") or "4").strip(),
+        "--yolo-device",
+        str(cfg.get("yolo_device") or "cpu").strip(),
+        "--frame-gate",
+        str(cfg.get("frame_gate") or "yolo").strip(),
+        "--mse-threshold",
+        str(cfg.get("mse_threshold") or "2.5").strip(),
+        "--crop-gate-max-shift",
+        str(cfg.get("crop_gate_max_shift") or "0.02").strip(),
+        "--gate-min-crops-for-vlm",
+        str(cfg.get("gate_min_crops_for_vlm") or "0").strip(),
+        "--gate-max-crops-for-vlm",
+        str(cfg.get("gate_max_crops_for_vlm") or "0").strip(),
+        "--json-out",
+        _rel_posix_from_root(SEQUENCE_COMPARE_JSON),
+        "--compare-html-out",
+        _rel_posix_from_root(SEQUENCE_COMPARE_HTML),
+    ]
+    if cfg.get("context_by_long_edge"):
+        cmd.append("--context-by-long-edge")
+    else:
+        sc = str(cfg.get("context_resize_scale") or "").strip()
+        if sc:
+            cmd.extend(["--context-resize-scale", sc])
+    if cfg.get("use_crop_layout_gate"):
+        cmd.append("--use-crop-layout-gate")
+    if cfg.get("yolo_surveillance_classes_only"):
+        cmd.append("--yolo-surveillance-classes-only")
+    if cfg.get("disable_yolo_vlm_budget"):
+        cmd.append("--disable-yolo-vlm-budget")
     return cmd
 
 
@@ -224,7 +416,9 @@ def _load_dashboard_html() -> str:
 def _dashboard_document() -> str:
     """부트스트랩 JSON을 넣은 완성 HTML 문자열."""
     tpl = _load_dashboard_html()
-    blob = json.dumps(default_gui_bootstrap(), ensure_ascii=False)
+    boot = default_gui_bootstrap()
+    _enrich_bootstrap_file_uris(boot)
+    blob = json.dumps(boot, ensure_ascii=False)
     return tpl.replace("__BOOTSTRAP_PLACEHOLDER__", blob)
 
 
@@ -261,6 +455,19 @@ def _js_bench_done(w, code: int) -> None:
         pass
 
 
+def _js_sequence_done(w, code: int) -> None:
+    if not w:
+        return
+    try:
+        w.evaluate_js(f"window._onSequenceFinished({int(code)})")
+    except Exception:
+        pass
+    try:
+        w.show()
+    except Exception:
+        pass
+
+
 class HrBenchWebApi:
     """
     pywebview ``js_api`` 객체.
@@ -288,26 +495,43 @@ class HrBenchWebApi:
             try:
                 cmd = hr_bench_command_from_gui_config(cfg)
                 _js_append_log(w, "$ " + " ".join(cmd))
-                p = subprocess.run(
+                code = run_subprocess_stream_text_lines(
                     cmd,
                     cwd=str(ROOT),
-                    capture_output=True,
                     env=child_env_for_utf8_stdio(),
+                    append_line=lambda line: _js_append_log(w, line),
                 )
-                out_s, err_s = decode_process_stdout_stderr(p.stdout, p.stderr)
-                if out_s:
-                    for line in out_s.splitlines():
-                        _js_append_log(w, line)
-                if err_s:
-                    _js_append_log(w, "[stderr]")
-                    for line in err_s.splitlines():
-                        _js_append_log(w, line)
-                code = p.returncode
             except Exception as e:
                 _js_append_log(w, f"실행 실패: {e}")
                 code = -1
             finally:
                 _js_bench_done(w, code)
+
+        threading.Thread(target=work, daemon=True).start()
+        return {"started": True}
+
+    def run_sequence_compare(self, cfg: dict[str, Any]) -> dict[str, Any]:
+        err = validate_sequence_config(cfg)
+        if err:
+            return {"error": err}
+
+        def work() -> None:
+            w = _current_window()
+            code = -1
+            try:
+                cmd = sequence_compare_command_from_gui_config(cfg)
+                _js_append_log(w, "$ " + " ".join(cmd))
+                code = run_subprocess_stream_text_lines(
+                    cmd,
+                    cwd=str(ROOT),
+                    env=child_env_for_utf8_stdio(),
+                    append_line=lambda line: _js_append_log(w, line),
+                )
+            except Exception as e:
+                _js_append_log(w, f"실행 실패: {e}")
+                code = -1
+            finally:
+                _js_sequence_done(w, code)
 
         threading.Thread(target=work, daemon=True).start()
         return {"started": True}
@@ -322,10 +546,30 @@ class HrBenchWebApi:
         """
         GUI iframe 에 넣을 리포트 HTML.
 
-        pywebview 는 부모가 인라인 HTML일 때 자식 iframe 의 ``file://`` 가 막히는 경우가 있어,
-        내용을 읽어 ``srcdoc`` 으로 쓰는 용도.
+        pywebview 는 부모가 인라인 HTML일 때 자식 iframe 의 ``file://`` 가 막히는 경우가 있어
+        내용을 ``srcdoc`` 으로 넣는데, 같은 이유로 ``./stem_img/*.jpg`` 도 로드가 거절되는 경우가 있어
+        ``hr_problem`` JSON 속 경로만 data URL 로 치환한 뒤 base64 로 전달한다.
         """
         p = HR_BENCH_HTML.resolve()
+        if not p.is_file():
+            return {"error": "missing", "html_b64": None}
+        try:
+            text = inline_hr_compare_materialized_images_for_srcdoc(
+                p.read_text(encoding="utf-8"), p
+            )
+            raw_bytes = text.encode("utf-8")
+        except OSError as e:
+            return {"error": str(e), "html_b64": None}
+        b64 = base64.b64encode(raw_bytes).decode("ascii")
+        return {"html_b64": b64, "error": None}
+
+    def open_sequence_browser(self) -> None:
+        p = SEQUENCE_COMPARE_HTML.resolve()
+        if p.is_file():
+            webbrowser.open(p.as_uri())
+
+    def embed_sequence_preview(self) -> dict[str, Any]:
+        p = SEQUENCE_COMPARE_HTML.resolve()
         if not p.is_file():
             return {"error": "missing", "html_b64": None}
         try:
@@ -379,7 +623,7 @@ def main() -> None:
     configure_stdio_utf8()
     html = _dashboard_document()
     webview.create_window(
-        "qwen-vlm — HR-Bench",
+        "qwen-vlm — HR-Bench · 연속 프레임",
         html=html,
         js_api=HrBenchWebApi(),
         width=1280,

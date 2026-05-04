@@ -18,3 +18,5 @@ data/datasets/
 qwen3-vl-4b-nf4
 *.pt
 *.pdf
+
+docs/**/*

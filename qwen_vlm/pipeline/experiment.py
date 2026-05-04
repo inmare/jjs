@@ -10,6 +10,8 @@ VLM 실험용 파이프라인 (Qwen + 선택적 Smol + Ultralytics YOLO).
 
 - **bench**: 프레임마다 (1) Qwen-only, (2) YOLO 크롭 후 YOLO+Qwen 을 *순차* 실행해
   `qwen_only` / `yolo_qwen` 블록을 JSON 으로 남긴다. 베이스라인 비교용.
+- **sequence-compare**: 베이스라인(매 프레임 YOLO+크롭 Qwen만)과
+  :func:`bench_with_frame_gating` 결과를 한 JSON/HTML에 묶는다.
 - **two-stage**: 1단계로 SmolVLM(또는 실패 시 YOLO JSON 폴백) → 2단계 Qwen.
   ``--skip-qwen-if-low`` 시 1단계 ``risk=low`` 이면 Qwen 호출을 생략한다.
 - **parallel-yolo-smol**: 1단계에서 **YOLO** 와 **SmolVLM(HTTP API)** 를
@@ -22,6 +24,9 @@ VLM 실험용 파이프라인 (Qwen + 선택적 Smol + Ultralytics YOLO).
 
 ``qwen_vlm.pipeline.week`` (루트 ``run_week_experiments.py``) 는 8GB 대비로 단계마다 서버를 켰다 끄는 편이며,
 3단계에서만 Qwen+Smol 을 **동시에** 띄운 뒤 위 병렬 파이프를 돌린다.
+
+**Qwen llama-server:** ``--base-url`` 이 루프백이고 짧은 시간 안에 ``/models`` 에 응답이 없으면
+(기본) ``vendor`` 의 llama-server+GGUF 를 자동 기동하고, 실행이 끝나면 종료합니다. 끄려면 ``--no-spawn-llama`` .
 """
 from __future__ import annotations
 
@@ -31,13 +36,24 @@ import copy
 import json
 import os
 import re
+import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from openai import OpenAI
 from PIL import Image
 
+from qwen_vlm.main import (
+    ROOT,
+    chat_vlm_multi,
+    host_port_from_openai_base_url,
+    pil_to_data_url,
+    start_llama_server,
+    wait_for_server,
+)
 from qwen_vlm.gating.frame_gating import (
     crop_gate_fingerprint,
     is_crop_layout_stable,
@@ -45,10 +61,10 @@ from qwen_vlm.gating.frame_gating import (
     mean_abs_diff_luma,
     yolo_fingerprint,
 )
-from qwen_vlm.main import ROOT, chat_vlm_multi, pil_to_data_url
 from qwen_vlm.reporting.experiment_metrics import (
     resource_snapshot,
     usage_to_dict,
+    write_sequence_compare_html,
     write_single_image_experiment_html_from_payload,
 )
 from qwen_vlm.utils.image_resize import resize_max_side, resize_uniform_scale
@@ -80,17 +96,21 @@ def prep_context_image(
 
 
 def prep_yolo_crop_for_vlm(crop: Image.Image, crop_max_side: int) -> Image.Image:
-    """``crop_max_side`` ≤ 0 이면 원본 크롭 그대로(외부 스크립트와 동일)."""
+    """다음 노드(URL 인코드 등)까지 독립 픽셀 버퍼을 보장하려 크롭은 항상 ``.copy()`` 후 리사이즈."""
+    pc = crop.copy()
     if crop_max_side <= 0:
-        return crop
-    return resize_max_side(crop, crop_max_side)
+        return pc
+    return resize_max_side(pc, crop_max_side)
 
 DEFAULT_PROMPT_KO = (
     "이 감시 화면에서 사람·차량·이상 징후가 있는지 짧게 요약해줘. 한국어로."
 )
 STAGE1_PROMPT_EN = (
-    'Reply with ONLY valid JSON, no markdown: '
-    '{"objects":["..."],"risk":"low|med|high","note":"one short English sentence"}'
+    'Reply with ONLY valid JSON on a single line, no markdown fences. Fields: '
+    '{"objects":["..."],"risk":"low|med|high","note":"..."} '
+    'Use at most 4 short object CATEGORY hints (avoid dumping OCR/sign text). '
+    '"note" MUST be your own concise English clause (≤20 words)—do not output the words '
+    '"one short English sentence" literally.'
 )
 
 
@@ -143,11 +163,68 @@ def vlm_yolo_crops_coordinate_preamble_ko(
     return "\n".join(lines)
 
 
+_IMAGE_SUFFIX = frozenset({".jpg", ".jpeg", ".png"})
+
+
 def list_frames(frames_dir: Path, max_frames: int) -> list[Path]:
-    cands = sorted(frames_dir.glob("frame_*.jpg"))
-    if not cands:
-        cands = sorted(frames_dir.glob("*.jpg"))
-    return cands[:max_frames]
+    """
+    연속 프레임 후보를 ``frames_dir`` 에서 고른다.
+
+    1. 루트에 ``frame_*.jpg`` / ``*.jpg`` 등이 있으면(데모처럼 한 폴더에 평탄하게) 그 순서.
+    2. 그렇지 않고 **바로 아래 하위 폴더**에만 이미지가 있으면(ShanghaiTech
+       ``testing/frames/<시퀀스_id>/*.jpg``) **이름순 첫 시퀀스 폴더만** 열어
+       그 안 이미지를 깊이 우선 정렬로 잘라 ``max_frames`` 장.
+    3. 여전히 없으면 ``frames_dir`` 전체에서 이미지를 재귀 수집·정렬해 앞에서부터.
+    """
+    root = frames_dir.resolve()
+    if not root.is_dir():
+        return []
+
+    def _is_image(p: Path) -> bool:
+        return p.is_file() and p.suffix.lower() in _IMAGE_SUFFIX
+
+    flat: list[Path] = []
+    for pat in (
+        "frame_*.jpg",
+        "frame_*.jpeg",
+        "frame_*.png",
+        "*.jpg",
+        "*.jpeg",
+        "*.png",
+    ):
+        flat.extend(root.glob(pat))
+    flat = sorted(set(flat))
+    prefer = [p for p in flat if p.name.lower().startswith("frame_")]
+    if prefer:
+        return prefer[:max_frames]
+    if flat:
+        return flat[:max_frames]
+
+    subdirs = sorted(p for p in root.iterdir() if p.is_dir())
+    for sd in subdirs:
+        nested = sorted(p for p in sd.rglob("*") if _is_image(p))
+        if nested:
+            return nested[:max_frames]
+
+    all_deep = sorted(p for p in root.rglob("*") if _is_image(p))
+    return all_deep[:max_frames]
+
+
+def _project_path(p: Path) -> Path:
+    """저장소 루트(``ROOT``) 기준으로 상대 경로를 해석한다. 절대 경로는 그대로 resolve."""
+    e = p.expanduser()
+    if e.is_absolute():
+        return e.resolve()
+    return (ROOT / e).resolve()
+
+
+def _posix_relative_to_repo(p: Path) -> str:
+    """표시·JSON 용: ``ROOT`` 기준 상대 posix (저장소 밖이면 절대 posix)."""
+    r = _project_path(p)
+    try:
+        return r.relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return r.as_posix().replace("\\", "/")
 
 
 def resolve_input_frames(
@@ -159,14 +236,15 @@ def resolve_input_frames(
     벤치·주간 실험용 입력 경로 리스트.
 
     ``single_image``가 주어지면 해당 파일 1장만 (HR-Bench/고해상도 단일 장면); 아니면
-    ``list_frames(frames_dir, max_frames)`` (연속 프레임).
+    ``list_frames(frames_dir, max_frames)`` (연속 프레임 — 평탄 폴더 또는
+    ShanghaiTech 식 ``frames/<시퀀스>/*.jpg`` 중첩 구조).
     """
     if single_image is not None:
-        p = single_image.expanduser().resolve()
+        p = _project_path(single_image)
         if not p.is_file():
             raise FileNotFoundError(f"이미지 파일 없음: {p}")
         return [p]
-    return list_frames(frames_dir, max_frames)
+    return list_frames(_project_path(frames_dir), max_frames)
 
 
 def _gated_ko_mse_skip_all(
@@ -241,6 +319,42 @@ def _gated_ko_vlm_only_skip(
     return (q, y, sk)
 
 
+def _gated_ko_crop_count_vlm_skip(
+    *,
+    n_crops: int,
+    n_det: int,
+    gate_min: int,
+    gate_max: int,
+    reason: str,
+    t_yolo: float,
+    yolo_summary: str,
+    approx_qwen_only: int,
+    approx_yolo_path: int,
+) -> tuple[str, str, str]:
+    """크롭 개수(전송 후보)가 범위 밖일 때 Qwen-only·YOLO+Qwen VLM 둘 다 생략 안내."""
+    if reason == "below_min":
+        band = f"전송 크롭 {n_crops}개 < 하한 {gate_min}개"
+    elif reason == "above_max":
+        band = f"전송 크롭 {n_crops}개 > 상한 {gate_max}개"
+    else:
+        band = f"전송 크롭 {n_crops}개 (사유={reason})"
+    q = (
+        "[VLM 생략 — 크롭 개수 게이트]\n"
+        f"· YOLO는 수행했습니다({t_yolo:.2f}초, 탐지 {n_det}개).\n"
+        f"· {band} 이라 이번 프레임에서는 Qwen-only·크롭 포함 Qwen 호출을 하지 않았습니다.\n"
+        f"· 요약: {yolo_summary}\n"
+        f"· 비전 토큰 추정(보냈다면): 전망만 약 {approx_qwen_only} / 크롭 포함 약 {approx_yolo_path}"
+    )
+    y = (
+        "[YOLO+Qwen VLM 생략 — 크롭 개수 게이트]\n"
+        f"· {band}\n"
+        f"· YOLO {t_yolo:.2f}s, 탐지 {n_det}개, {yolo_summary}\n"
+        f"· 비전 토큰(가정): 약 {approx_yolo_path}"
+    )
+    sk = f"크롭 개수 게이트({band}) — YOLO만 {t_yolo:.2f}s"
+    return (q, y, sk)
+
+
 def _gated_qwen_only_skipped_dict(
     *, reply: str, skip_reason: str, ref_frame: str
 ) -> dict[str, object]:
@@ -308,28 +422,11 @@ def _gated_yolo_qwen_vlm_only_skipped_dict(
     }
 
 
-def _merge_parallel_stage1(
-    *,
-    orig_w: int,
-    orig_h: int,
-    bboxes: list[tuple[int, int, int, int]],
-    smol_ok: bool,
-    smol_text: str,
-) -> str:
-    """병렬 Qwen: YOLO 클래스 문구 없이 **원본 좌표** + Smol만 합친다."""
-    if bboxes:
-        coord = "\n".join(
-            f"  · 잘라내기 {i} [x1,y1,x2,y2]=[{b[0]},{b[1]},{b[2]},{b[3]}]"
-            for i, b in enumerate(bboxes, start=1)
-        )
-        s_y = f"원본 {orig_w}×{orig_h} 픽셀, 잘라내기 {len(bboxes)}개(좌표만):\n{coord}"
-    else:
-        s_y = f"원본 {orig_w}×{orig_h} 픽셀, 잘라내기 없음(탐지 없음 또는 크기 필터)."
+def _merge_parallel_stage1(*, smol_ok: bool, smol_text: str) -> str:
+    """경량 VLM 1단계 텍스트만. YOLO 좌표는 ``vlm_yolo_crops_coordinate_preamble_ko`` 에만 넣는다."""
     if smol_ok:
-        s_s = f"[SmolVLM 병렬 응답] {smol_text}"
-    else:
-        s_s = f"[SmolVLM 병렬 응답] (오류) {smol_text}"
-    return f"{s_y}\n{s_s}"
+        return f"[SmolVLM 병렬 응답] {smol_text}"
+    return f"[SmolVLM 병렬 응답] (오류) {smol_text}"
 
 
 def run_yolo_smol_parallel_qwen(
@@ -417,6 +514,7 @@ def run_yolo_smol_parallel_qwen(
                     prompt=stage1_prompt,
                     image_data_urls=[low_url],
                     max_tokens=256,
+                    content_image_first=True,
                 )
                 return "ok", txt, usage_s, time.perf_counter() - t0
             except Exception as e:
@@ -437,13 +535,7 @@ def run_yolo_smol_parallel_qwen(
         else:
             stage1_usage_d = None
 
-        stage1_merged = _merge_parallel_stage1(
-            orig_w=orig_wh[0],
-            orig_h=orig_wh[1],
-            bboxes=bboxes,
-            smol_ok=smol_ok,
-            smol_text=s_body,
-        )
+        stage1_merged = _merge_parallel_stage1(smol_ok=smol_ok, smol_text=s_body)
         preamble = vlm_yolo_crops_coordinate_preamble_ko(
             orig_w=orig_wh[0],
             orig_h=orig_wh[1],
@@ -743,6 +835,342 @@ def bench(
     return rows
 
 
+def bench_yolo_qwen_only(
+    *,
+    client: OpenAI,
+    model: str,
+    frames: list[Path],
+    prompt: str,
+    max_tokens: int,
+    context_max_side: int,
+    crop_max_side: int,
+    yolo_model_path: str,
+    max_crops: int,
+    min_crop_short_side: int = 0,
+    min_crop_area: int = 0,
+    yolo_vlm_budget: bool = True,
+    context_resize_scale: float | None = None,
+    yolo_class_ids: tuple[int, ...] | None = None,
+    max_bbox_area_numerator: int = 1,
+    max_bbox_area_denominator: int = 4,
+    yolo_device: str = "cpu",
+) -> list[dict]:
+    """
+    **베이스라인:** 프레임마다 YOLO 후 **크롭 포함 Qwen만** 호출한다.
+
+    Qwen-only(전망 1장 단독)는 실행하지 않으며 ``qwen_only`` 필드는
+    ``skip_reason=baseline_yolo_qwen_only`` 인 생략 메시지로 채운다.
+    """
+    yolo = load_yolo(yolo_model_path)
+    rows: list[dict] = []
+    n_frames = len(frames)
+
+    for i, fp in enumerate(frames):
+        print(f"[bench_yolo_qwen_only] 프레임 {i + 1}/{n_frames}: {fp.name}", flush=True)
+        img = Image.open(fp).convert("RGB")
+        orig_w, orig_h = img.size
+        ctx = prep_context_image(
+            img,
+            context_max_side=context_max_side,
+            context_resize_scale=context_resize_scale,
+        )
+        row: dict = {"frame": str(fp.name), "approx_vision_tokens": {}}
+        tok_ctx = approx_vision_tokens_pil(ctx)
+
+        t1 = time.perf_counter()
+        cms = None if context_resize_scale is not None else context_max_side
+        crops, bboxes, summary, n_det, all_cls = run_yolo_crops(
+            img,
+            model=yolo,
+            predict_source=fp,
+            yolo_device=yolo_device,
+            max_crops=max_crops,
+            class_ids=yolo_class_ids,
+            min_crop_short_side=min_crop_short_side,
+            min_crop_area=min_crop_area,
+            vlm_budget=yolo_vlm_budget,
+            context_max_side=cms,
+            context_resize_scale=context_resize_scale,
+            max_bbox_area_numerator=max_bbox_area_numerator,
+            max_bbox_area_denominator=max_bbox_area_denominator,
+        )
+        t_yolo = time.perf_counter() - t1
+
+        url = pil_to_data_url(ctx)
+        urls_y = [url]
+        tok_sum = tok_ctx
+        crop_dims: list[list[int]] = []
+        for c in crops:
+            rc = prep_yolo_crop_for_vlm(c, crop_max_side)
+            crop_dims.append([rc.width, rc.height])
+            urls_y.append(pil_to_data_url(rc))
+            tok_sum += approx_vision_tokens_pil(rc)
+        row["approx_vision_tokens"]["qwen_only"] = 0
+        row["approx_vision_tokens"]["yolo_qwen_images"] = tok_sum
+        row["yolo"] = {
+            "n_detections": n_det,
+            "summary": summary,
+            "n_crops_sent": len(crops),
+        }
+        vlm_preamble = vlm_yolo_crops_coordinate_preamble_ko(
+            orig_w=orig_w,
+            orig_h=orig_h,
+            context_max_side=context_max_side,
+            context_resize_scale=context_resize_scale,
+            crop_max_side=crop_max_side,
+            bboxes_xyxy_orig=bboxes,
+        )
+        row["images"] = {
+            "source_path": str(fp.resolve()),
+            "qwen_context": {
+                "width": ctx.width,
+                "height": ctx.height,
+                "max_side_cap": context_max_side,
+                "context_resize_scale": context_resize_scale,
+                "original_width": orig_w,
+                "original_height": orig_h,
+            },
+            "yolo_qwen": {
+                "context_width": ctx.width,
+                "context_height": ctx.height,
+                "crop_max_side_cap": crop_max_side,
+                "n_images_sent": len(urls_y),
+                "crop_dimensions_wh": crop_dims,
+                "crop_bboxes_xyxy_orig": [
+                    [b[0], b[1], b[2], b[3]] for b in bboxes
+                ],
+            },
+        }
+        row["benchmark_branch"] = "yolo_qwen_every_frame"
+        row["frame_gating"] = None
+        row["qwen_only"] = _gated_qwen_only_skipped_dict(
+            reply=(
+                "[베이스라인] 매 프레임 **YOLO + 크롭 포함 Qwen** 만 실행합니다. "
+                "Qwen-only(전망 1장 단독)는 비교를 위해 생략했습니다."
+            ),
+            skip_reason="baseline_yolo_qwen_only",
+            ref_frame="",
+        )
+        y_prompt = f"{vlm_preamble}\n\n{prompt}"
+        t2 = time.perf_counter()
+        text_y, usage_y = chat_vlm_multi(
+            client=client,
+            model=model,
+            prompt=y_prompt,
+            image_data_urls=urls_y,
+            max_tokens=max_tokens,
+        )
+        t_y = time.perf_counter() - t2
+        pt_y = getattr(usage_y, "prompt_tokens", None) if usage_y else None
+        uy_d = usage_to_dict(usage_y)
+        row["yolo_qwen"] = {
+            "yolo_seconds": round(t_yolo, 3),
+            "vlm_seconds": round(t_y, 3),
+            "total_seconds": round(t_yolo + t_y, 3),
+            "prompt_tokens": pt_y,
+            "completion_tokens": (uy_d or {}).get("completion_tokens"),
+            "total_tokens": (uy_d or {}).get("total_tokens"),
+            "usage": uy_d,
+            "approx_image_tokens": tok_sum,
+            "reply": text_y[:12000],
+            "reply_preview": text_y[:500],
+            "resources_after": resource_snapshot(label="bench_yolo_qwen_only_after"),
+        }
+        rows.append(row)
+
+    return rows
+
+
+def _yolo_qwen_vlm_called(row: dict) -> bool:
+    """``yolo_qwen`` 경로에서 실제 multimodal Qwen 호출이 있었는지."""
+    yq = row.get("yolo_qwen") or {}
+    if yq.get("vlm_skipped") or yq.get("yolo_skipped"):
+        return False
+    return True
+
+
+def compare_sequence_yolo_qwen_baseline_vs_gated(
+    *,
+    client: OpenAI,
+    model: str,
+    frames: list[Path],
+    prompt: str,
+    max_tokens: int,
+    context_max_side: int,
+    crop_max_side: int,
+    yolo_model_path: str,
+    max_crops: int,
+    frame_gate: str,
+    mse_threshold: float,
+    min_crop_short_side: int = 0,
+    min_crop_area: int = 0,
+    use_crop_layout_gate: bool = False,
+    crop_gate_max_shift: float = 0.02,
+    gate_min_crops_for_vlm: int = 0,
+    gate_max_crops_for_vlm: int = 0,
+    yolo_vlm_budget: bool = True,
+    context_resize_scale: float | None = None,
+    yolo_class_ids: tuple[int, ...] | None = None,
+    max_bbox_area_numerator: int = 1,
+    max_bbox_area_denominator: int = 4,
+    yolo_device: str = "cpu",
+) -> dict:
+    """
+    베이스라인(매 프레임 YOLO+Qwen)과 게이트 파이프라인 결과를 한 묶음 dict 로 반환.
+    """
+    fg = (frame_gate or "off").strip().lower()
+    if fg in ("", "off", "none"):
+        fg = "yolo"
+    t0 = time.perf_counter()
+    baseline_rows = bench_yolo_qwen_only(
+        client=client,
+        model=model,
+        frames=frames,
+        prompt=prompt,
+        max_tokens=max_tokens,
+        context_max_side=context_max_side,
+        crop_max_side=crop_max_side,
+        yolo_model_path=yolo_model_path,
+        max_crops=max_crops,
+        min_crop_short_side=min_crop_short_side,
+        min_crop_area=min_crop_area,
+        yolo_vlm_budget=yolo_vlm_budget,
+        context_resize_scale=context_resize_scale,
+        yolo_class_ids=yolo_class_ids,
+        max_bbox_area_numerator=max_bbox_area_numerator,
+        max_bbox_area_denominator=max_bbox_area_denominator,
+        yolo_device=yolo_device,
+    )
+    t1 = time.perf_counter()
+    gated_rows = bench_with_frame_gating(
+        client=client,
+        model=model,
+        frames=frames,
+        prompt=prompt,
+        max_tokens=max_tokens,
+        context_max_side=context_max_side,
+        crop_max_side=crop_max_side,
+        yolo_model_path=yolo_model_path,
+        max_crops=max_crops,
+        frame_gate=fg,
+        mse_threshold=mse_threshold,
+        min_crop_short_side=min_crop_short_side,
+        min_crop_area=min_crop_area,
+        use_crop_layout_gate=use_crop_layout_gate,
+        crop_gate_max_shift=crop_gate_max_shift,
+        gate_min_crops_for_vlm=gate_min_crops_for_vlm,
+        gate_max_crops_for_vlm=gate_max_crops_for_vlm,
+        yolo_vlm_budget=yolo_vlm_budget,
+        context_resize_scale=context_resize_scale,
+        yolo_class_ids=yolo_class_ids,
+        max_bbox_area_numerator=max_bbox_area_numerator,
+        max_bbox_area_denominator=max_bbox_area_denominator,
+        yolo_device=yolo_device,
+    )
+    t2 = time.perf_counter()
+    n = len(frames)
+    b_vlm = sum(1 for r in baseline_rows if _yolo_qwen_vlm_called(r))
+    g_vlm = sum(1 for r in gated_rows if _yolo_qwen_vlm_called(r))
+    g_q_only = sum(
+        1
+        for r in gated_rows
+        if not (r.get("qwen_only") or {}).get("vlm_skipped", False)
+    )
+
+    def _yq_pt_ct_tt(r: dict) -> tuple[int | None, int | None, int | None]:
+        yq = r.get("yolo_qwen") or {}
+        return (
+            yq.get("prompt_tokens"),
+            yq.get("completion_tokens"),
+            yq.get("total_tokens"),
+        )
+
+    def _qo_pt_ct_tt(r: dict) -> tuple[int | None, int | None, int | None]:
+        qo = r.get("qwen_only") or {}
+        return (
+            qo.get("prompt_tokens"),
+            qo.get("completion_tokens"),
+            qo.get("total_tokens"),
+        )
+
+    b_pt = b_ct = b_tt = 0
+    for r in baseline_rows:
+        if not _yolo_qwen_vlm_called(r):
+            continue
+        pt, ct, tt = _yq_pt_ct_tt(r)
+        if pt is not None:
+            b_pt += int(pt)
+        if ct is not None:
+            b_ct += int(ct)
+        if tt is not None:
+            b_tt += int(tt)
+    b_y_sec = sum(
+        float((r.get("yolo_qwen") or {}).get("total_seconds") or 0)
+        for r in baseline_rows
+    )
+
+    gq_pt = gq_ct = gq_tt = 0
+    gq_sec = 0.0
+    for r in gated_rows:
+        qo = r.get("qwen_only") or {}
+        if qo.get("vlm_skipped"):
+            continue
+        gq_sec += float(qo.get("seconds") or 0)
+        pt, ct, tt = _qo_pt_ct_tt(r)
+        if pt is not None:
+            gq_pt += int(pt)
+        if ct is not None:
+            gq_ct += int(ct)
+        if tt is not None:
+            gq_tt += int(tt)
+
+    gy_pt = gy_ct = gy_tt = 0
+    gy_sec = 0.0
+    for r in gated_rows:
+        yq = r.get("yolo_qwen") or {}
+        gy_sec += float(yq.get("total_seconds") or 0)
+        if not _yolo_qwen_vlm_called(r):
+            continue
+        pt, ct, tt = _yq_pt_ct_tt(r)
+        if pt is not None:
+            gy_pt += int(pt)
+        if ct is not None:
+            gy_ct += int(ct)
+        if tt is not None:
+            gy_tt += int(tt)
+
+    return {
+        "meta": {
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime()),
+            "frame_gate": fg,
+            "seconds_baseline": round(t1 - t0, 3),
+            "seconds_gated": round(t2 - t1, 3),
+            "seconds_total": round(t2 - t0, 3),
+        },
+        "summary": {
+            "frames": n,
+            "baseline_yolo_qwen_vlm_calls": b_vlm,
+            "gated_yolo_qwen_vlm_calls": g_vlm,
+            "gated_qwen_only_vlm_calls": g_q_only,
+            "saved_yolo_qwen_vlm_calls_vs_baseline": b_vlm - g_vlm,
+            "baseline_yolo_qwen_wall_seconds_sum": round(b_y_sec, 3),
+            "gated_qwen_only_wall_seconds_sum": round(gq_sec, 3),
+            "gated_yolo_qwen_wall_seconds_sum": round(gy_sec, 3),
+            "baseline_yolo_qwen_prompt_tokens_sum": b_pt,
+            "baseline_yolo_qwen_completion_tokens_sum": b_ct,
+            "baseline_yolo_qwen_total_tokens_sum": b_tt,
+            "gated_qwen_only_prompt_tokens_sum": gq_pt,
+            "gated_qwen_only_completion_tokens_sum": gq_ct,
+            "gated_qwen_only_total_tokens_sum": gq_tt,
+            "gated_yolo_qwen_prompt_tokens_sum": gy_pt,
+            "gated_yolo_qwen_completion_tokens_sum": gy_ct,
+            "gated_yolo_qwen_total_tokens_sum": gy_tt,
+        },
+        "baseline": baseline_rows,
+        "gated": gated_rows,
+    }
+
+
 def bench_with_frame_gating(
     *,
     client: OpenAI,
@@ -760,6 +1188,8 @@ def bench_with_frame_gating(
     min_crop_area: int = 0,
     use_crop_layout_gate: bool = False,
     crop_gate_max_shift: float = 0.02,
+    gate_min_crops_for_vlm: int = 0,
+    gate_max_crops_for_vlm: int = 0,
     yolo_vlm_budget: bool = True,
     context_resize_scale: float | None = None,
     yolo_class_ids: tuple[int, ...] | None = None,
@@ -782,6 +1212,9 @@ def bench_with_frame_gating(
       같으면 스킵; ``True`` → **크롭 개수+박스 중심**이 ``crop_gate_max_shift`` 안에서 안정이면
       스킵(클래스는 비교에 안 씀).
     - **mse_then_yolo** — ① MSE로 전부 생략 가능, ② 아니면 YOLO 후 서명/크롭게이트로 VLM만 생략.
+
+    ``gate_min_crops_for_vlm`` / ``gate_max_crops_for_vlm`` 가 0보다 크면, 필터 후 **전송 크롭 개수**가
+    범위를 벗어날 때 Qwen-only·YOLO+Qwen VLM을 둘 다 호출하지 않는다(YOLO는 수행).
 
     **첫 프레임**은 항상 풀 파이프라인.
     """
@@ -936,6 +1369,102 @@ def bench_with_frame_gating(
         fp_sig = yolo_fingerprint(n_det, all_cls)
         crop_fp = crop_gate_fingerprint(orig_w, orig_h, bboxes)
         timings_ms["yolo_ms"] = round(t_yolo * 1000, 3)
+        n_crops_sent = len(crops)
+        cc_reason = ""
+        if gate_min_crops_for_vlm > 0 and n_crops_sent < gate_min_crops_for_vlm:
+            cc_reason = "below_min"
+        elif gate_max_crops_for_vlm > 0 and n_crops_sent > gate_max_crops_for_vlm:
+            cc_reason = "above_max"
+        if cc_reason:
+            tok_ctx_cc = approx_vision_tokens_pil(ctx)
+            tok_sum_cc = tok_ctx_cc
+            crop_dims_cc: list[list[int]] = []
+            for c in crops:
+                rc = prep_yolo_crop_for_vlm(c, crop_max_side)
+                crop_dims_cc.append([rc.width, rc.height])
+                tok_sum_cc += approx_vision_tokens_pil(rc)
+            q_msg_cc, y_msg_cc, sko_cc = _gated_ko_crop_count_vlm_skip(
+                n_crops=n_crops_sent,
+                n_det=n_det,
+                gate_min=gate_min_crops_for_vlm,
+                gate_max=gate_max_crops_for_vlm,
+                reason=cc_reason,
+                t_yolo=t_yolo,
+                yolo_summary=summary,
+                approx_qwen_only=int(tok_ctx_cc),
+                approx_yolo_path=int(tok_sum_cc),
+            )
+            t_end_cc = time.perf_counter()
+            timings_ms["qwen_only_ms"] = 0.0
+            timings_ms["yolo_qwen_ms"] = 0.0
+            timings_ms["total_ms"] = round((t_end_cc - t_frame0) * 1000, 3)
+            n_urls_cc = 1 + len(crops)
+            rows.append(
+                {
+                    "frame": str(fp.name),
+                    "approx_vision_tokens": {
+                        "qwen_only": int(tok_ctx_cc),
+                        "yolo_qwen_images": int(tok_sum_cc),
+                    },
+                    "yolo": {
+                        "n_detections": n_det,
+                        "summary": summary,
+                        "n_crops_sent": n_crops_sent,
+                    },
+                    "images": {
+                        "source_path": str(fp.resolve()),
+                        "qwen_context": {
+                            "width": ctx.width,
+                            "height": ctx.height,
+                            "max_side_cap": context_max_side,
+                            "original_width": orig_w,
+                            "original_height": orig_h,
+                        },
+                        "yolo_qwen": {
+                            "context_width": ctx.width,
+                            "context_height": ctx.height,
+                            "crop_max_side_cap": crop_max_side,
+                            "n_images_sent": n_urls_cc,
+                            "crop_dimensions_wh": crop_dims_cc,
+                            "crop_bboxes_xyxy_orig": [
+                                [b[0], b[1], b[2], b[3]] for b in bboxes
+                            ],
+                        },
+                    },
+                    "frame_gating": {
+                        "mode": mode,
+                        "path": "skip_vlm_crop_count_gate",
+                        "crop_count_gate": cc_reason,
+                        "gate_min_crops_for_vlm": gate_min_crops_for_vlm,
+                        "gate_max_crops_for_vlm": gate_max_crops_for_vlm,
+                        "mse": mse_val,
+                        "yolo_fingerprint": fp_sig,
+                        "crop_gate_fingerprint": crop_fp,
+                        "use_crop_layout_gate": use_crop_layout_gate,
+                        "crop_gate_max_shift": crop_gate_max_shift,
+                        "summary_ko": sko_cc,
+                        "reference_full_inference_frame": "",
+                        "api_vlm_input_tokens": 0,
+                    },
+                    "timings_ms": timings_ms,
+                    "qwen_only": _gated_qwen_only_skipped_dict(
+                        reply=q_msg_cc,
+                        skip_reason="skip_vlm_crop_count_gate",
+                        ref_frame="",
+                    ),
+                    "yolo_qwen": _gated_yolo_qwen_vlm_only_skipped_dict(
+                        reply=y_msg_cc,
+                        skip_reason="skip_vlm_crop_count_gate",
+                        ref_frame="",
+                        t_yolo=t_yolo,
+                    ),
+                }
+            )
+            prev_yolo_fp = fp_sig
+            prev_bboxes = list(bboxes)
+            prev_wh = (orig_w, orig_h)
+            prev_thumb = cur_thumb
+            continue
         if use_crop_layout_gate:
             layout_ok = bool(
                 prev_bboxes is not None
@@ -1257,6 +1786,7 @@ def run_two_stage(
                     prompt=stage1_prompt,
                     image_data_urls=[low_url],
                     max_tokens=256,
+                    content_image_first=True,
                 )
                 stage1_source = "small_vlm"
                 stage1_usage_d = usage_to_dict(usage_s)
@@ -1368,23 +1898,94 @@ def run_two_stage(
     return out
 
 
+def _is_loopback_host(host: str) -> bool:
+    h = (host or "").strip().lower().strip("[]")
+    return h in ("127.0.0.1", "localhost", "::1")
+
+
+def _vlm_server_reachable(base: str, *, timeout_s: float = 1.5) -> bool:
+    url = f"{base.rstrip('/')}/models"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout_s) as r:
+            return r.status == 200
+    except (urllib.error.URLError, OSError, TimeoutError, ValueError):
+        return False
+
+
+def _maybe_spawn_llama_for_experiment(
+    args: argparse.Namespace,
+    base_normalized: str,
+) -> tuple[subprocess.Popen | None, object | None, str]:
+    """
+    ``--base-url`` (정규화됨) 이 루프백에서 살아 있지 않으면 llama-server 를 띄운다.
+
+    Returns:
+        (프로세스, 로그 핸들 또는 None, OpenAI base URL)
+    """
+    if args.no_spawn_llama:
+        return None, None, base_normalized
+    try:
+        host, port = host_port_from_openai_base_url(base_normalized)
+    except ValueError:
+        return None, None, base_normalized
+    if not _is_loopback_host(host):
+        return None, None, base_normalized
+    if _vlm_server_reachable(base_normalized):
+        return None, None, base_normalized
+    print(
+        f"[experiment] Qwen VLM ({base_normalized}) 에 연결되지 않아 "
+        "llama-server 를 자동 기동합니다…",
+        flush=True,
+    )
+    proc, api_base, log_f = start_llama_server(
+        llama_server=_project_path(Path(args.llama_server)),
+        gguf=_project_path(Path(args.llama_gguf)),
+        mmproj=_project_path(Path(args.llama_mmproj)),
+        host=host,
+        port=port,
+        ngl=args.llama_ngl,
+        flash_attn=args.llama_flash_attn,
+        model=args.model,
+        ctx_size=args.llama_ctx_size,
+        log_file=_project_path(Path(args.llama_log_file)),
+    )
+    wait_for_server(api_base, args.server_timeout, child=proc)
+    return proc, log_f, normalize_openai_base_url(api_base)
+
+
+def _stop_spawned_llama(proc: subprocess.Popen | None, log_f: object | None) -> None:
+    if proc is not None:
+        proc.terminate()
+        try:
+            proc.wait(timeout=20)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+    if log_f is not None:
+        try:
+            log_f.close()
+        except OSError:
+            pass
+
+
 def main() -> None:
     configure_stdio_utf8()
     p = argparse.ArgumentParser(
-        description="VLM 파이프라인 실험: bench, two-stage, parallel-yolo-smol",
+        description="VLM 파이프라인 실험: bench, sequence-compare, two-stage, parallel-yolo-smol",
     )
     p.add_argument(
         "mode",
-        choices=("bench", "two-stage", "parallel-yolo-smol"),
+        choices=("bench", "sequence-compare", "two-stage", "parallel-yolo-smol"),
         help=(
-            "bench: Qwen-only+YOLO+Q 순차; two-stage: Smol→Qwen; "
-            "parallel-yolo-smol: (YOLO∥Smol)+Q, --small-vlm-url 필수"
+            "bench: Qwen-only+YOLO+Q 순차; sequence-compare: YOLO+Qwen 매프레임 vs 게이트; "
+            "two-stage: Smol→Qwen; parallel-yolo-smol: (YOLO∥Smol)+Q, --small-vlm-url 필수"
         ),
     )
     p.add_argument(
         "--frames-dir",
         type=Path,
-        default=ROOT / "data" / "datasets" / "demo" / "frames",
+        default=Path(
+            "data/datasets/shanghaitech/shanghaitech/testing/frames"
+        ),
     )
     p.add_argument(
         "--single-image",
@@ -1548,7 +2149,69 @@ def main() -> None:
             "값이 **작을수록** 조금만 움직여도 '다른 장면'이 되어 VLM을 **더 자주** 호출"
         ),
     )
+    p.add_argument(
+        "--gate-min-crops-for-vlm",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "frame-gate 가 mse|yolo|mse_then_yolo 일 때: 필터 후 VLM에 보낼 크롭 개수가 "
+            "N 미만이면 Qwen-only·YOLO+Qwen VLM 모두 생략. 0=끔"
+        ),
+    )
+    p.add_argument(
+        "--gate-max-crops-for-vlm",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "위와 같으나 크롭 개수가 N 초과일 때 생략. 0=끔"
+        ),
+    )
     p.add_argument("--json-out", type=Path, default=None, help="결과 JSON 저장 경로")
+    p.add_argument(
+        "--compare-html-out",
+        type=Path,
+        default=None,
+        help="sequence-compare: 요약 HTML 경로(미지정 시 --json-out 과 같은 stem 의 .html)",
+    )
+    p.add_argument(
+        "--no-spawn-llama",
+        action="store_true",
+        help="루프백 Qwen --base-url 이 꺼져 있어도 llama-server 를 자동 기동하지 않음",
+    )
+    p.add_argument(
+        "--llama-server",
+        default="vendor/llama-cpp-win-cuda/llama-server.exe",
+        help="자동 기동 시 llama-server 실행 파일(저장소 루트 기준 상대 가능)",
+    )
+    p.add_argument(
+        "--llama-gguf",
+        default="vendor/qwen3-vl-4b-q8-gguf/Qwen3VL-4B-Instruct-Q8_0.gguf",
+    )
+    p.add_argument(
+        "--llama-mmproj",
+        default="vendor/qwen3-vl-4b-q8-gguf/mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf",
+    )
+    p.add_argument("--llama-ngl", type=int, default=99)
+    p.add_argument(
+        "--llama-flash-attn",
+        choices=("on", "off", "auto"),
+        default="on",
+    )
+    p.add_argument("--llama-ctx-size", type=int, default=8192)
+    p.add_argument(
+        "--server-timeout",
+        type=float,
+        default=180.0,
+        help="자동 기동 후 llama-server 준비(예: /models) 최대 대기(초)",
+    )
+    p.add_argument(
+        "--llama-log-file",
+        type=Path,
+        default=Path("vendor/llama-server-experiment.log"),
+        help="자동 기동 시 llama-server stderr 로그 파일",
+    )
     args = p.parse_args()
     yolo_vlm_budget = not args.disable_yolo_vlm_budget
     ctx_scale: float | None = None if args.context_by_long_edge else args.context_resize_scale
@@ -1558,23 +2221,35 @@ def main() -> None:
 
         yolo_cls = FACTORY_SURVEILLANCE_CLASS_IDS
 
-    base = normalize_openai_base_url(args.base_url)
-    client_qwen = OpenAI(base_url=base, api_key=args.api_key)
-
+    spawn_llama_proc: subprocess.Popen | None = None
+    spawn_llama_log = None
     try:
-        frames = resolve_input_frames(
-            args.frames_dir, args.max_frames, args.single_image
+        base = normalize_openai_base_url(args.base_url)
+        spawn_llama_proc, spawn_llama_log, base = _maybe_spawn_llama_for_experiment(
+            args, base
         )
-    except FileNotFoundError as e:
-        print(f"{e}", file=sys.stderr)
-        sys.exit(1)
-    if not frames:
-        print(f"프레임 없음: {args.frames_dir}", file=sys.stderr)
-        sys.exit(1)
+        client_qwen = OpenAI(base_url=base, api_key=args.api_key)
 
-    if args.mode == "bench":
-        if (args.frame_gate or "off").strip().lower() not in ("", "off", "none"):
-            rows = bench_with_frame_gating(
+        try:
+            frames = resolve_input_frames(
+                args.frames_dir, args.max_frames, args.single_image
+            )
+        except FileNotFoundError as e:
+            print(f"{e}", file=sys.stderr)
+            sys.exit(1)
+        if not frames:
+            print(f"프레임 없음: {args.frames_dir}", file=sys.stderr)
+            sys.exit(1)
+
+        if args.mode == "sequence-compare":
+            fg = (args.frame_gate or "off").strip().lower()
+            if fg in ("", "off", "none"):
+                fg = "yolo"
+                print(
+                    "[sequence-compare] frame_gate 가 off 이므로 게이트 분기는 yolo 로 둡니다.",
+                    flush=True,
+                )
+            out = compare_sequence_yolo_qwen_baseline_vs_gated(
                 client=client_qwen,
                 model=args.model,
                 frames=frames,
@@ -1584,12 +2259,14 @@ def main() -> None:
                 crop_max_side=args.crop_max_side,
                 yolo_model_path=args.yolo_model,
                 max_crops=args.max_crops,
-                frame_gate=args.frame_gate,
+                frame_gate=fg,
                 mse_threshold=args.mse_threshold,
                 min_crop_short_side=args.min_crop_short_side,
                 min_crop_area=args.min_crop_area,
                 use_crop_layout_gate=args.use_crop_layout_gate,
                 crop_gate_max_shift=args.crop_gate_max_shift,
+                gate_min_crops_for_vlm=args.gate_min_crops_for_vlm,
+                gate_max_crops_for_vlm=args.gate_max_crops_for_vlm,
                 yolo_vlm_budget=yolo_vlm_budget,
                 context_resize_scale=ctx_scale,
                 yolo_class_ids=yolo_cls,
@@ -1597,17 +2274,122 @@ def main() -> None:
                 max_bbox_area_denominator=args.yolo_max_bbox_area_den,
                 yolo_device=args.yolo_device,
             )
-        else:
-            rows = bench(
-                client=client_qwen,
-                model=args.model,
+            out.setdefault("meta", {})["frames_dir"] = _posix_relative_to_repo(
+                args.frames_dir
+            )
+            print(json.dumps(out, ensure_ascii=False, indent=2))
+            if args.json_out:
+                args.json_out.write_text(
+                    json.dumps(out, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+                html_p = args.compare_html_out
+                if html_p is None:
+                    html_p = args.json_out.with_suffix(".html")
+                try:
+                    write_sequence_compare_html(out, html_p)
+                    print(f"[sequence-compare] HTML: {html_p}", flush=True)
+                except OSError as e:
+                    print(f"[sequence-compare] HTML 생략: {e}", flush=True)
+            return
+    
+        if args.mode == "bench":
+            if (args.frame_gate or "off").strip().lower() not in ("", "off", "none"):
+                rows = bench_with_frame_gating(
+                    client=client_qwen,
+                    model=args.model,
+                    frames=frames,
+                    prompt=args.prompt,
+                    max_tokens=args.max_tokens,
+                    context_max_side=args.context_max_side,
+                    crop_max_side=args.crop_max_side,
+                    yolo_model_path=args.yolo_model,
+                    max_crops=args.max_crops,
+                    frame_gate=args.frame_gate,
+                    mse_threshold=args.mse_threshold,
+                    min_crop_short_side=args.min_crop_short_side,
+                    min_crop_area=args.min_crop_area,
+                    use_crop_layout_gate=args.use_crop_layout_gate,
+                    crop_gate_max_shift=args.crop_gate_max_shift,
+                    gate_min_crops_for_vlm=args.gate_min_crops_for_vlm,
+                    gate_max_crops_for_vlm=args.gate_max_crops_for_vlm,
+                    yolo_vlm_budget=yolo_vlm_budget,
+                    context_resize_scale=ctx_scale,
+                    yolo_class_ids=yolo_cls,
+                    max_bbox_area_numerator=args.yolo_max_bbox_area_num,
+                    max_bbox_area_denominator=args.yolo_max_bbox_area_den,
+                    yolo_device=args.yolo_device,
+                )
+            else:
+                rows = bench(
+                    client=client_qwen,
+                    model=args.model,
+                    frames=frames,
+                    prompt=args.prompt,
+                    max_tokens=args.max_tokens,
+                    context_max_side=args.context_max_side,
+                    crop_max_side=args.crop_max_side,
+                    yolo_model_path=args.yolo_model,
+                    max_crops=args.max_crops,
+                    min_crop_short_side=args.min_crop_short_side,
+                    min_crop_area=args.min_crop_area,
+                    yolo_vlm_budget=yolo_vlm_budget,
+                    context_resize_scale=ctx_scale,
+                    yolo_class_ids=yolo_cls,
+                    max_bbox_area_numerator=args.yolo_max_bbox_area_num,
+                    max_bbox_area_denominator=args.yolo_max_bbox_area_den,
+                    yolo_device=args.yolo_device,
+                )
+            print(json.dumps(rows, ensure_ascii=False, indent=2))
+            if args.json_out:
+                args.json_out.write_text(
+                    json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
+            if args.json_out and args.single_image and rows:
+                onepage = args.json_out.with_name(args.json_out.stem + "_singleview.html")
+                pl = {
+                    "input_mode": "single_image",
+                    "single_image": str(args.single_image.resolve()),
+                    "user_prompt": args.prompt,
+                    "generated_at": time.strftime(
+                        "%Y-%m-%dT%H:%M:%S", time.localtime()
+                    ),
+                    "bench": rows,
+                    "yolo_smol_parallel_qwen": [],
+                    "two_stage_skip_low": [],
+                    "frame_count": len(frames),
+                }
+                try:
+                    write_single_image_experiment_html_from_payload(pl, onepage)
+                    print(f"[bench] singleview: {onepage}", flush=True)
+                except (OSError, ValueError) as e:
+                    print(f"[bench] singleview 생략: {e}", flush=True)
+            return
+    
+        if args.mode == "parallel-yolo-smol":
+            small_url = (args.small_vlm_url or "").strip()
+            if not small_url:
+                print(
+                    "parallel-yolo-smol 는 --small-vlm-url(경량 VLM llama-server) 이 필요합니다.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+            b = normalize_openai_base_url(small_url)
+            client_small = OpenAI(base_url=b, api_key=args.api_key)
+            rows = run_yolo_smol_parallel_qwen(
+                client_qwen=client_qwen,
+                model_qwen=args.model,
+                client_small=client_small,
+                model_small=args.small_vlm_model,
                 frames=frames,
-                prompt=args.prompt,
+                user_prompt=args.prompt,
                 max_tokens=args.max_tokens,
                 context_max_side=args.context_max_side,
                 crop_max_side=args.crop_max_side,
                 yolo_model_path=args.yolo_model,
                 max_crops=args.max_crops,
+                stage1_prompt=args.stage1_prompt,
+                skip_qwen_if_low=args.skip_qwen_if_low,
                 min_crop_short_side=args.min_crop_short_side,
                 min_crop_area=args.min_crop_area,
                 yolo_vlm_budget=yolo_vlm_budget,
@@ -1617,47 +2399,26 @@ def main() -> None:
                 max_bbox_area_denominator=args.yolo_max_bbox_area_den,
                 yolo_device=args.yolo_device,
             )
-        print(json.dumps(rows, ensure_ascii=False, indent=2))
-        if args.json_out:
-            args.json_out.write_text(
-                json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
-        if args.json_out and args.single_image and rows:
-            onepage = args.json_out.with_name(args.json_out.stem + "_singleview.html")
-            pl = {
-                "input_mode": "single_image",
-                "single_image": str(args.single_image.resolve()),
-                "user_prompt": args.prompt,
-                "generated_at": time.strftime(
-                    "%Y-%m-%dT%H:%M:%S", time.localtime()
-                ),
-                "bench": rows,
-                "yolo_smol_parallel_qwen": [],
-                "two_stage_skip_low": [],
-                "frame_count": len(frames),
-            }
-            try:
-                write_single_image_experiment_html_from_payload(pl, onepage)
-                print(f"[bench] singleview: {onepage}", flush=True)
-            except (OSError, ValueError) as e:
-                print(f"[bench] singleview 생략: {e}", flush=True)
-        return
-
-    if args.mode == "parallel-yolo-smol":
+            print(json.dumps(rows, ensure_ascii=False, indent=2))
+            if args.json_out:
+                args.json_out.write_text(
+                    json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
+            return
+    
         small_url = (args.small_vlm_url or "").strip()
-        if not small_url:
-            print(
-                "parallel-yolo-smol 는 --small-vlm-url(경량 VLM llama-server) 이 필요합니다.",
-                file=sys.stderr,
-            )
-            sys.exit(2)
-        b = normalize_openai_base_url(small_url)
-        client_small = OpenAI(base_url=b, api_key=args.api_key)
-        rows = run_yolo_smol_parallel_qwen(
+        client_small: OpenAI | None = None
+        model_small: str | None = None
+        if small_url:
+            b = normalize_openai_base_url(small_url)
+            client_small = OpenAI(base_url=b, api_key=args.api_key)
+            model_small = args.small_vlm_model
+    
+        rows = run_two_stage(
             client_qwen=client_qwen,
             model_qwen=args.model,
             client_small=client_small,
-            model_small=args.small_vlm_model,
+            model_small=model_small,
             frames=frames,
             user_prompt=args.prompt,
             max_tokens=args.max_tokens,
@@ -1681,45 +2442,10 @@ def main() -> None:
             args.json_out.write_text(
                 json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
             )
-        return
-
-    small_url = (args.small_vlm_url or "").strip()
-    client_small: OpenAI | None = None
-    model_small: str | None = None
-    if small_url:
-        b = normalize_openai_base_url(small_url)
-        client_small = OpenAI(base_url=b, api_key=args.api_key)
-        model_small = args.small_vlm_model
-
-    rows = run_two_stage(
-        client_qwen=client_qwen,
-        model_qwen=args.model,
-        client_small=client_small,
-        model_small=model_small,
-        frames=frames,
-        user_prompt=args.prompt,
-        max_tokens=args.max_tokens,
-        context_max_side=args.context_max_side,
-        crop_max_side=args.crop_max_side,
-        yolo_model_path=args.yolo_model,
-        max_crops=args.max_crops,
-        stage1_prompt=args.stage1_prompt,
-        skip_qwen_if_low=args.skip_qwen_if_low,
-        min_crop_short_side=args.min_crop_short_side,
-        min_crop_area=args.min_crop_area,
-        yolo_vlm_budget=yolo_vlm_budget,
-        context_resize_scale=ctx_scale,
-        yolo_class_ids=yolo_cls,
-        max_bbox_area_numerator=args.yolo_max_bbox_area_num,
-        max_bbox_area_denominator=args.yolo_max_bbox_area_den,
-        yolo_device=args.yolo_device,
-    )
-    print(json.dumps(rows, ensure_ascii=False, indent=2))
-    if args.json_out:
-        args.json_out.write_text(
-            json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-
+    
+    
+    finally:
+        _stop_spawned_llama(spawn_llama_proc, spawn_llama_log)
 
 if __name__ == "__main__":
     main()
