@@ -1,0 +1,119 @@
+﻿benchmark,method,dataset_index,question,smol_description,num_crops,num_objects,predicted_answer,gt_answer,is_correct,preprocess_time_sec,yolo_time_sec,smol_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,output_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,peak_stage,raw_output
+hrbench_4k,Smol_YOLO_Qwen_4B,0,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E","The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless",10,10,A,A,1,13.239458300000024,1.983353500000021,11.256104800000003,0.34495749999996406,110.45688369999993,163.48585559999992,163.48585559999992,124.04129949999992,287.52715509999985,331,4712,5043,2,45.655823621611034,0.012233474221117884,11513.93603515625,11514.64208984375,11514.64208984375,decode,A
+hrbench_4k,Smol_YOLO_Qwen_4B,1,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D","The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless",10,10,B,B,1,9.691528300000073,0.3008280999999897,9.390700200000083,0.13234179999994922,81.69246449999991,72.09252259999994,72.09252259999994,91.51633459999994,163.60885719999987,331,4712,5043,2,61.731519924949815,0.027742128141317136,11515.06201171875,11514.20263671875,11515.06201171875,prefill,B
+hrbench_4k,Smol_YOLO_Qwen_4B,2,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B","The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless",10,10,C,C,1,10.295118900000034,0.29382510000004913,10.001293799999985,0.13986720000002606,88.58358730000009,81.72392859999991,81.72392859999991,99.01857340000015,180.74250200000006,331,4712,5043,2,56.92928175194814,0.0244726365247204,11515.53564453125,11514.20263671875,11515.53564453125,prefill,C
+hrbench_4k,Smol_YOLO_Qwen_4B,3,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B","The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless",10,10,D,D,1,9.879545100000314,0.3245638000003055,9.554981300000009,0.1474113999997826,89.2335122999998,87.3270494999997,87.3270494999997,99.2604687999999,186.5875182999996,331,4712,5043,2,56.514641977171294,0.022902411239715672,11515.53564453125,11514.20263671875,11515.53564453125,prefill,D
+hrbench_4k,Smol_YOLO_Qwen_4B,4,"What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black","The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted",10,10,A,A,1,9.000478600000179,0.29725920000009864,8.70321940000008,0.16194959999984349,137.78062790000013,124.41101029999982,124.41101029999982,146.94305610000015,271.35406639999997,315,5510,5825,2,42.27735124148026,0.01607574759804039,14108.4912109375,14109.3828125,14109.3828125,decode,A
+hrbench_4k,Smol_YOLO_Qwen_4B,5,"What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red","The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted",10,10,B,B,1,8.340977700000167,0.2444233000001077,8.096554400000059,0.17027409999991505,141.57431910000014,137.5728998999998,137.5728998999998,150.08557090000022,287.65847080000003,315,5510,5825,2,41.14446770452449,0.014537746906940084,14108.4970703125,14111.28564453125,14111.28564453125,decode,B
+hrbench_4k,Smol_YOLO_Qwen_4B,6,"What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red","The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted",10,10,C,C,1,8.132635600000185,0.25696590000006836,7.875669700000117,0.17741750000004686,143.72989719999987,135.4743480999996,135.4743480999996,152.0399503000001,287.5142983999997,315,5510,5825,2,40.52740670853277,0.014762942417140932,14108.4970703125,14111.28564453125,14111.28564453125,decode,C
+hrbench_4k,Smol_YOLO_Qwen_4B,7,"What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue","The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted",10,10,D,D,1,8.070246499999712,0.24047859999973298,7.829767899999979,0.15814230000069074,134.48633830000017,129.37595430000056,129.37595430000056,142.71472710000057,272.09068140000113,315,5510,5825,2,43.312949654455664,0.015458823170203207,14108.4970703125,14111.28564453125,14111.28564453125,decode,D
+hrbench_4k,Smol_YOLO_Qwen_4B,8,"Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left","The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, dark hair that is parted in the middle, and she is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with the word ""SUSE"" visible on it. She is also wearing a wristwatch on her left wrist and a hand-bracelet on her right wrist.
+
+The woman is holding a smartphone in her right hand, which she appears to be using to browse the internet. She is standing on a concrete or stone surface, which appears to be part of a building or a structure. The background includes a portion of the wall, which is painted in a light color, possibly white or light gray, and there is a brick wall to the right of the woman. The brick wall has a reddish-brown hue, and there is a small, rectangular object, possibly a trash bin or a box, visible on the right side of the image.
+
+The woman's posture suggests she is either looking at something or is engaged in some activity, such as browsing the internet or perhaps checking something on her phone. Her expression is neutral",10,10,A,A,1,8.263605100000404,0.2678479000005609,7.995757199999844,0.16193500000008498,124.35698289999982,123.54037739999967,123.54037739999967,132.7825230000003,256.3229004,323,5324,5647,2,45.409593159243556,0.016189039098726318,13489.17724609375,13489.35302734375,13489.35302734375,decode,A
+hrbench_4k,Smol_YOLO_Qwen_4B,9,"Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above","The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, dark hair that is parted in the middle, and she is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with the word ""SUSE"" visible on it. She is also wearing a wristwatch on her left wrist and a hand-bracelet on her right wrist.
+
+The woman is holding a smartphone in her right hand, which she appears to be using to browse the internet. She is standing on a concrete or stone surface, which appears to be part of a building or a structure. The background includes a portion of the wall, which is painted in a light color, possibly white or light gray, and there is a brick wall to the right of the woman. The brick wall has a reddish-brown hue, and there is a small, rectangular object, possibly a trash bin or a box, visible on the right side of the image.
+
+The woman's posture suggests she is either looking at something or is engaged in some activity, such as browsing the internet or perhaps checking something on her phone. Her expression is neutral",10,10,B,B,1,8.459809599999744,0.37042959999962477,8.08938000000012,0.3415817999994033,125.83637719999933,143.45794399999977,143.45794399999977,134.63776859999848,278.09571259999825,323,5324,5647,2,44.87573566286705,0.013941368070910058,13488.0546875,13489.61572265625,13489.61572265625,decode,B

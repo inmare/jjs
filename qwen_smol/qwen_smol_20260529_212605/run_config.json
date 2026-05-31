@@ -1,0 +1,20 @@
+{
+  "benchmark": "hrbench_4k",
+  "max_samples": 10,
+  "methods": [
+    "Smol_YOLO_Qwen_4B",
+    "Single_VLM_Qwen_4B",
+    "Thumb_Smol_YOLO_Qwen_4B"
+  ],
+  "smol_model": "HuggingFaceTB/SmolVLM-256M-Instruct",
+  "qwen_model": "Qwen/Qwen3-VL-4B-Instruct",
+  "thumb_max_side": 512,
+  "single_vlm_max_side": 1280,
+  "crop_max_side": 640,
+  "yolo_context_scale": 0.5,
+  "yolo_max_crops": 6,
+  "crop_area_filter": "8/100",
+  "yolo_device": "cpu",
+  "note": "Smol_YOLO: Smol 텍스트 + 리사이즈 crop 만 (전망 없음). prefill_time_sec=0; decode_time_sec=generate 전체.",
+  "run_stamp": "20260529_212605"
+}

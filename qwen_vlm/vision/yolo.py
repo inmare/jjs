@@ -39,9 +39,20 @@ def load_yolo(model_path: str = "yolov8n.pt"):
     return _YOLO(model_path)
 
 
-def yolo_imgsz_from_image_size(width_height: tuple[int, int]) -> tuple[int, int]:
-    """외부 스크립트와 동일: ``(W,H)`` → Ultralytics ``imgsz`` 용 ``(H,W)``."""
+def yolo_imgsz_from_image_size(
+    width_height: tuple[int, int],
+    *,
+    max_long: int = 0,
+) -> tuple[int, int]:
+    """``(W,H)`` → Ultralytics ``imgsz`` 용 ``(H,W)``.
+
+    ``max_long`` > 0 이면 긴 변을 그 값 이하로 줄인 뒤 (H,W) 반환(9주차·11주차-3 YOLO 저해상 실험).
+    """
+    from qwen_vlm.utils.image_resize import resize_max_side_dims
+
     w, h = width_height
+    if max_long > 0:
+        w, h = resize_max_side_dims(w, h, max_long)
     return h, w
 
 
@@ -64,6 +75,7 @@ def run_yolo_crops(
     original_full_image_size: tuple[int, int] | None = None,
     vlm_overview_max_side_for_budget: int = 0,
     crop_max_side_for_budget: int = 0,
+    yolo_imgsz_max_long: int = 0,
 ) -> tuple[
     list[Image.Image],
     list[tuple[int, int, int, int]],
@@ -102,12 +114,13 @@ def run_yolo_crops(
     predict_source: 디스크 경로가 있으면 ``model.predict(str(path))`` 로 Ultralytics 가
         이미지를 읽게 함(원본 스크립트와 동일). ``None`` 이면 PIL 을 임시 JPEG 로 저장 후 추론.
     yolo_device: 기본 ``\"cpu\"`` — llama-server(Qwen) GPU 와 VRAM 을 나누지 않음.
+    yolo_imgsz_max_long: YOLO ``predict(imgsz=...)`` 용 긴 변 상한. 0이면 입력 이미지 크기 그대로.
     """
     from qwen_vlm.vision.yolo_vlm_budget import apply_yolo_vlm_budget_filters, bbox_pixel_area
 
     rgb_work = image.convert("RGB").copy()
     w, h = rgb_work.size
-    imgsz = yolo_imgsz_from_image_size((w, h))
+    imgsz = yolo_imgsz_from_image_size((w, h), max_long=yolo_imgsz_max_long)
 
     tmp_path: str | None = None
     try:

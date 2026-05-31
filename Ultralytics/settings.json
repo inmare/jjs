@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "D:\\Programming\\datasets",
+  "weights_dir": "D:\\Programming\\jjs\\weights",
+  "runs_dir": "D:\\Programming\\jjs\\runs",
+  "uuid": "22b397e8941dd1881c3be611e2f815550a4e674b995c36aaa52612dbc299b276",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}

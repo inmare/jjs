@@ -1,0 +1,14 @@
+﻿benchmark,method,dataset_index,question,smol_description,num_crops,num_objects,predicted_answer,gt_answer,is_correct,preprocess_time_sec,yolo_time_sec,smol_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,output_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,peak_stage,raw_output
+hrbench_4k,Smol_YOLO_Qwen_4B,0,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E","The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless",10,10,A,A,1,8.910668000000442,0.6379648000001907,8.272703200000251,0.3228047000011429,108.60482290000073,98.54584239999895,98.54584239999895,117.83829560000231,216.38413800000126,331,4712,5043,2,46.43440194772387,0.020295123074619142,11512.76416015625,11513.47021484375,11513.47021484375,decode,A

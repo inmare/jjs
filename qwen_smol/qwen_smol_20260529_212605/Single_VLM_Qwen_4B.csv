@@ -1,0 +1,71 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_description,question,num_vlm_images
+hrbench_4k,Single_VLM_Qwen_4B,-1,1,A,A,A,,0.0,0.0,0.1208698000045842,0.0,1.7800142999985835,1.7800142999985835,0.1208698000045842,1.900884100003168,74.0,1627.0,1701.0,14072.99424616808,1.1235864790533376,4272.25927734375,4272.25927734375,4272.25927734375,0.0,6,0,0.0,0.0,,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",1
+hrbench_4k,Single_VLM_Qwen_4B,1,1,B,B,B,,0.0,0.0,0.1151433999984874,0.0,1.7057848000040394,1.7057848000040394,0.1151433999984874,1.8209282000025269,74.0,1627.0,1701.0,14772.883204963076,1.1724808428327325,4272.25927734375,4272.25927734375,4272.25927734375,0.0,6,0,0.0,0.0,,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",1
+hrbench_4k,Single_VLM_Qwen_4B,2,1,C,C,C,,0.0,0.0,0.1116853999992599,0.0,1.7018070999984047,1.7018070999984047,0.1116853999992599,1.8134924999976647,74.0,1627.0,1701.0,15230.280770908927,1.1752213279647703,4272.25927734375,4272.25927734375,4272.25927734375,0.0,6,0,0.0,0.0,,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",1
+hrbench_4k,Single_VLM_Qwen_4B,3,1,D,D,D,,0.0,0.0,0.0830886999974609,0.0,1.671684400003869,1.671684400003869,0.0830886999974609,1.75477310000133,74.0,1627.0,1701.0,20472.097891193156,1.1963980760934128,4272.25927734375,4272.25927734375,4272.25927734375,0.0,6,0,0.0,0.0,,"What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",1
+hrbench_4k,Single_VLM_Qwen_4B,4,1,A,A,A,,0.0,0.0,0.1136314999966998,0.0,1.6682822999937343,1.6682822999937343,0.1136314999966998,1.7819137999904342,56.0,1627.0,1683.0,14811.033912681602,1.1988378705495537,4251.2578125,4251.2578125,4251.2578125,0.0,8,0,0.0,0.0,,"What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",1
+hrbench_4k,Single_VLM_Qwen_4B,5,1,B,B,B,,0.0,0.0,0.0587092999994638,0.0,1.6752711000008276,1.6752711000008276,0.0587092999994638,1.7339804000002914,56.0,1627.0,1683.0,28666.667802466916,1.193836627396612,4251.2578125,4251.2578125,4251.2578125,0.0,8,0,0.0,0.0,,"What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",1
+hrbench_4k,Single_VLM_Qwen_4B,6,1,C,C,C,,0.0,0.0,0.0977579999962472,0.0,1.6621283999993466,1.6621283999993466,0.0977579999962472,1.7598863999955938,56.0,1627.0,1683.0,17215.982324358192,1.2032764737073178,4251.2578125,4251.2578125,4251.2578125,0.0,8,0,0.0,0.0,,"What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",1
+hrbench_4k,Single_VLM_Qwen_4B,7,1,D,D,D,,0.0,0.0,0.0458510000025853,0.0,1.6732246999963536,1.6732246999963536,0.0458510000025853,1.719075699998939,56.0,1627.0,1683.0,36705.851560600735,1.19529672255278,4251.2578125,4251.2578125,4251.2578125,0.0,8,0,0.0,0.0,,"What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",1
+hrbench_4k,Single_VLM_Qwen_4B,8,1,A,A,A,,0.0,0.0,0.1449091999966185,0.0,1.7019897999998648,1.7019897999998648,0.1449091999966185,1.8468989999964835,64.0,1627.0,1691.0,11669.37640977564,1.1750951738959652,4261.3447265625,4261.3447265625,4261.3447265625,0.0,7,0,0.0,0.0,,"Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",1
+hrbench_4k,Single_VLM_Qwen_4B,9,1,B,B,B,,0.0,0.0,0.0592232999988482,0.0,1.6743911000012304,1.6743911000012304,0.0592232999988482,1.7336144000000786,64.0,1627.0,1691.0,28552.95128830861,1.194464065174815,4261.3447265625,4261.3447265625,4261.3447265625,0.0,7,0,0.0,0.0,,"Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",1

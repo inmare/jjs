@@ -9,9 +9,14 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "accelerate>=1.13.0",
     "openai>=2.32.0",
     "pillow>=12.1.1",
     "pywebview>=5.0",
+    "qwen-vl-utils>=0.0.14",
+    "torch",
+    "torchvision",
+    "transformers>=5.8.1",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
@@ -26,3 +31,12 @@ dev = [
     "datasets>=3.0.0",
     "matplotlib>=3.9.0",
 ]
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }

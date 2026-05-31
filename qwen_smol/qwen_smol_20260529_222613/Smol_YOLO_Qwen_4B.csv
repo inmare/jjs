@@ -1,0 +1,595 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_description,question,num_vlm_images
+hrbench_4k,Smol_YOLO_Qwen_4B,0,1,A,A,A,"person:0.34, person:0.31, class_67:0.45",8.963963399997738,0.5124203000013949,0.05228209999768296,0.05228209999768296,0.9802759000012884,0.9802759000012884,9.01624549999542,9.996521399996709,331.0,663.0,994.0,19012.24319688865,2.0402419359665696,3538.05029296875,3538.05029296875,3538.05029296875,3.0,6,3,8.451543099996343,949.6787109375,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",3
+hrbench_4k,Smol_YOLO_Qwen_4B,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",8.097290300000168,0.407578199999989,0.027205700003833044,0.027205700003833044,0.7566272000040044,0.7566272000040044,8.124496000004001,8.881123200008005,331.0,663.0,994.0,36536.461104105176,2.643309677459937,3540.12060546875,3540.12060546875,3540.12060546875,3.0,6,3,7.689712100000179,949.68994140625,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",3
+hrbench_4k,Smol_YOLO_Qwen_4B,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",8.448812299997371,0.3699810999969486,0.020334699998784345,0.020334699998784345,0.7316034000032232,0.7316034000032232,8.469146999996156,9.200750399999379,331.0,663.0,994.0,48881.960395748334,2.73372157645958,3540.12060546875,3540.12060546875,3540.12060546875,3.0,6,3,8.078831200000423,949.68994140625,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",3
+hrbench_4k,Smol_YOLO_Qwen_4B,3,1,D,D,D,"person:0.34, person:0.31, class_67:0.45",8.654984800006787,0.34016640000481857,0.022643000003881752,0.022643000003881752,0.7306373999963398,0.7306373999963398,8.677627800010669,9.408265200007008,331.0,663.0,994.0,43898.776656343936,2.7373359206769585,3540.12060546875,3540.12060546875,3540.12060546875,3.0,6,3,8.314818400001968,949.68994140625,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be made of a solid material, possibly wood or a similar material. The door is slightly open, revealing a glimpse of the interior. The interior of the door is not entirely visible, but it appears to be a part of a larger structure, possibly a room or a hallway.
+
+The door has a combination of wooden and metal elements. The door frame is made of wood, with a smooth, polished finish. The door appears to be closed, with a small, circular window on the top of the door. The window is slightly open, revealing a glimpse of the interior.
+
+The door has a number plate on the top of it. The number plate is rectangular and has a black border. The number plate is located on the door, and it is likely a street address or a street number. The number plate is located in a white color, which contrasts with the dark wood door frame.
+
+The woman in the image is wearing a white sleeveless top and a blue wristwatch. She has long, straight, dark hair that falls just past her shoulders. She is also wearing a blue and white striped shirt underneath the sleeveless","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",3
+hrbench_4k,Smol_YOLO_Qwen_4B,4,1,A,A,A,"class_67:0.53, class_67:0.40",8.762464300001739,0.3434095000047819,0.009364999998069834,0.009364999998069834,0.39252960000158055,0.39252960000158055,8.771829299999808,9.164358900001389,315.0,185.0,500.0,53390.282979503696,5.095157155006774,3178.23681640625,3178.23681640625,3178.23681640625,2.0,8,2,8.419054799996957,949.68994140625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",2
+hrbench_4k,Smol_YOLO_Qwen_4B,5,1,B,B,B,"class_67:0.53, class_67:0.40",7.9948624999960884,0.32279279999784194,0.007913800000096671,0.007913800000096671,0.3829332000022987,0.3829332000022987,8.002776299996185,8.385709499998484,315.0,185.0,500.0,63180.77282644143,5.222843044134053,3178.23681640625,3178.23681640625,3178.23681640625,2.0,8,2,7.6720696999982465,949.68994140625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",2
+hrbench_4k,Smol_YOLO_Qwen_4B,6,1,C,C,C,"class_67:0.53, class_67:0.40",8.472046499991848,0.3307682999948156,0.008007700002053753,0.008007700002053753,0.38760609999735607,0.38760609999735607,8.480054199993901,8.867660299991257,315.0,185.0,500.0,62439.901578700985,5.15987751486275,3178.23681640625,3178.23681640625,3178.23681640625,2.0,8,2,8.141278199997032,949.68994140625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",2
+hrbench_4k,Smol_YOLO_Qwen_4B,7,1,D,D,D,"class_67:0.53, class_67:0.40",8.366034099999524,0.3351617000007536,0.00811700000485871,0.00811700000485871,0.38444739999977173,0.38444739999977173,8.374151100004383,8.758598500004155,315.0,185.0,500.0,61599.11293590092,5.202272144384869,3178.23681640625,3178.23681640625,3178.23681640625,2.0,8,2,8.03087239999877,949.68994140625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a door and a sign that reads ""27B"" on the left side. The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a sleeveless white top with a lace trim around the neckline and blue jeans. Her long, dark hair is flowing down her back, and she is wearing a beige backpack on her right shoulder.
+
+The background features a slightly blurred section of a building, which appears to be part of a larger structure, possibly a school or a public building. The building has a series of vertical wooden slats, which are typical of older architectural designs. There is also a sign on the building, partially visible, which reads ""27B"" in large, bold letters. The sign is partially obscured by the woman's hand, but the text is visible and reads ""27B,"" indicating the date and time of the event or activity being advertised.
+
+The woman is standing in front of a door, which is slightly open, and there is a brick wall to the right of the door. The bricks are a mix of red and white, and they are painted","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",2
+hrbench_4k,Smol_YOLO_Qwen_4B,8,1,A,A,A,"person:0.25, class_75:0.38, class_67:0.29",8.312667899997905,0.3266571999993175,0.015212099999189377,0.015212099999189377,0.5910141999993357,0.5910141999993357,8.327879999997094,8.91889419999643,323.0,467.0,790.0,51932.34333472023,3.3840134467196354,3371.13623046875,3371.13623046875,3371.13623046875,3.0,7,3,7.986010699998587,949.68994140625,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, dark hair that is parted in the middle, and she is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with the word ""SUSE"" visible on it. She is also wearing a wristwatch on her left wrist and a hand-bracelet on her right wrist.
+
+The woman is holding a smartphone in her right hand, which she appears to be using to browse the internet. She is standing on a concrete or stone surface, which appears to be part of a building or a structure. The background includes a portion of the wall, which is painted in a light color, possibly white or light gray, and there is a brick wall to the right of the woman. The brick wall has a reddish-brown hue, and there is a small, rectangular object, possibly a trash bin or a box, visible on the right side of the image.
+
+The woman's posture suggests she is either looking at something or is engaged in some activity, such as browsing the internet or perhaps checking something on her phone. Her expression is neutral","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",3
+hrbench_4k,Smol_YOLO_Qwen_4B,9,1,B,B,B,"person:0.25, class_75:0.38, class_67:0.29",7.758096799996565,0.3963108000025386,0.017878300001029857,0.017878300001029857,0.6007442999980412,0.6007442999980412,7.775975099997595,8.376719399995636,323.0,467.0,790.0,44187.64647390932,3.3292034564564674,3371.13623046875,3371.13623046875,3371.13623046875,3.0,7,3,7.3617859999940265,949.68994140625,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, dark hair that is parted in the middle, and she is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with the word ""SUSE"" visible on it. She is also wearing a wristwatch on her left wrist and a hand-bracelet on her right wrist.
+
+The woman is holding a smartphone in her right hand, which she appears to be using to browse the internet. She is standing on a concrete or stone surface, which appears to be part of a building or a structure. The background includes a portion of the wall, which is painted in a light color, possibly white or light gray, and there is a brick wall to the right of the woman. The brick wall has a reddish-brown hue, and there is a small, rectangular object, possibly a trash bin or a box, visible on the right side of the image.
+
+The woman's posture suggests she is either looking at something or is engaged in some activity, such as browsing the internet or perhaps checking something on her phone. Her expression is neutral","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",3
+hrbench_4k,Smol_YOLO_Qwen_4B,10,1,C,C,C,"person:0.25, class_75:0.38, class_67:0.29",8.098621300006926,0.5305145000020275,0.019966100000601728,0.019966100000601728,0.5951646999965305,0.5951646999965305,8.118587400007527,8.713752100004058,323.0,467.0,790.0,39567.06617597785,3.360414352550914,3371.13623046875,3371.13623046875,3371.13623046875,3.0,7,3,7.568106800004898,949.68994140625,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, dark hair that is parted in the middle, and she is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with the word ""SUSE"" visible on it. She is also wearing a wristwatch on her left wrist and a hand-bracelet on her right wrist.
+
+The woman is holding a smartphone in her right hand, which she appears to be using to browse the internet. She is standing on a concrete or stone surface, which appears to be part of a building or a structure. The background includes a portion of the wall, which is painted in a light color, possibly white or light gray, and there is a brick wall to the right of the woman. The brick wall has a reddish-brown hue, and there is a small, rectangular object, possibly a trash bin or a box, visible on the right side of the image.
+
+The woman's posture suggests she is either looking at something or is engaged in some activity, such as browsing the internet or perhaps checking something on her phone. Her expression is neutral","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Directly above
+B. In front
+C. Right
+D. Left",3
+hrbench_4k,Smol_YOLO_Qwen_4B,11,1,D,D,D,"person:0.25, class_75:0.38, class_67:0.29",8.157874000004085,0.3793519000028027,0.020258700002159458,0.020258700002159458,0.6362057000005734,0.6362057000005734,8.178132700006245,8.814338400006818,323.0,467.0,790.0,38995.59201310008,3.143637348735161,3371.13623046875,3371.13623046875,3371.13623046875,3.0,7,3,7.7785221000012825,949.68994140625,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, dark hair that is parted in the middle, and she is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with the word ""SUSE"" visible on it. She is also wearing a wristwatch on her left wrist and a hand-bracelet on her right wrist.
+
+The woman is holding a smartphone in her right hand, which she appears to be using to browse the internet. She is standing on a concrete or stone surface, which appears to be part of a building or a structure. The background includes a portion of the wall, which is painted in a light color, possibly white or light gray, and there is a brick wall to the right of the woman. The brick wall has a reddish-brown hue, and there is a small, rectangular object, possibly a trash bin or a box, visible on the right side of the image.
+
+The woman's posture suggests she is either looking at something or is engaged in some activity, such as browsing the internet or perhaps checking something on her phone. Her expression is neutral","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Directly above
+B. In front
+C. Left
+D. Right",3
+hrbench_4k,Smol_YOLO_Qwen_4B,12,1,A,A,A,"person:0.36, person:0.69, person:0.72, person:0.88, class_34:0.29, person:0.91",8.414882500001113,0.4130980999980238,0.026327699997636955,0.026327699997636955,0.9662521999998717,0.9662521999998717,8.44121019999875,9.407462399998622,331.0,834.0,1165.0,44249.972466435145,2.069852984552341,3672.97509765625,3672.97509765625,3672.97509765625,6.0,27,6,8.001784400003089,949.68994140625,"The image depicts a golf course with a clear, sunny day. The primary focus is on three individuals engaged in golf, all of whom are positioned on the grass. The background reveals a well-maintained golf course with a well-maintained green surface, suggesting a well-maintained golf course.
+
+In the foreground, there are several white, rectangular signs arranged in a grid pattern. These signs are labeled with the word ""ELEVATE"" in large, bold letters. The signs are positioned in a way that suggests they are part of a golf course setup, likely for a beginner or intermediate level of golf.
+
+The individuals in the image are all engaged in golf, with one person holding a golf club and the other two standing, observing the activity. The person in the center is wearing a blue and white striped shirt and a cap, while the other two individuals are wearing red shirts and hats.
+
+The individuals are standing in a line, with the person in the center holding the golf club and the other two standing, observing the activity. The person in the center is holding a golf ball in their hand, which is positioned near the green grass. The person on the left is holding a golf bag, which is positioned near the green grass.","What is written on the white board in front of the girl in purple shorts?
+
+Options:
+A. ELEVATE
+B. ELEVATE.
+C. ELVTE
+D. CeVaY",6
+hrbench_4k,Smol_YOLO_Qwen_4B,13,1,B,B,B,"person:0.36, person:0.69, person:0.72, person:0.88, class_34:0.29, person:0.91",8.08884240000043,0.35150940000312403,0.024203200002375524,0.024203200002375524,0.9470284999988507,0.9470284999988507,8.113045600002806,9.060074100001657,331.0,834.0,1165.0,48134.1310192725,2.111868861393746,3672.97509765625,3672.97509765625,3672.97509765625,6.0,27,6,7.737332999997307,949.68994140625,"The image depicts a golf course with a clear, sunny day. The primary focus is on three individuals engaged in golf, all of whom are positioned on the grass. The background reveals a well-maintained golf course with a well-maintained green surface, suggesting a well-maintained golf course.
+
+In the foreground, there are several white, rectangular signs arranged in a grid pattern. These signs are labeled with the word ""ELEVATE"" in large, bold letters. The signs are positioned in a way that suggests they are part of a golf course setup, likely for a beginner or intermediate level of golf.
+
+The individuals in the image are all engaged in golf, with one person holding a golf club and the other two standing, observing the activity. The person in the center is wearing a blue and white striped shirt and a cap, while the other two individuals are wearing red shirts and hats.
+
+The individuals are standing in a line, with the person in the center holding the golf club and the other two standing, observing the activity. The person in the center is holding a golf ball in their hand, which is positioned near the green grass. The person on the left is holding a golf bag, which is positioned near the green grass.","What is written on the white board in front of the girl in purple shorts?
+
+Options:
+A. ELVTE
+B. ELEVATE
+C. CeVaY
+D. ELEVATE.",6
+hrbench_4k,Smol_YOLO_Qwen_4B,14,0,A,C,A,"person:0.36, person:0.69, person:0.72, person:0.88, class_34:0.29, person:0.91",8.717349999998987,0.3406740999998874,0.024999100001878105,0.024999100001878105,0.9598647999955574,0.9598647999955574,8.742349100000865,9.702213899996423,331.0,834.0,1165.0,46601.67765689473,2.083626777447466,3672.97509765625,3672.97509765625,3672.97509765625,6.0,27,6,8.3766758999991,949.68994140625,"The image depicts a golf course with a clear, sunny day. The primary focus is on three individuals engaged in golf, all of whom are positioned on the grass. The background reveals a well-maintained golf course with a well-maintained green surface, suggesting a well-maintained golf course.
+
+In the foreground, there are several white, rectangular signs arranged in a grid pattern. These signs are labeled with the word ""ELEVATE"" in large, bold letters. The signs are positioned in a way that suggests they are part of a golf course setup, likely for a beginner or intermediate level of golf.
+
+The individuals in the image are all engaged in golf, with one person holding a golf club and the other two standing, observing the activity. The person in the center is wearing a blue and white striped shirt and a cap, while the other two individuals are wearing red shirts and hats.
+
+The individuals are standing in a line, with the person in the center holding the golf club and the other two standing, observing the activity. The person in the center is holding a golf ball in their hand, which is positioned near the green grass. The person on the left is holding a golf bag, which is positioned near the green grass.","What is written on the white board in front of the girl in purple shorts?
+
+Options:
+A. ELEVATE.
+B. ELVTE
+C. ELEVATE
+D. CeVaY",6
+hrbench_4k,Smol_YOLO_Qwen_4B,15,0,C,D,C,"person:0.36, person:0.69, person:0.72, person:0.88, class_34:0.29, person:0.91",8.449397899996256,0.3283824999962235,0.02524680000351509,0.02524680000351509,0.9581461999987368,0.9581461999987368,8.474644699999772,9.432790899998508,331.0,834.0,1165.0,46144.461865971054,2.0873641204261277,3672.97509765625,3672.97509765625,3672.97509765625,6.0,27,6,8.121015400000033,949.68994140625,"The image depicts a golf course with a clear, sunny day. The primary focus is on three individuals engaged in golf, all of whom are positioned on the grass. The background reveals a well-maintained golf course with a well-maintained green surface, suggesting a well-maintained golf course.
+
+In the foreground, there are several white, rectangular signs arranged in a grid pattern. These signs are labeled with the word ""ELEVATE"" in large, bold letters. The signs are positioned in a way that suggests they are part of a golf course setup, likely for a beginner or intermediate level of golf.
+
+The individuals in the image are all engaged in golf, with one person holding a golf club and the other two standing, observing the activity. The person in the center is wearing a blue and white striped shirt and a cap, while the other two individuals are wearing red shirts and hats.
+
+The individuals are standing in a line, with the person in the center holding the golf club and the other two standing, observing the activity. The person in the center is holding a golf ball in their hand, which is positioned near the green grass. The person on the left is holding a golf bag, which is positioned near the green grass.","What is written on the white board in front of the girl in purple shorts?
+
+Options:
+A. ELVTE
+B. CeVaY
+C. ELEVATE.
+D. ELEVATE",6
+hrbench_4k,Smol_YOLO_Qwen_4B,16,1,A,A,A,"person:0.29, person:0.37",8.249441699997988,0.3131181999997352,0.017362600003252737,0.017362600003252737,0.5878796000033617,0.5878796000033617,8.26680430000124,8.854683900004602,338.0,451.0,789.0,45442.502842442234,3.402057155901588,3371.50390625,3371.50390625,3371.50390625,2.0,9,2,7.936323499998252,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the text written on the blue golf ball holder?
+
+Options:
+A. NEW MEXICO MUTUAL
+B. NEW YORK MUTUAL
+C. MUTUAL INSURANCE
+D. NEW MEXICO INSURANCE",2
+hrbench_4k,Smol_YOLO_Qwen_4B,17,1,B,B,B,"person:0.29, person:0.37",8.752028700000665,0.3762074999976903,0.01634829999966314,0.01634829999966314,0.601098400002229,0.601098400002229,8.768377000000328,9.369475400002557,338.0,451.0,789.0,48261.898791694395,3.3272422618203334,3371.50390625,3371.50390625,3371.50390625,2.0,9,2,8.375821200002974,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the text written on the blue golf ball holder?
+
+Options:
+A. MUTUAL INSURANCE
+B. NEW MEXICO MUTUAL
+C. NEW YORK MUTUAL
+D. NEW MEXICO INSURANCE",2
+hrbench_4k,Smol_YOLO_Qwen_4B,18,1,C,C,C,"person:0.29, person:0.37",8.384213500001351,0.34898919999977807,0.01555250000092201,0.01555250000092201,0.5796052000005147,0.5796052000005147,8.399766000002273,8.979371200002788,338.0,451.0,789.0,50731.393663605544,3.4506246665803273,3371.50390625,3371.50390625,3371.50390625,2.0,9,2,8.035224300001573,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the text written on the blue golf ball holder?
+
+Options:
+A. MUTUAL INSURANCE
+B. NEW MEXICO INSURANCE
+C. NEW MEXICO MUTUAL
+D. NEW YORK MUTUAL",2
+hrbench_4k,Smol_YOLO_Qwen_4B,19,1,D,D,D,"person:0.29, person:0.37",8.566737099994498,0.40553150000050664,0.017836999999417458,0.017836999999417458,0.6045529999973951,0.6045529999973951,8.584574099993915,9.18912709999131,338.0,451.0,789.0,44233.895835945965,3.3082293860234215,3371.50390625,3371.50390625,3371.50390625,2.0,9,2,8.161205599993991,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the text written on the blue golf ball holder?
+
+Options:
+A. NEW MEXICO INSURANCE
+B. NEW YORK MUTUAL
+C. MUTUAL INSURANCE
+D. NEW MEXICO MUTUAL",2
+hrbench_4k,Smol_YOLO_Qwen_4B,20,0,B,A,B,"person:0.29, person:0.37",8.225901599995268,0.3381787999969674,0.015042599996377248,0.015042599996377248,0.5887370999989798,0.5887370999989798,8.240944199991645,8.829681299990625,318.0,451.0,769.0,51121.48167106753,3.397102034173599,3364.236328125,3364.236328125,3364.236328125,2.0,9,2,7.887722799998301,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the color of the golf ball holder?
+
+Options:
+A. Blue
+B. Red
+C. Black
+D. White",2
+hrbench_4k,Smol_YOLO_Qwen_4B,21,0,C,B,C,"person:0.29, person:0.37",8.303771200000483,0.3747785000014119,0.015198399996734224,0.015198399996734224,0.5949842999980319,0.5949842999980319,8.318969599997217,8.91395389999525,318.0,451.0,769.0,50597.43131943099,3.3614332344678934,3364.236328125,3364.236328125,3364.236328125,2.0,9,2,7.928992699999071,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the color of the golf ball holder?
+
+Options:
+A. Red
+B. Blue
+C. Black
+D. White",2
+hrbench_4k,Smol_YOLO_Qwen_4B,22,0,B,C,B,"person:0.29, person:0.37",7.953522499999963,0.3473174000027939,0.0155668000006699,0.0155668000006699,0.6118490999942878,0.6118490999942878,7.969089300000633,8.58093839999492,318.0,451.0,769.0,49400.0051370164,3.268779834796965,3364.236328125,3364.236328125,3364.236328125,2.0,9,2,7.606205099997169,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the color of the golf ball holder?
+
+Options:
+A. Black
+B. Red
+C. Blue
+D. White",2
+hrbench_4k,Smol_YOLO_Qwen_4B,23,0,C,D,C,"person:0.29, person:0.37",8.110071400005836,0.3275636000034865,0.015248000003339257,0.015248000003339257,0.5876525999992737,0.5876525999992737,8.125319400009175,8.712972000008449,318.0,451.0,769.0,50432.84364058183,3.4033713115580055,3364.236328125,3364.236328125,3364.236328125,2.0,9,2,7.7825078000023495,949.68994140625,"The image depicts a person engaged in an activity that involves a variety of equipment and tools. The individual is dressed in a red t-shirt and black athletic pants, which suggests they are either a sports or athletic enthusiast. They are holding a pair of black and red gloves, which are typical for sports gear. The gloves are designed to protect the hands from the sun and other potential hazards during outdoor activities.
+
+The person is also wearing a black and white striped athletic vest, which is a common piece of gear for sports and athletic activities. This vest is designed to provide protection from the sun and other elements, as well as to provide a secure fit for the equipment.
+
+In the background, there is a grassy area with a few other people visible. The grass is green and lush, indicating that the location is likely a park or a sports field. The people in the background are not clearly visible, but they are likely spectators or participants in the activity.
+
+The person in the foreground is holding a black and red object, which appears to be a golf club or similar equipment. This object is likely used for golfing or similar outdoor activities. The club is held in the person's hand, and it is likely that they are using it to swing at a","What is the color of the golf ball holder?
+
+Options:
+A. White
+B. Black
+C. Red
+D. Blue",2
+hrbench_4k,Smol_YOLO_Qwen_4B,24,1,A,A,A,"person:0.38, person:0.80, person:0.49",8.344174199999543,0.35567019999871263,0.012101200001779944,0.012101200001779944,0.5175782000005711,0.5175782000005711,8.356275400001323,8.873853600001894,331.0,325.0,656.0,54209.499876335416,3.8641503834546995,3281.84765625,3281.84765625,3281.84765625,3.0,6,3,7.98850400000083,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point of the image is a silver-grey SUV, which appears to be a model or a model SUV, possibly a hatchback or a crossover SUV. The SUV has a sleek design with a sloping roofline and a streamlined body. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a prominent front grille with a distinctive emblem, possibly a logo or a badge, which is visible on the front of the vehicle.
+
+The SUV is parked on a dark, volcanic-rich ground, which is likely a volcanic crater or a volcanic island. The ground is covered with dark volcanic soil, which is irregular and irregularly shaped, suggesting that the volcanic eruption occurred in a volcanic crater. The volcanic soil is uneven and irregular, with some areas being more densely packed than others.
+
+In the background, there is a mountainous landscape with a mix of rocky and mountainous terrain. The mountains are covered in snow, and the sky above is overcast with clouds, indicating a potentially cold and possibly stormy weather condition. The clouds are fluffy and white, suggesting that the weather is","What is the license plate number of the car?
+
+Options:
+A. RK 879
+B. RK 789
+C. PK 879
+D. RK 876",3
+hrbench_4k,Smol_YOLO_Qwen_4B,25,0,A,B,A,"person:0.38, person:0.80, person:0.49",8.222347800001444,0.37060980000387644,0.011791500000981614,0.011791500000981614,0.5300711000018055,0.5300711000018055,8.234139300002425,8.764210400004231,331.0,325.0,656.0,55633.295165618416,3.7730787435745654,3281.84765625,3281.84765625,3281.84765625,3.0,6,3,7.851737999997567,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point of the image is a silver-grey SUV, which appears to be a model or a model SUV, possibly a hatchback or a crossover SUV. The SUV has a sleek design with a sloping roofline and a streamlined body. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a prominent front grille with a distinctive emblem, possibly a logo or a badge, which is visible on the front of the vehicle.
+
+The SUV is parked on a dark, volcanic-rich ground, which is likely a volcanic crater or a volcanic island. The ground is covered with dark volcanic soil, which is irregular and irregularly shaped, suggesting that the volcanic eruption occurred in a volcanic crater. The volcanic soil is uneven and irregular, with some areas being more densely packed than others.
+
+In the background, there is a mountainous landscape with a mix of rocky and mountainous terrain. The mountains are covered in snow, and the sky above is overcast with clouds, indicating a potentially cold and possibly stormy weather condition. The clouds are fluffy and white, suggesting that the weather is","What is the license plate number of the car?
+
+Options:
+A. RK 789
+B. RK 879
+C. PK 879
+D. RK 876",3
+hrbench_4k,Smol_YOLO_Qwen_4B,26,0,A,C,A,"person:0.38, person:0.80, person:0.49",8.05194909999409,0.39571219999925233,0.011597699995036237,0.011597699995036237,0.5177215999938198,0.5177215999938198,8.063546799989126,8.581268399982946,331.0,325.0,656.0,56562.939227671435,3.863080080150943,3281.84765625,3281.84765625,3281.84765625,3.0,6,3,7.656236899994838,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point of the image is a silver-grey SUV, which appears to be a model or a model SUV, possibly a hatchback or a crossover SUV. The SUV has a sleek design with a sloping roofline and a streamlined body. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a prominent front grille with a distinctive emblem, possibly a logo or a badge, which is visible on the front of the vehicle.
+
+The SUV is parked on a dark, volcanic-rich ground, which is likely a volcanic crater or a volcanic island. The ground is covered with dark volcanic soil, which is irregular and irregularly shaped, suggesting that the volcanic eruption occurred in a volcanic crater. The volcanic soil is uneven and irregular, with some areas being more densely packed than others.
+
+In the background, there is a mountainous landscape with a mix of rocky and mountainous terrain. The mountains are covered in snow, and the sky above is overcast with clouds, indicating a potentially cold and possibly stormy weather condition. The clouds are fluffy and white, suggesting that the weather is","What is the license plate number of the car?
+
+Options:
+A. RK 876
+B. RK 789
+C. RK 879
+D. PK 879",3
+hrbench_4k,Smol_YOLO_Qwen_4B,27,1,D,D,D,"person:0.38, person:0.80, person:0.49",8.045166999989306,0.3444755999953486,0.011735200001567136,0.011735200001567136,0.5176684999969439,0.5176684999969439,8.056902199990873,8.574570699987817,331.0,325.0,656.0,55900.19768835612,3.863476336713181,3281.84765625,3281.84765625,3281.84765625,3.0,6,3,7.700691399993957,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point of the image is a silver-grey SUV, which appears to be a model or a model SUV, possibly a hatchback or a crossover SUV. The SUV has a sleek design with a sloping roofline and a streamlined body. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a prominent front grille with a distinctive emblem, possibly a logo or a badge, which is visible on the front of the vehicle.
+
+The SUV is parked on a dark, volcanic-rich ground, which is likely a volcanic crater or a volcanic island. The ground is covered with dark volcanic soil, which is irregular and irregularly shaped, suggesting that the volcanic eruption occurred in a volcanic crater. The volcanic soil is uneven and irregular, with some areas being more densely packed than others.
+
+In the background, there is a mountainous landscape with a mix of rocky and mountainous terrain. The mountains are covered in snow, and the sky above is overcast with clouds, indicating a potentially cold and possibly stormy weather condition. The clouds are fluffy and white, suggesting that the weather is","What is the license plate number of the car?
+
+Options:
+A. RK 876
+B. PK 879
+C. RK 789
+D. RK 879",3
+hrbench_4k,Smol_YOLO_Qwen_4B,28,1,A,A,A,"person:0.51, person:0.83, person:0.47",8.238951099992846,0.39899899999727495,0.01279400000203168,0.01279400000203168,0.520604800003639,0.520604800003639,8.251745099994878,8.772349899998517,330.0,317.0,647.0,50570.579951325366,3.8416856701782622,3273.2421875,3273.2421875,3273.2421875,3.0,6,3,7.839952099995571,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point is a silver-colored SUV, which is prominently positioned in the foreground. The SUV is a rugged, rugged model, characterized by its design and construction. The vehicle has a streamlined design with a sloping roofline and a sloping front end. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a black exterior, which contrasts with the silver hue of the SUV.
+
+The SUV is parked on a dark, volcanic soil surface, which is likely a volcanic crater or a volcanic field. The ground is covered with dark, volcanic soil, which is likely volcanic ash or lava. The volcanic soil is irregular in shape and size, with varying shades of dark brown and gray. The volcanic soil is uneven and irregular, with some areas appearing more flat and others more rugged.
+
+In the background, there is a mountainous landscape. The mountains are covered in snow, and the peaks are partially shrouded in clouds. The sky above is overcast with clouds, which are fluffy and white, suggesting a cold and possibly wintery environment. The clouds are scattered, indicating that the weather is","Which side of the car is the person sitting on?
+
+Options:
+A. Front (hood)
+B. Driver's side
+C. Passenger's side
+D. Back (trunk)",3
+hrbench_4k,Smol_YOLO_Qwen_4B,29,1,B,B,B,"person:0.51, person:0.83, person:0.47",8.178756200002681,0.4133122999992338,0.011803600005805492,0.011803600005805492,0.5381418000033591,0.5381418000033591,8.190559800008486,8.728701600011846,330.0,317.0,647.0,54813.785597765,3.7164925675491403,3273.2421875,3273.2421875,3273.2421875,3.0,6,3,7.765443900003447,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point is a silver-colored SUV, which is prominently positioned in the foreground. The SUV is a rugged, rugged model, characterized by its design and construction. The vehicle has a streamlined design with a sloping roofline and a sloping front end. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a black exterior, which contrasts with the silver hue of the SUV.
+
+The SUV is parked on a dark, volcanic soil surface, which is likely a volcanic crater or a volcanic field. The ground is covered with dark, volcanic soil, which is likely volcanic ash or lava. The volcanic soil is irregular in shape and size, with varying shades of dark brown and gray. The volcanic soil is uneven and irregular, with some areas appearing more flat and others more rugged.
+
+In the background, there is a mountainous landscape. The mountains are covered in snow, and the peaks are partially shrouded in clouds. The sky above is overcast with clouds, which are fluffy and white, suggesting a cold and possibly wintery environment. The clouds are scattered, indicating that the weather is","Which side of the car is the person sitting on?
+
+Options:
+A. Back (trunk)
+B. Front (hood)
+C. Driver's side
+D. Passenger's side",3
+hrbench_4k,Smol_YOLO_Qwen_4B,30,1,C,C,C,"person:0.51, person:0.83, person:0.47",8.11927590000414,0.4159529000025941,0.011356399998476263,0.011356399998476263,0.5152777999974205,0.5152777999974205,8.130632300002617,8.645910100000037,330.0,317.0,647.0,56972.27995551502,3.881401449878128,3273.2421875,3273.2421875,3273.2421875,3.0,6,3,7.7033230000015465,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point is a silver-colored SUV, which is prominently positioned in the foreground. The SUV is a rugged, rugged model, characterized by its design and construction. The vehicle has a streamlined design with a sloping roofline and a sloping front end. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a black exterior, which contrasts with the silver hue of the SUV.
+
+The SUV is parked on a dark, volcanic soil surface, which is likely a volcanic crater or a volcanic field. The ground is covered with dark, volcanic soil, which is likely volcanic ash or lava. The volcanic soil is irregular in shape and size, with varying shades of dark brown and gray. The volcanic soil is uneven and irregular, with some areas appearing more flat and others more rugged.
+
+In the background, there is a mountainous landscape. The mountains are covered in snow, and the peaks are partially shrouded in clouds. The sky above is overcast with clouds, which are fluffy and white, suggesting a cold and possibly wintery environment. The clouds are scattered, indicating that the weather is","Which side of the car is the person sitting on?
+
+Options:
+A. Back (trunk)
+B. Driver's side
+C. Front (hood)
+D. Passenger's side",3
+hrbench_4k,Smol_YOLO_Qwen_4B,31,1,D,D,D,"person:0.51, person:0.83, person:0.47",8.344595099995786,0.3802542999983416,0.01288659999408992,0.01288659999408992,0.527900299995963,0.527900299995963,8.357481699989876,8.885381999985839,330.0,317.0,647.0,50207.19198987541,3.7885941720724436,3273.2421875,3273.2421875,3273.2421875,3.0,6,3,7.964340799997444,949.68994140625,"The image depicts a scene set in a volcanic landscape, likely a volcanic eruption or a volcanic eruption site. The focal point is a silver-colored SUV, which is prominently positioned in the foreground. The SUV is a rugged, rugged model, characterized by its design and construction. The vehicle has a streamlined design with a sloping roofline and a sloping front end. The roof is slightly raised, and the windows are large, providing ample visibility for the driver. The SUV has a black exterior, which contrasts with the silver hue of the SUV.
+
+The SUV is parked on a dark, volcanic soil surface, which is likely a volcanic crater or a volcanic field. The ground is covered with dark, volcanic soil, which is likely volcanic ash or lava. The volcanic soil is irregular in shape and size, with varying shades of dark brown and gray. The volcanic soil is uneven and irregular, with some areas appearing more flat and others more rugged.
+
+In the background, there is a mountainous landscape. The mountains are covered in snow, and the peaks are partially shrouded in clouds. The sky above is overcast with clouds, which are fluffy and white, suggesting a cold and possibly wintery environment. The clouds are scattered, indicating that the weather is","Which side of the car is the person sitting on?
+
+Options:
+A. Back (trunk)
+B. Driver's side
+C. Passenger's side
+D. Front (hood)",3
+hrbench_4k,Smol_YOLO_Qwen_4B,32,1,A,A,A,"person:0.32, class_39:0.26, class_39:0.68",8.620577000001504,0.35736520000500605,0.012251399995875545,0.012251399995875545,0.46462070000416134,0.46462070000416134,8.63282839999738,9.09744910000154,332.0,296.0,628.0,51259.44791708844,4.304586515370683,3260.25927734375,3260.25927734375,3260.25927734375,3.0,6,3,8.263211799996498,949.68994140625,"The image depicts a person sitting at a table, likely in a casual setting, possibly a café or a restaurant. The individual is wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person is wearing a light-colored shirt and beige pants, which are slightly loose-fitting.
+
+The person is seated at a table, which is covered with a brown tablecloth. On the table, there is a bottle of water, a glass, and a few other small objects. The bottle is clear and has a label, but the text on it is not legible. The glass is half-filled with water, and the bottle is positioned on the right side of the table.
+
+The person is smiling, and their expression suggests a positive mood. They are wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person's hair is dark and pulled back, and they are wearing a light-colored shirt.
+
+In the background, there is a window with a yellow frame. The window has a white trim, and it appears to be part of","Where is the water bottle placed relative to the person in the image?
+
+Options:
+A. On the right side
+B. On the left side
+C. Behind the person
+D. In front of the person",3
+hrbench_4k,Smol_YOLO_Qwen_4B,33,1,B,B,B,"person:0.32, class_39:0.26, class_39:0.68",8.010621499997796,0.3788306999995257,0.011412200001359452,0.011412200001359452,0.47659939999721246,0.47659939999721246,8.022033699999156,8.498633099996368,332.0,296.0,628.0,55028.82879069688,4.196396386591544,3260.25927734375,3260.25927734375,3260.25927734375,3.0,6,3,7.631790799998271,949.68994140625,"The image depicts a person sitting at a table, likely in a casual setting, possibly a café or a restaurant. The individual is wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person is wearing a light-colored shirt and beige pants, which are slightly loose-fitting.
+
+The person is seated at a table, which is covered with a brown tablecloth. On the table, there is a bottle of water, a glass, and a few other small objects. The bottle is clear and has a label, but the text on it is not legible. The glass is half-filled with water, and the bottle is positioned on the right side of the table.
+
+The person is smiling, and their expression suggests a positive mood. They are wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person's hair is dark and pulled back, and they are wearing a light-colored shirt.
+
+In the background, there is a window with a yellow frame. The window has a white trim, and it appears to be part of","Where is the water bottle placed relative to the person in the image?
+
+Options:
+A. In front of the person
+B. On the right side
+C. Behind the person
+D. On the left side",3
+hrbench_4k,Smol_YOLO_Qwen_4B,34,1,C,C,C,"person:0.32, class_39:0.26, class_39:0.68",7.672747199998412,0.333090699998138,0.01283809999586083,0.01283809999586083,0.46422339999844553,0.46422339999844553,7.685585299994273,8.149808699992718,332.0,296.0,628.0,48916.89581810979,4.308270543894809,3260.25927734375,3260.25927734375,3260.25927734375,3.0,6,3,7.339656500000274,949.68994140625,"The image depicts a person sitting at a table, likely in a casual setting, possibly a café or a restaurant. The individual is wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person is wearing a light-colored shirt and beige pants, which are slightly loose-fitting.
+
+The person is seated at a table, which is covered with a brown tablecloth. On the table, there is a bottle of water, a glass, and a few other small objects. The bottle is clear and has a label, but the text on it is not legible. The glass is half-filled with water, and the bottle is positioned on the right side of the table.
+
+The person is smiling, and their expression suggests a positive mood. They are wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person's hair is dark and pulled back, and they are wearing a light-colored shirt.
+
+In the background, there is a window with a yellow frame. The window has a white trim, and it appears to be part of","Where is the water bottle placed relative to the person in the image?
+
+Options:
+A. On the left side
+B. In front of the person
+C. On the right side
+D. Behind the person",3
+hrbench_4k,Smol_YOLO_Qwen_4B,35,1,D,D,D,"person:0.32, class_39:0.26, class_39:0.68",7.733180099996389,0.37155199999688193,0.012427300003764685,0.012427300003764685,0.4679870000036317,0.4679870000036317,7.745607400000154,8.213594400003785,332.0,296.0,628.0,50533.905177291585,4.273622985220699,3260.25927734375,3260.25927734375,3260.25927734375,3.0,6,3,7.361628099999507,949.68994140625,"The image depicts a person sitting at a table, likely in a casual setting, possibly a café or a restaurant. The individual is wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person is wearing a light-colored shirt and beige pants, which are slightly loose-fitting.
+
+The person is seated at a table, which is covered with a brown tablecloth. On the table, there is a bottle of water, a glass, and a few other small objects. The bottle is clear and has a label, but the text on it is not legible. The glass is half-filled with water, and the bottle is positioned on the right side of the table.
+
+The person is smiling, and their expression suggests a positive mood. They are wearing a brown fedora hat, which is a common fashion choice for formal occasions. The hat has a wide brim and a simple, yet elegant design. The person's hair is dark and pulled back, and they are wearing a light-colored shirt.
+
+In the background, there is a window with a yellow frame. The window has a white trim, and it appears to be part of","Where is the water bottle placed relative to the person in the image?
+
+Options:
+A. Behind the person
+B. On the left side
+C. In front of the person
+D. On the right side",3
+hrbench_4k,Smol_YOLO_Qwen_4B,36,0,D,A,D,"class_67:0.30, class_64:0.43",7.917525699995167,0.3895531999951345,0.009362799995869864,0.009362799995869864,0.43655170000420185,0.43655170000420185,7.926888499991037,8.363440199995239,333.0,187.0,520.0,55538.941366832936,4.581358863064214,3193.962890625,3193.962890625,3193.962890625,2.0,4,2,7.527972500000033,949.68994140625,"The image showcases a collection of various electronic devices placed on a dark, wooden surface. The objects include a Sony brand electronic device, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable","Which brand is mentioned on the black rectangular device located at the left of the image?
+
+Options:
+A. Insignia
+B. Samsung
+C. Apple
+D. Sony",2
+hrbench_4k,Smol_YOLO_Qwen_4B,37,0,C,B,C,"class_67:0.30, class_64:0.43",7.734611300002143,0.3474698999998509,0.008742799996980466,0.008742799996980466,0.4186023000002024,0.4186023000002024,7.743354099999124,8.161956399999326,333.0,187.0,520.0,59477.51294546305,4.777804613111378,3193.962890625,3193.962890625,3193.962890625,2.0,4,2,7.387141400002292,949.68994140625,"The image showcases a collection of various electronic devices placed on a dark, wooden surface. The objects include a Sony brand electronic device, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable","Which brand is mentioned on the black rectangular device located at the left of the image?
+
+Options:
+A. Apple
+B. Insignia
+C. Sony
+D. Samsung",2
+hrbench_4k,Smol_YOLO_Qwen_4B,38,0,D,C,D,"class_67:0.30, class_64:0.43",8.009259200000088,0.34496349999972153,0.008082699998340104,0.008082699998340104,0.4264222999991034,0.4264222999991034,8.017341899998428,8.443764199997531,333.0,187.0,520.0,64334.93759595053,4.690186230889438,3193.962890625,3193.962890625,3193.962890625,2.0,4,2,7.664295700000366,949.68994140625,"The image showcases a collection of various electronic devices placed on a dark, wooden surface. The objects include a Sony brand electronic device, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable","Which brand is mentioned on the black rectangular device located at the left of the image?
+
+Options:
+A. Samsung
+B. Apple
+C. Insignia
+D. Sony",2
+hrbench_4k,Smol_YOLO_Qwen_4B,39,0,C,D,C,"class_67:0.30, class_64:0.43",8.020487799993134,0.3607077999986359,0.008367599999473896,0.008367599999473896,0.42273569999815663,0.42273569999815663,8.028855399992608,8.451591099990765,333.0,187.0,520.0,62144.461976276885,4.731088479181486,3193.962890625,3193.962890625,3193.962890625,2.0,4,2,7.659779999994498,949.68994140625,"The image showcases a collection of various electronic devices placed on a dark, wooden surface. The objects include a Sony brand electronic device, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable, a white and black charging cable","Which brand is mentioned on the black rectangular device located at the left of the image?
+
+Options:
+A. Apple
+B. Samsung
+C. Sony
+D. Insignia",2
+hrbench_4k,Smol_YOLO_Qwen_4B,40,0,C,A,C,"person:0.71, class_56:0.67, class_75:0.32, class_67:0.67",8.028333800000837,0.33862860000226647,0.020980599998438265,0.020980599998438265,0.735546299998532,0.735546299998532,8.049314399999275,8.784860699997807,327.0,669.0,996.0,47472.426912201714,2.7190674468813065,3542.7294921875,3542.7294921875,3542.7294921875,4.0,8,4,7.689705199998571,949.68994140625,"The image depicts a person in the process of capturing a moment. The individual is standing on a paved surface, possibly a public or communal area, and is holding a camera in their right hand, with their left hand raised to their face. The camera is pointed at the camera holder, which is positioned in front of the person. The person is wearing a green jacket with black accents, and they are wearing black pants. The jacket has a hood, and the person's hair is short and light-colored.
+
+The person is standing in front of a metal railing, which is part of a public or communal area. The railing is made of metal and has a dark color, possibly black or silver. The railing is part of a structure that is likely part of a public or communal area, such as a park, a street, or a public square.
+
+In the background, there are trees and a building, which suggests that the setting is a public or communal area. The trees are green and leafy, indicating that the area is likely a park or a public square. The building is modern and appears to be a part of a larger structure, possibly a public building or a commercial area.
+
+There is a person in the background, but","What is the text written above the logo on the jacket's sleeve?
+
+Options:
+A. epio MIX
+B. epog MIX
+C. epoc MIX
+D. epig MIX",4
+hrbench_4k,Smol_YOLO_Qwen_4B,41,0,C,B,C,"person:0.71, class_56:0.67, class_75:0.32, class_67:0.67",8.08420340000157,0.41191190000245115,0.022596900002099574,0.022596900002099574,0.7323717000035685,0.7323717000035685,8.10680030000367,8.839172000007238,327.0,669.0,996.0,44076.84239464074,2.730853745427704,3542.7294921875,3542.7294921875,3542.7294921875,4.0,8,4,7.672291499999119,949.68994140625,"The image depicts a person in the process of capturing a moment. The individual is standing on a paved surface, possibly a public or communal area, and is holding a camera in their right hand, with their left hand raised to their face. The camera is pointed at the camera holder, which is positioned in front of the person. The person is wearing a green jacket with black accents, and they are wearing black pants. The jacket has a hood, and the person's hair is short and light-colored.
+
+The person is standing in front of a metal railing, which is part of a public or communal area. The railing is made of metal and has a dark color, possibly black or silver. The railing is part of a structure that is likely part of a public or communal area, such as a park, a street, or a public square.
+
+In the background, there are trees and a building, which suggests that the setting is a public or communal area. The trees are green and leafy, indicating that the area is likely a park or a public square. The building is modern and appears to be a part of a larger structure, possibly a public building or a commercial area.
+
+There is a person in the background, but","What is the text written above the logo on the jacket's sleeve?
+
+Options:
+A. epig MIX
+B. epio MIX
+C. epoc MIX
+D. epog MIX",4
+hrbench_4k,Smol_YOLO_Qwen_4B,42,0,B,C,B,"person:0.71, class_56:0.67, class_75:0.32, class_67:0.67",7.979649000000791,0.3569419000050402,0.022031099993910175,0.022031099993910175,0.7343106000043917,0.7343106000043917,8.0016800999947,8.735990699999093,327.0,669.0,996.0,45208.818455515786,2.7236431014178994,3542.7294921875,3542.7294921875,3542.7294921875,4.0,8,4,7.6227070999957505,949.68994140625,"The image depicts a person in the process of capturing a moment. The individual is standing on a paved surface, possibly a public or communal area, and is holding a camera in their right hand, with their left hand raised to their face. The camera is pointed at the camera holder, which is positioned in front of the person. The person is wearing a green jacket with black accents, and they are wearing black pants. The jacket has a hood, and the person's hair is short and light-colored.
+
+The person is standing in front of a metal railing, which is part of a public or communal area. The railing is made of metal and has a dark color, possibly black or silver. The railing is part of a structure that is likely part of a public or communal area, such as a park, a street, or a public square.
+
+In the background, there are trees and a building, which suggests that the setting is a public or communal area. The trees are green and leafy, indicating that the area is likely a park or a public square. The building is modern and appears to be a part of a larger structure, possibly a public building or a commercial area.
+
+There is a person in the background, but","What is the text written above the logo on the jacket's sleeve?
+
+Options:
+A. epog MIX
+B. epoc MIX
+C. epio MIX
+D. epig MIX",4
+hrbench_4k,Smol_YOLO_Qwen_4B,43,0,B,D,B,"person:0.71, class_56:0.67, class_75:0.32, class_67:0.67",8.091134499998589,0.35199699999793665,0.020682300004409626,0.020682300004409626,0.7395195999997668,0.7395195999997668,8.111816800002998,8.851336400002765,327.0,669.0,996.0,48157.11984584138,2.7044584078645526,3542.7294921875,3542.7294921875,3542.7294921875,4.0,8,4,7.739137500000652,949.68994140625,"The image depicts a person in the process of capturing a moment. The individual is standing on a paved surface, possibly a public or communal area, and is holding a camera in their right hand, with their left hand raised to their face. The camera is pointed at the camera holder, which is positioned in front of the person. The person is wearing a green jacket with black accents, and they are wearing black pants. The jacket has a hood, and the person's hair is short and light-colored.
+
+The person is standing in front of a metal railing, which is part of a public or communal area. The railing is made of metal and has a dark color, possibly black or silver. The railing is part of a structure that is likely part of a public or communal area, such as a park, a street, or a public square.
+
+In the background, there are trees and a building, which suggests that the setting is a public or communal area. The trees are green and leafy, indicating that the area is likely a park or a public square. The building is modern and appears to be a part of a larger structure, possibly a public building or a commercial area.
+
+There is a person in the background, but","What is the text written above the logo on the jacket's sleeve?
+
+Options:
+A. epog MIX
+B. epoc MIX
+C. epig MIX
+D. epio MIX",4
+hrbench_4k,Smol_YOLO_Qwen_4B,44,1,A,A,A,"person:0.71, class_56:0.30, class_75:0.55, class_56:0.30, class_67:0.63, class_67:0.26",8.057744500001718,0.3659764999974868,0.023658800004341174,0.023658800004341174,0.9224376000056509,0.9224376000056509,8.081403300006059,9.00384090001171,322.0,799.0,1121.0,47381.94666653874,2.168168340045709,3633.78662109375,3633.78662109375,3633.78662109375,6.0,9,6,7.691768000004231,949.68994140625,"The image depicts a man standing on a metal structure, likely a metal railing or a metal fence. He is wearing a bright green jacket with black sleeves and a black hoodie. The jacket has a logo on the left chest area, which appears to be a logo or emblem, possibly a company name or a brand. The man is also wearing a pair of white gloves, which are typical for outdoor activities.
+
+In the background, there is a man walking away from the camera. He is wearing a black shirt and blue jeans. He appears to be in a park or a similar outdoor setting, as there are trees and a metal fence visible. The man is holding a camera up to his face, and he is looking through the viewfinder.
+
+To the right of the man, there is a metal structure with a red, white, and blue logo on it. This structure is likely a recycling bin or a similar facility. The background also includes a person walking away from the camera, which is partially visible. This person is wearing a blue shirt and black pants.
+
+The overall setting suggests a casual, outdoor activity, possibly a park or a recreational area. The presence of the man and the man walking away from the camera indicates that the location is","What type of gloves is the person in the background wearing?
+
+Options:
+A. White gloves
+B. Red gloves
+C. Black gloves
+D. Blue gloves",6
+hrbench_4k,Smol_YOLO_Qwen_4B,45,1,B,B,B,"person:0.71, class_56:0.30, class_75:0.55, class_56:0.30, class_67:0.63, class_67:0.26",7.956041900004493,0.3466586000067764,0.022136899999168236,0.022136899999168236,0.9233287000024575,0.9233287000024575,7.978178800003661,8.901507500006119,322.0,799.0,1121.0,50639.43009374032,2.1660758514217924,3633.78662109375,3633.78662109375,3633.78662109375,6.0,9,6,7.609383299997717,949.68994140625,"The image depicts a man standing on a metal structure, likely a metal railing or a metal fence. He is wearing a bright green jacket with black sleeves and a black hoodie. The jacket has a logo on the left chest area, which appears to be a logo or emblem, possibly a company name or a brand. The man is also wearing a pair of white gloves, which are typical for outdoor activities.
+
+In the background, there is a man walking away from the camera. He is wearing a black shirt and blue jeans. He appears to be in a park or a similar outdoor setting, as there are trees and a metal fence visible. The man is holding a camera up to his face, and he is looking through the viewfinder.
+
+To the right of the man, there is a metal structure with a red, white, and blue logo on it. This structure is likely a recycling bin or a similar facility. The background also includes a person walking away from the camera, which is partially visible. This person is wearing a blue shirt and black pants.
+
+The overall setting suggests a casual, outdoor activity, possibly a park or a recreational area. The presence of the man and the man walking away from the camera indicates that the location is","What type of gloves is the person in the background wearing?
+
+Options:
+A. Red gloves
+B. White gloves
+C. Blue gloves
+D. Black gloves",6
+hrbench_4k,Smol_YOLO_Qwen_4B,46,1,C,C,C,"person:0.71, class_56:0.30, class_75:0.55, class_56:0.30, class_67:0.63, class_67:0.26",7.759485900001891,0.3345555999985663,0.023799099995812867,0.023799099995812867,0.9148628000039025,0.9148628000039025,7.783284999997704,8.698147800001607,322.0,799.0,1121.0,47102.62153599191,2.1861201482795765,3633.78662109375,3633.78662109375,3633.78662109375,6.0,9,6,7.424930300003325,949.68994140625,"The image depicts a man standing on a metal structure, likely a metal railing or a metal fence. He is wearing a bright green jacket with black sleeves and a black hoodie. The jacket has a logo on the left chest area, which appears to be a logo or emblem, possibly a company name or a brand. The man is also wearing a pair of white gloves, which are typical for outdoor activities.
+
+In the background, there is a man walking away from the camera. He is wearing a black shirt and blue jeans. He appears to be in a park or a similar outdoor setting, as there are trees and a metal fence visible. The man is holding a camera up to his face, and he is looking through the viewfinder.
+
+To the right of the man, there is a metal structure with a red, white, and blue logo on it. This structure is likely a recycling bin or a similar facility. The background also includes a person walking away from the camera, which is partially visible. This person is wearing a blue shirt and black pants.
+
+The overall setting suggests a casual, outdoor activity, possibly a park or a recreational area. The presence of the man and the man walking away from the camera indicates that the location is","What type of gloves is the person in the background wearing?
+
+Options:
+A. Black gloves
+B. Red gloves
+C. White gloves
+D. Blue gloves",6
+hrbench_4k,Smol_YOLO_Qwen_4B,47,1,D,D,D,"person:0.71, class_56:0.30, class_75:0.55, class_56:0.30, class_67:0.63, class_67:0.26",7.710942199999408,0.3962911999988137,0.023291199999221135,0.023291199999221135,0.9222942000051262,0.9222942000051262,7.7342333999986295,8.656527600003756,322.0,799.0,1121.0,48129.76575004665,2.168505450851674,3633.78662109375,3633.78662109375,3633.78662109375,6.0,9,6,7.314651000000595,949.68994140625,"The image depicts a man standing on a metal structure, likely a metal railing or a metal fence. He is wearing a bright green jacket with black sleeves and a black hoodie. The jacket has a logo on the left chest area, which appears to be a logo or emblem, possibly a company name or a brand. The man is also wearing a pair of white gloves, which are typical for outdoor activities.
+
+In the background, there is a man walking away from the camera. He is wearing a black shirt and blue jeans. He appears to be in a park or a similar outdoor setting, as there are trees and a metal fence visible. The man is holding a camera up to his face, and he is looking through the viewfinder.
+
+To the right of the man, there is a metal structure with a red, white, and blue logo on it. This structure is likely a recycling bin or a similar facility. The background also includes a person walking away from the camera, which is partially visible. This person is wearing a blue shirt and black pants.
+
+The overall setting suggests a casual, outdoor activity, possibly a park or a recreational area. The presence of the man and the man walking away from the camera indicates that the location is","What type of gloves is the person in the background wearing?
+
+Options:
+A. Blue gloves
+B. Black gloves
+C. Red gloves
+D. White gloves",6
+hrbench_4k,Smol_YOLO_Qwen_4B,48,0,C,A,C,"person:0.71, class_56:0.30, class_75:0.55, class_56:0.30, class_67:0.63, class_67:0.26",8.094973100000061,0.33628809999936493,0.02237530000275001,0.02237530000275001,0.9220500000010361,0.9220500000010361,8.117348400002811,9.039398400003847,338.0,799.0,1137.0,50814.96113394048,2.1690797679060276,3648.68701171875,3648.68701171875,3648.68701171875,6.0,9,6,7.758685000000696,949.68994140625,"The image depicts a man standing on a metal structure, likely a metal railing or a metal fence. He is wearing a bright green jacket with black sleeves and a black hoodie. The jacket has a logo on the left chest area, which appears to be a logo or emblem, possibly a company name or a brand. The man is also wearing a pair of white gloves, which are typical for outdoor activities.
+
+In the background, there is a man walking away from the camera. He is wearing a black shirt and blue jeans. He appears to be in a park or a similar outdoor setting, as there are trees and a metal fence visible. The man is holding a camera up to his face, and he is looking through the viewfinder.
+
+To the right of the man, there is a metal structure with a red, white, and blue logo on it. This structure is likely a recycling bin or a similar facility. The background also includes a person walking away from the camera, which is partially visible. This person is wearing a blue shirt and black pants.
+
+The overall setting suggests a casual, outdoor activity, possibly a park or a recreational area. The presence of the man and the man walking away from the camera indicates that the location is","Where is the person standing in relation to the recycle bin?
+
+Options:
+A. In front of the recycle bin
+B. Behind the recycle bin
+C. To the right of the recycle bin
+D. To the left of the recycle bin",6
+hrbench_4k,Smol_YOLO_Qwen_4B,49,0,A,B,A,"person:0.71, class_56:0.30, class_75:0.55, class_56:0.30, class_67:0.63, class_67:0.26",7.921237700000347,0.38776599999982864,0.024031799999647774,0.024031799999647774,0.9464920000027632,0.9464920000027632,7.945269499999995,8.891761500002758,338.0,799.0,1137.0,47312.31118836977,2.1130659318770375,3648.68701171875,3648.68701171875,3648.68701171875,6.0,9,6,7.5334717000005185,949.68994140625,"The image depicts a man standing on a metal structure, likely a metal railing or a metal fence. He is wearing a bright green jacket with black sleeves and a black hoodie. The jacket has a logo on the left chest area, which appears to be a logo or emblem, possibly a company name or a brand. The man is also wearing a pair of white gloves, which are typical for outdoor activities.
+
+In the background, there is a man walking away from the camera. He is wearing a black shirt and blue jeans. He appears to be in a park or a similar outdoor setting, as there are trees and a metal fence visible. The man is holding a camera up to his face, and he is looking through the viewfinder.
+
+To the right of the man, there is a metal structure with a red, white, and blue logo on it. This structure is likely a recycling bin or a similar facility. The background also includes a person walking away from the camera, which is partially visible. This person is wearing a blue shirt and black pants.
+
+The overall setting suggests a casual, outdoor activity, possibly a park or a recreational area. The presence of the man and the man walking away from the camera indicates that the location is","Where is the person standing in relation to the recycle bin?
+
+Options:
+A. To the right of the recycle bin
+B. In front of the recycle bin
+C. Behind the recycle bin
+D. To the left of the recycle bin",6

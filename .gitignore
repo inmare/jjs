@@ -19,4 +19,9 @@ qwen3-vl-4b-nf4
 *.pt
 *.pdf
 
+# 11주차-3 caches & results
+.cache/
+11주차-3/results/
+data/yolo_weights/
+
 docs/**/*
