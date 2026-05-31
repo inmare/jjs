@@ -43,13 +43,7 @@ def resolve_summary_csv(target: str) -> Path:
         results = load_results_from_run_dir(p)
         if not results:
             raise FileNotFoundError(f"method CSV 없음: {p}")
-        benchmark = "hrbench_4k"
-        cfg = p / "run_config.json"
-        if cfg.is_file():
-            import json
-
-            benchmark = json.loads(cfg.read_text(encoding="utf-8")).get("benchmark", benchmark)
-        summary_path, _ = write_summary_csvs(p, results, benchmark=benchmark)
+        summary_path, _ = write_summary_csvs(p, results)
         print(f"summary.csv 생성: {summary_path}", flush=True)
         return summary_path
     raise FileNotFoundError(f"경로 없음: {p}")

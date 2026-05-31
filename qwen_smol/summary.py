@@ -69,7 +69,7 @@ def make_sample_record(
     benchmark: str,
     method: str,
     sample_index: int,
-    correct: int,
+    correct: int | None,
     predicted_answer: str,
     gt_answer: str,
     model_response: str,
@@ -212,13 +212,14 @@ def write_sample_jsonl(records: list[dict[str, Any]], path: Path) -> None:
 
 def build_summary_rows(
     all_results: dict[str, list[dict[str, Any]]],
-    *,
-    benchmark: str = "hrbench_4k",
 ) -> list[dict[str, Any]]:
+    """``all_results`` 키는 ``{method}`` 또는 ``{benchmark}_{method}``."""
     summary_rows: list[dict[str, Any]] = []
-    for method, results in all_results.items():
+    for _key, results in all_results.items():
         if not results:
             continue
+        benchmark = str(results[0].get("benchmark") or "hrbench_4k")
+        method = str(results[0].get("method") or _key)
         acc = RunAccumulator(benchmark=benchmark, method=method)
         for row in results:
             acc.add(_row_to_sample_metrics(row))
@@ -229,10 +230,8 @@ def build_summary_rows(
 def write_summary_csvs(
     run_dir: Path,
     all_results: dict[str, list[dict[str, Any]]],
-    *,
-    benchmark: str = "hrbench_4k",
 ) -> tuple[Path, Path]:
-    summary_rows = build_summary_rows(all_results, benchmark=benchmark)
+    summary_rows = build_summary_rows(all_results)
 
     summary_path = run_dir / "summary.csv"
     df = pd.DataFrame(summary_rows)
@@ -275,25 +274,38 @@ def normalize_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def iter_sample_csv_paths(run_dir: Path) -> list[Path]:
+    """``{benchmark}_{method}.csv`` 및 레거시 ``{method}.csv``."""
+    seen: set[str] = set()
+    paths: list[Path] = []
+    for pattern in ("*_*_Qwen_4B.csv", "*_Qwen_4B.csv"):
+        for csv_path in sorted(run_dir.glob(pattern)):
+            if csv_path.name in seen:
+                continue
+            seen.add(csv_path.name)
+            paths.append(csv_path)
+    return paths
+
+
 def normalize_run_dir(run_dir: Path) -> None:
     """run 폴더 내 method CSV·jsonl·summary 를 11주차-3 컬럼명으로 재저장."""
     run_dir = run_dir.resolve()
     all_results: dict[str, list[dict[str, Any]]] = {}
-    for csv_path in sorted(run_dir.glob("*_Qwen_4B.csv")):
-        method = csv_path.stem
+    for csv_path in iter_sample_csv_paths(run_dir):
+        key = csv_path.stem
         raw = pd.read_csv(csv_path).to_dict(orient="records")
         records = normalize_records(raw)
-        all_results[method] = records
+        all_results[key] = records
         write_sample_csv(records, csv_path)
-        write_sample_jsonl(records, run_dir / "samples" / f"{method}.jsonl")
+        write_sample_jsonl(records, run_dir / "samples" / f"{key}.jsonl")
     if all_results:
         write_summary_csvs(run_dir, all_results)
 
 
 def load_results_from_run_dir(run_dir: Path) -> dict[str, list[dict[str, Any]]]:
     out: dict[str, list[dict[str, Any]]] = {}
-    for csv_path in sorted(run_dir.glob("*_Qwen_4B.csv")):
-        method = csv_path.stem
+    for csv_path in iter_sample_csv_paths(run_dir):
+        key = csv_path.stem
         df = pd.read_csv(csv_path)
-        out[method] = df.to_dict(orient="records")
+        out[key] = df.to_dict(orient="records")
     return out
