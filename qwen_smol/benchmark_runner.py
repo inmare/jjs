@@ -20,7 +20,7 @@ if str(QWEN_SMOL_DIR) not in sys.path:
 
 RUN_DIR_PREFIX = "qwen_smol"
 RUN_STAMP_FMT = "%Y%m%d_%H%M%S"
-METHODS = ["Smol_YOLO_Qwen_4B", "Single_VLM_Qwen_4B", "Thumb_Smol_YOLO_Qwen_4B"]
+METHODS = ["Single_VLM_Qwen_4B", "Smol_YOLO_Qwen_4B", "Thumb_Smol_YOLO_Qwen_4B"]
 
 
 def format_run_stamp(when: datetime | None = None) -> str:
@@ -83,8 +83,9 @@ from week3.datasets import (  # noqa: E402
 # - YOLO crop: ctx(0.5×)에서 잘라낸 뒤 CROP8 필터만 적용, 추가 리사이즈 없음 (week3 와 동일)
 # - crop > BBOX_PROMPT_MAX_CROPS 이면 bbox 텍스트 생략 + naive grid 로 1장 병합 (rectpack 대신)
 # - Thumb_Smol 썸네일: 긴 변 512px 고정
-# - Single_VLM: 원본 그대로 (Qwen processor 가 smart_resize)
+# - Single_VLM: 긴 변 상한 (0=원본). 8GB VRAM 에서 4K 원본은 OOM → 기본 1280 (222613 런과 동일)
 THUMB_MAX_SIDE = 512
+SINGLE_VLM_MAX_SIDE = 1280
 YOLO_CONTEXT_SCALE = 0.5
 # 0 = CROP8·VLM 예산 필터 후 남는 crop 전부 (week3 DEFAULT_MAX_CROPS_VLM 과 동일)
 DEFAULT_YOLO_MAX_CROPS = 0
@@ -117,6 +118,15 @@ def free_memory():
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+
+
+def prepare_single_vlm_image(image: Image.Image, max_side: int) -> Image.Image:
+    """Single_VLM 입력. max_side=0 이면 원본 (고해상도·저 VRAM 에서 OOM 주의)."""
+    img = image.convert("RGB").copy()
+    if max_side > 0:
+        img = resize_max_side(img, max_side)
+    return img
 
 def scale_bboxes_ctx_to_original(
     bboxes_ctx: list[tuple[int, int, int, int]],
@@ -279,6 +289,7 @@ def build_method_payload(
     smol_desc: str,
     smol_time: float,
     t_yolo: float,
+    single_vlm_max_side: int = SINGLE_VLM_MAX_SIDE,
 ) -> tuple[str, str, list[Image.Image], float, float, float, bool, int]:
     instruction = (
         "Choose the best answer from the given options. Respond with only one letter from the given options."
@@ -364,7 +375,7 @@ def build_method_payload(
     elif method == "Single_VLM_Qwen_4B":
         system_text = "You are an AI assistant. You will be provided with an image to help you answer the question."
         user_text = f"[Question]:\n{question}\n\n{instruction}"
-        vlm_images = [full.copy()]
+        vlm_images = [prepare_single_vlm_image(full, single_vlm_max_side)]
         preprocess = 0.0
         yolo_time, smol_time_out = 0.0, 0.0
         used_grid_merge = False
@@ -500,6 +511,7 @@ def run_qwen_phase(
     smol_metrics: dict[str, dict[int, dict[str, float]]],
     *,
     max_crops: int = DEFAULT_YOLO_MAX_CROPS,
+    single_vlm_max_side: int = SINGLE_VLM_MAX_SIDE,
 ) -> dict[str, list[dict]]:
     print("=== Phase 2: Loading YOLO and Qwen ===")
     device = get_device()
@@ -571,6 +583,7 @@ def run_qwen_phase(
                     smol_desc=smol_desc,
                     smol_time=smol_time,
                     t_yolo=t_yolo,
+                    single_vlm_max_side=single_vlm_max_side,
                 )
                 )
                 content: list[dict] = [{"type": "image", "image": im} for im in vlm_images]
@@ -703,7 +716,20 @@ def run_qwen_phase(
                 result_key = result_file_stem(benchmark, method)
                 all_results.setdefault(result_key, []).append(record)
 
-                del inputs, generated_ids, generated_ids_trimmed
+                del (
+                    inputs,
+                    generated_ids,
+                    generated_ids_trimmed,
+                    messages,
+                    content,
+                    image_inputs,
+                    vlm_images,
+                    text,
+                    user_text,
+                    system_text,
+                )
+                if video_inputs is not None:
+                    del video_inputs
                 free_memory()
 
     print("=== Phase 2 Complete ===")
@@ -730,6 +756,15 @@ def main():
         type=int,
         default=DEFAULT_YOLO_MAX_CROPS,
         help="YOLO→Qwen crop 상한 (0=CROP8·VLM 예산 내 무제한, 기본 0)",
+    )
+    parser.add_argument(
+        "--single-vlm-max-side",
+        type=int,
+        default=SINGLE_VLM_MAX_SIDE,
+        help=(
+            "Single_VLM 긴 변 상한 px (0=원본). "
+            f"8GB VRAM 4K 원본 OOM 방지 기본 {SINGLE_VLM_MAX_SIDE}"
+        ),
     )
     parser.add_argument(
         "--output",
@@ -782,7 +817,7 @@ def main():
             "smol_model": "HuggingFaceTB/SmolVLM-256M-Instruct",
             "qwen_model": "Qwen/Qwen3-VL-4B-Instruct",
             "thumb_max_side": THUMB_MAX_SIDE,
-            "single_vlm_resize": "none",
+            "single_vlm_max_side": args.single_vlm_max_side,
             "yolo_crop_resize": "none",
             "crop_area_filter": f"{CROP_AREA_NUMERATOR}/{CROP_AREA_DENOMINATOR}",
             "yolo_context_scale": YOLO_CONTEXT_SCALE,
@@ -794,7 +829,8 @@ def main():
             "yolo_device": YOLO_DEVICE,
             "note": (
                 "YOLO crop: 11주차-3 CROP8. crop≤{n} 개별 crop+bbox 좌표. "
-                "crop>{n} naive grid merge. Thumb 512px. Single_VLM 원본 전송."
+                "crop>{n} naive grid merge. Thumb 512px. "
+                "Single_VLM: single_vlm_max_side (0=원본)."
             ).format(n=BBOX_PROMPT_MAX_CROPS),
             "run_stamp": format_run_stamp(),
         }
@@ -810,6 +846,7 @@ def main():
         descriptions,
         smol_metrics,
         max_crops=args.max_crops,
+        single_vlm_max_side=args.single_vlm_max_side,
     )
 
     from summary import write_sample_csv, write_sample_jsonl, write_summary_csvs
