@@ -1,0 +1,131 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_text_tokens,smol_image_tokens,smol_total_tokens,qwen_text_tokens,qwen_image_tokens,qwen_total_tokens,qwen_peak_mem_mb,smol_description,question,num_vlm_images,single_vlm_max_side,smol_max_side,thumb_max_side,crop_qwen_scale,yolo_context_scale,sweep_axis,sweep_value
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,0,1,A,A,A,"person:0.34, person:0.31, class_67:0.45",7.923227199993562,0.2795458999753464,0.017443499993532896,0.017443499993532896,0.8208882000180893,0.8208882000180893,7.940670699987095,8.761558900005184,530.0,536.0,1066.0,61111.588866638864,2.4363853688674384,3592.75439453125,3592.75439453125,3592.75439453125,3.0,6,3,7.6436813000182156,974.1474609375,27.0,1127.0,1154.0,530.0,536.0,1066.0,3592.75439453125,"The image depicts a young woman standing in front of a doorway. The door is made of wood and has a white frame, with a small window on the left side. The door is slightly open, revealing a dark interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is also holding a blue wristwatch.
+
+The door has a number plate on it, which is located on the left side of the door. The number plate is black with white text. The text on the number plate reads ""27B"". The door is slightly open, revealing a dark interior.
+
+The background of the image shows a portion of the interior of the room. There is a window on the left side of the image, which is covered with a dark curtain. The curtain is partially visible, and it appears to be part of a larger window. There is also a glimpse of a wall or a wall panel in the background, which is not fully visible.
+
+The overall setting of the image suggests that the woman is in a public or casual setting, possibly a café or a public place. The presence of the number plate","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",4,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",7.660745699977269,0.29482509999070317,0.017772099992725998,0.017772099992725998,0.8080279999994673,0.8080279999994673,7.678517799969995,8.486545799969463,530.0,536.0,1066.0,59981.65666614,2.4751617518221134,3592.75439453125,3592.75439453125,3592.75439453125,3.0,6,3,7.365920599986566,974.15869140625,27.0,1127.0,1154.0,530.0,536.0,1066.0,3592.75439453125,"The image depicts a young woman standing in front of a doorway. The door is made of wood and has a white frame, with a small window on the left side. The door is slightly open, revealing a dark interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is also holding a blue wristwatch.
+
+The door has a number plate on it, which is located on the left side of the door. The number plate is black with white text. The text on the number plate reads ""27B"". The door is slightly open, revealing a dark interior.
+
+The background of the image shows a portion of the interior of the room. There is a window on the left side of the image, which is covered with a dark curtain. The curtain is partially visible, and it appears to be part of a larger window. There is also a glimpse of a wall or a wall panel in the background, which is not fully visible.
+
+The overall setting of the image suggests that the woman is in a public or casual setting, possibly a café or a public place. The presence of the number plate","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",4,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",9.25293660000898,0.2917464000056498,0.01716709998436272,0.01716709998436272,0.8036012999946252,0.8036012999946252,9.270103699993342,10.073704999987967,530.0,536.0,1066.0,62095.519975476636,2.4887963720483985,3592.75439453125,3592.75439453125,3592.75439453125,3.0,6,3,8.96119020000333,974.15869140625,27.0,1127.0,1154.0,530.0,536.0,1066.0,3592.75439453125,"The image depicts a young woman standing in front of a doorway. The door is made of wood and has a white frame, with a small window on the left side. The door is slightly open, revealing a dark interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is also holding a blue wristwatch.
+
+The door has a number plate on it, which is located on the left side of the door. The number plate is black with white text. The text on the number plate reads ""27B"". The door is slightly open, revealing a dark interior.
+
+The background of the image shows a portion of the interior of the room. There is a window on the left side of the image, which is covered with a dark curtain. The curtain is partially visible, and it appears to be part of a larger window. There is also a glimpse of a wall or a wall panel in the background, which is not fully visible.
+
+The overall setting of the image suggests that the woman is in a public or casual setting, possibly a café or a public place. The presence of the number plate","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",4,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,3,1,D,D,D,"person:0.34, person:0.31, class_67:0.45",9.26249339999049,0.2956467999902088,0.017489999998360872,0.017489999998360872,0.8073239999939688,0.8073239999939688,9.27998339998885,10.08730739998282,530.0,536.0,1066.0,60949.11378501449,2.477320134190166,3592.75439453125,3592.75439453125,3592.75439453125,3.0,6,3,8.96684660000028,974.15869140625,27.0,1127.0,1154.0,530.0,536.0,1066.0,3592.75439453125,"The image depicts a young woman standing in front of a doorway. The door is made of wood and has a white frame, with a small window on the left side. The door is slightly open, revealing a dark interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is also holding a blue wristwatch.
+
+The door has a number plate on it, which is located on the left side of the door. The number plate is black with white text. The text on the number plate reads ""27B"". The door is slightly open, revealing a dark interior.
+
+The background of the image shows a portion of the interior of the room. There is a window on the left side of the image, which is covered with a dark curtain. The curtain is partially visible, and it appears to be part of a larger window. There is also a glimpse of a wall or a wall panel in the background, which is not fully visible.
+
+The overall setting of the image suggests that the woman is in a public or casual setting, possibly a café or a public place. The presence of the number plate","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",4,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,4,1,A,A,A,"class_67:0.53, class_67:0.40",8.319583500007866,0.2956158999877516,0.014723700005561113,0.014723700005561113,0.6378399999812245,0.6378399999812245,8.334307200013427,8.972147199994652,469.0,448.0,917.0,62280.54087312638,3.1355825913377524,3489.6298828125,3489.6298828125,3489.6298828125,2.0,8,2,8.023967600020114,974.15869140625,27.0,1127.0,1154.0,469.0,448.0,917.0,3489.6298828125,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with a white background and black text. The text on the sign reads ""27B,"" which is likely a code or identifier for a specific event or organization.
+
+The wall behind the woman is painted in a light color, possibly white or light grey, and has a few visible cracks and patches, indicating wear or damage. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall.
+
+The overall setting suggests a public or community-related event, possibly","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",3,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,5,1,B,B,B,"class_67:0.53, class_67:0.40",8.60170550001203,0.2810985000105575,0.014532200002577156,0.014532200002577156,0.6309836999862455,0.6309836999862455,8.616237700014608,9.247221400000853,469.0,448.0,917.0,63101.25100379696,3.1696539863765056,3489.6298828125,3489.6298828125,3489.6298828125,2.0,8,2,8.320607000001473,974.15869140625,27.0,1127.0,1154.0,469.0,448.0,917.0,3489.6298828125,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with a white background and black text. The text on the sign reads ""27B,"" which is likely a code or identifier for a specific event or organization.
+
+The wall behind the woman is painted in a light color, possibly white or light grey, and has a few visible cracks and patches, indicating wear or damage. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall.
+
+The overall setting suggests a public or community-related event, possibly","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",3,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,6,1,C,C,C,"class_67:0.53, class_67:0.40",7.873328799993033,0.2848590000066906,0.014412799995625392,0.014412799995625392,0.63207289998536,0.63207289998536,7.887741599988658,8.519814499974018,469.0,448.0,917.0,63624.00090741078,3.164191978561846,3489.6298828125,3489.6298828125,3489.6298828125,2.0,8,2,7.588469799986342,974.15869140625,27.0,1127.0,1154.0,469.0,448.0,917.0,3489.6298828125,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with a white background and black text. The text on the sign reads ""27B,"" which is likely a code or identifier for a specific event or organization.
+
+The wall behind the woman is painted in a light color, possibly white or light grey, and has a few visible cracks and patches, indicating wear or damage. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall.
+
+The overall setting suggests a public or community-related event, possibly","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",3,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,7,1,D,D,D,"class_67:0.53, class_67:0.40",8.225135499960743,0.28260839998256415,0.014731800009030849,0.014731800009030849,0.6317350000026636,0.6317350000026636,8.239867299969774,8.871602299972437,469.0,448.0,917.0,62246.29708778718,3.165884429375557,3489.6298828125,3489.6298828125,3489.6298828125,2.0,8,2,7.942527099978179,974.15869140625,27.0,1127.0,1154.0,469.0,448.0,917.0,3489.6298828125,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with a white background and black text. The text on the sign reads ""27B,"" which is likely a code or identifier for a specific event or organization.
+
+The wall behind the woman is painted in a light color, possibly white or light grey, and has a few visible cracks and patches, indicating wear or damage. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall.
+
+The overall setting suggests a public or community-related event, possibly","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",3,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,8,0,D,A,D,"person:0.25, class_75:0.38, class_67:0.29",7.670866400032537,0.3125810000055935,0.01636429998325184,0.01636429998325184,0.7899179999949411,0.7899179999949411,7.687230700015789,8.47714870001073,513.0,526.0,1039.0,63491.86956138496,2.53190837531593,3571.14208984375,3571.14208984375,3571.14208984375,3.0,7,3,7.3582854000269435,974.15869140625,27.0,1127.0,1154.0,513.0,526.0,1039.0,3571.14208984375,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards. She has long, straight, dark hair that is parted in the middle. She is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue lace lace trim around the waist. She is also wearing a white handbag with a blue strap, which is hanging down over her right shoulder. Her watch is black and she has a black wristband on her left wrist.
+
+The woman is standing in front of a grey-white concrete or brick wall. On the left side of the image, there is a blue box or container with a white label. The label on the box is partially visible, but it appears to contain some sort of text or information.
+
+To the right of the woman, there is a white brick wall with a red brick border. The bricks are arranged in a pattern of vertical and horizontal lines, giving the wall a rustic, aged appearance.
+
+In the background, there is a grey-white concrete or brick structure with a sloped roof. The roof has a few patches of white paint, and there is a small, indistinct object, possibly a trash bin","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",4,1280,1080,512,0.5,0.5,smol,1080
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol1080,9,0,A,B,A,"person:0.25, class_75:0.38, class_67:0.29",7.7498400999757,0.29089739997289144,0.015910499991150573,0.015910499991150573,0.7884813999990001,0.7884813999990001,7.76575059996685,8.55423199996585,513.0,526.0,1039.0,65302.78750371718,2.5365214702623753,3571.14208984375,3571.14208984375,3571.14208984375,3.0,7,3,7.458942700002808,974.15869140625,27.0,1127.0,1154.0,513.0,526.0,1039.0,3571.14208984375,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards. She has long, straight, dark hair that is parted in the middle. She is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue lace lace trim around the waist. She is also wearing a white handbag with a blue strap, which is hanging down over her right shoulder. Her watch is black and she has a black wristband on her left wrist.
+
+The woman is standing in front of a grey-white concrete or brick wall. On the left side of the image, there is a blue box or container with a white label. The label on the box is partially visible, but it appears to contain some sort of text or information.
+
+To the right of the woman, there is a white brick wall with a red brick border. The bricks are arranged in a pattern of vertical and horizontal lines, giving the wall a rustic, aged appearance.
+
+In the background, there is a grey-white concrete or brick structure with a sloped roof. The roof has a few patches of white paint, and there is a small, indistinct object, possibly a trash bin","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",4,1280,1080,512,0.5,0.5,smol,1080

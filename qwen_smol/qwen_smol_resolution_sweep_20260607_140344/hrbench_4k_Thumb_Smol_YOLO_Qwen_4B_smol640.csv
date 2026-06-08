@@ -1,0 +1,147 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_text_tokens,smol_image_tokens,smol_total_tokens,qwen_text_tokens,qwen_image_tokens,qwen_total_tokens,qwen_peak_mem_mb,smol_description,question,num_vlm_images,single_vlm_max_side,smol_max_side,thumb_max_side,crop_qwen_scale,yolo_context_scale,sweep_axis,sweep_value
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,0,1,A,A,A,"person:0.34, person:0.31, class_67:0.45",18.463561699987622,1.3566250999865588,0.060618999996222556,0.060618999996222556,0.9371443999989424,0.9371443999989424,18.524180699983845,19.461325099982787,527.0,536.0,1063.0,17535.756117161953,2.1341428279379966,3590.80078125,3590.80078125,3590.80078125,3.0,6,3,17.106936600001063,3938.083984375,27.0,1127.0,1154.0,527.0,536.0,1063.0,3590.80078125,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a pink tablet in her right hand, which she appears to be looking at. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a dark, possibly wooden, material, and it is slightly open, revealing a glimpse of the interior. The door is framed by a white wall, which is slightly dirty and stained, suggesting that it has been in use for some time.
+
+To the right of the doorway, there is a white wall with a few visible patches of paint. On the left side of the image, there is a glimpse of a window or a door, which is partially open. The window has a dark frame and is partially covered by a piece of fabric, possibly a curtain or a curtain rod.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the doorway. The overall atmosphere of the image is one of curiosity and interest, as the woman appears to be looking at something or someone.
+
+### Analysis and Description:
+1. **Subject**: The","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",4,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",18.22357909998391,1.3181554999900982,0.019878099992638454,0.019878099992638454,0.928954100003466,0.928954100003466,18.243457199976547,19.172411299980013,527.0,536.0,1063.0,53475.93584868099,2.1529589029130047,3590.80078125,3590.80078125,3590.80078125,3.0,6,3,16.90542359999381,3938.09521484375,27.0,1127.0,1154.0,527.0,536.0,1063.0,3590.80078125,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a pink tablet in her right hand, which she appears to be looking at. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a dark, possibly wooden, material, and it is slightly open, revealing a glimpse of the interior. The door is framed by a white wall, which is slightly dirty and stained, suggesting that it has been in use for some time.
+
+To the right of the doorway, there is a white wall with a few visible patches of paint. On the left side of the image, there is a glimpse of a window or a door, which is partially open. The window has a dark frame and is partially covered by a piece of fabric, possibly a curtain or a curtain rod.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the doorway. The overall atmosphere of the image is one of curiosity and interest, as the woman appears to be looking at something or someone.
+
+### Analysis and Description:
+1. **Subject**: The","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",4,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",18.538626100023976,1.3975056000053883,0.05701509999926202,0.05701509999926202,0.9454028000182007,0.9454028000182007,18.595641200023238,19.54104400004144,527.0,536.0,1063.0,18644.18373402413,2.115500398307998,3590.80078125,3590.80078125,3590.80078125,3.0,6,3,17.141120500018587,3938.09521484375,27.0,1127.0,1154.0,527.0,536.0,1063.0,3590.80078125,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a pink tablet in her right hand, which she appears to be looking at. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a dark, possibly wooden, material, and it is slightly open, revealing a glimpse of the interior. The door is framed by a white wall, which is slightly dirty and stained, suggesting that it has been in use for some time.
+
+To the right of the doorway, there is a white wall with a few visible patches of paint. On the left side of the image, there is a glimpse of a window or a door, which is partially open. The window has a dark frame and is partially covered by a piece of fabric, possibly a curtain or a curtain rod.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the doorway. The overall atmosphere of the image is one of curiosity and interest, as the woman appears to be looking at something or someone.
+
+### Analysis and Description:
+1. **Subject**: The","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",4,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,3,1,D,D,D,"person:0.34, person:0.31, class_67:0.45",18.227132200001506,1.397425100003602,0.050496799987740815,0.050496799987740815,0.9353697000187822,0.9353697000187822,18.277628999989247,19.21299870000803,527.0,536.0,1063.0,21050.838870147538,2.13819198971256,3590.80078125,3590.80078125,3590.80078125,3.0,6,3,16.829707099997904,3938.09521484375,27.0,1127.0,1154.0,527.0,536.0,1063.0,3590.80078125,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a pink tablet in her right hand, which she appears to be looking at. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a dark, possibly wooden, material, and it is slightly open, revealing a glimpse of the interior. The door is framed by a white wall, which is slightly dirty and stained, suggesting that it has been in use for some time.
+
+To the right of the doorway, there is a white wall with a few visible patches of paint. On the left side of the image, there is a glimpse of a window or a door, which is partially open. The window has a dark frame and is partially covered by a piece of fabric, possibly a curtain or a curtain rod.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the doorway. The overall atmosphere of the image is one of curiosity and interest, as the woman appears to be looking at something or someone.
+
+### Analysis and Description:
+1. **Subject**: The","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",4,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,4,1,A,A,A,"class_67:0.53, class_67:0.40",18.414034799992805,1.3556790000002366,0.014430300012463704,0.014430300012463704,0.7348218999977689,0.7348218999977689,18.42846510000527,19.163287000003038,473.0,448.0,921.0,63824.036867183364,2.721747950089773,3491.64697265625,3491.64697265625,3491.64697265625,2.0,8,2,17.05835579999257,3938.09521484375,27.0,1127.0,1154.0,473.0,448.0,921.0,3491.64697265625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her hair is long and dark, and she has a small backpack or bag slung over her shoulder.
+
+The background features a slightly blurred structure, possibly a building or a part of a building structure, which appears to be part of a larger structure. The structure has a few visible elements, including a door or window, which is partially open, and a wall that has a few patches of discoloration or wear.
+
+In the upper left corner of the image, there is a small, rectangular sign or label with some text. The text on the sign is not entirely clear, but it appears to be some sort of identification or a message. The sign is white with black text, and it is partially obscured by the woman's hand.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",3,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,5,1,B,B,B,"class_67:0.53, class_67:0.40",18.767516799998702,1.4296104999957606,0.056818799988832325,0.056818799988832325,0.7510411999828648,0.7510411999828648,18.824335599987535,19.5753767999704,473.0,448.0,921.0,16209.423644656727,2.6629697545828783,3491.64697265625,3491.64697265625,3491.64697265625,2.0,8,2,17.337906300002942,3938.09521484375,27.0,1127.0,1154.0,473.0,448.0,921.0,3491.64697265625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her hair is long and dark, and she has a small backpack or bag slung over her shoulder.
+
+The background features a slightly blurred structure, possibly a building or a part of a building structure, which appears to be part of a larger structure. The structure has a few visible elements, including a door or window, which is partially open, and a wall that has a few patches of discoloration or wear.
+
+In the upper left corner of the image, there is a small, rectangular sign or label with some text. The text on the sign is not entirely clear, but it appears to be some sort of identification or a message. The sign is white with black text, and it is partially obscured by the woman's hand.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",3,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,6,1,C,C,C,"class_67:0.53, class_67:0.40",18.421217199997045,1.3951153999951202,0.05653390000225045,0.05653390000225045,0.7599119000078645,0.7599119000078645,18.477751099999296,19.23766300000716,473.0,448.0,921.0,16291.110288929964,2.631884038109288,3491.64697265625,3491.64697265625,3491.64697265625,2.0,8,2,17.026101800001925,3938.09521484375,27.0,1127.0,1154.0,473.0,448.0,921.0,3491.64697265625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her hair is long and dark, and she has a small backpack or bag slung over her shoulder.
+
+The background features a slightly blurred structure, possibly a building or a part of a building structure, which appears to be part of a larger structure. The structure has a few visible elements, including a door or window, which is partially open, and a wall that has a few patches of discoloration or wear.
+
+In the upper left corner of the image, there is a small, rectangular sign or label with some text. The text on the sign is not entirely clear, but it appears to be some sort of identification or a message. The sign is white with black text, and it is partially obscured by the woman's hand.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",3,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,7,1,D,D,D,"class_67:0.53, class_67:0.40",18.340534799994202,1.2705340000102296,0.029116799996700138,0.029116799996700138,0.7519132000161335,0.7519132000161335,18.369651599990902,19.121564800007036,473.0,448.0,921.0,31631.223214926733,2.6598814862634237,3491.64697265625,3491.64697265625,3491.64697265625,2.0,8,2,17.070000799983973,3938.09521484375,27.0,1127.0,1154.0,473.0,448.0,921.0,3491.64697265625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her hair is long and dark, and she has a small backpack or bag slung over her shoulder.
+
+The background features a slightly blurred structure, possibly a building or a part of a building structure, which appears to be part of a larger structure. The structure has a few visible elements, including a door or window, which is partially open, and a wall that has a few patches of discoloration or wear.
+
+In the upper left corner of the image, there is a small, rectangular sign or label with some text. The text on the sign is not entirely clear, but it appears to be some sort of identification or a message. The sign is white with black text, and it is partially obscured by the woman's hand.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",3,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,8,1,A,A,A,"person:0.25, class_75:0.38, class_67:0.29",18.58451350001269,1.3270862000063062,0.05442390000098385,0.05442390000098385,0.926267300004838,0.926267300004838,18.638937400013674,19.565204700018512,515.0,526.0,1041.0,19127.625914004348,2.1592039360447615,3571.48681640625,3571.48681640625,3571.48681640625,3.0,7,3,17.257427300006384,3938.09521484375,27.0,1127.0,1154.0,515.0,526.0,1041.0,3571.48681640625,"The image depicts a young woman standing in front of a concrete wall. She is wearing a white sleeveless top and light blue shorts. Her hair is long and dark, and she has a neutral expression on her face. She is holding a smartphone in her right hand, which she appears to be looking at.
+
+In the background, there is a concrete staircase with vertical wooden steps. The staircase appears to be part of a larger structure, possibly a building or a part of a larger structure. The wall behind her is made of concrete and appears to be painted white. There is a small, rectangular object, possibly a box or a container, placed on the wall.
+
+To the right of the woman, there is a brick wall with a vertical red brick strip running parallel to the wall. The bricks are a mix of red and orange bricks, giving the wall a warm and earthy appearance.
+
+The woman is standing in front of a door or window, which is partially visible in the background. The door is made of wood and has a metal handle. The window is closed, and there is a small, circular object, possibly a curtain or a decorative element, hanging from the window.
+
+The overall setting suggests a casual, possibly school or community","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",4,1280,640,512,0.5,0.5,smol,640
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol640,9,1,B,B,B,"person:0.25, class_75:0.38, class_67:0.29",18.299288099980913,1.344903199991677,0.05285080001340248,0.05285080001340248,0.9305465999932494,0.9305465999932494,18.352138899994316,19.282685499987565,515.0,526.0,1041.0,19696.958224587175,2.1492744157192223,3571.48681640625,3571.48681640625,3571.48681640625,3.0,7,3,16.954384899989236,3938.09521484375,27.0,1127.0,1154.0,515.0,526.0,1041.0,3571.48681640625,"The image depicts a young woman standing in front of a concrete wall. She is wearing a white sleeveless top and light blue shorts. Her hair is long and dark, and she has a neutral expression on her face. She is holding a smartphone in her right hand, which she appears to be looking at.
+
+In the background, there is a concrete staircase with vertical wooden steps. The staircase appears to be part of a larger structure, possibly a building or a part of a larger structure. The wall behind her is made of concrete and appears to be painted white. There is a small, rectangular object, possibly a box or a container, placed on the wall.
+
+To the right of the woman, there is a brick wall with a vertical red brick strip running parallel to the wall. The bricks are a mix of red and orange bricks, giving the wall a warm and earthy appearance.
+
+The woman is standing in front of a door or window, which is partially visible in the background. The door is made of wood and has a metal handle. The window is closed, and there is a small, circular object, possibly a curtain or a decorative element, hanging from the window.
+
+The overall setting suggests a casual, possibly school or community","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",4,1280,640,512,0.5,0.5,smol,640

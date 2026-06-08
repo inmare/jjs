@@ -1,0 +1,143 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_text_tokens,smol_image_tokens,smol_total_tokens,qwen_text_tokens,qwen_image_tokens,qwen_total_tokens,qwen_peak_mem_mb,smol_description,question,num_vlm_images,single_vlm_max_side,smol_max_side,thumb_max_side,crop_qwen_scale,yolo_context_scale,sweep_axis,sweep_value
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,0,0,C,A,C,"person:0.34, person:0.31, class_67:0.45",10.024102900031721,1.6020300000091083,0.08652910002274439,0.08652910002274439,1.0805200000177138,1.0805200000177138,10.110632000054466,11.19115200007218,505.0,276.0,781.0,9025.86528456568,1.850960648546267,3376.81298828125,3376.81298828125,3376.81298828125,3.0,6,3,8.422072900022613,974.0537109375,27.0,1127.0,1154.0,505.0,276.0,781.0,3376.81298828125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, dark hair. Her expression is neutral, and she is looking to the right side of the frame. She is holding a smartphone in her right hand, which is resting on her lap. The smartphone is pink, and she is holding it close to her chest.
+
+The background of the image is slightly blurred, but it contains a doorway or opening that leads to another room or area. The door is made of wood and has a white frame. The door is closed, and there is a small, rectangular window on the left side of the door. The window has a dark frame, and it is slightly open.
+
+The door is slightly raised, and it has a white door handle. The door is closed, and there is a small, black object, possibly a lock or key, on the door.
+
+The walls of the room are painted in a light color, and there is a small, rectangular window on the right side of the door. The window has a dark frame, and it is slightly open.
+
+The overall setting of the image is casual and relaxed. The woman is standing in a relaxed","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",3,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",9.643206400010968,1.4097757000126876,0.02285529999062419,0.02285529999062419,0.774641399999382,0.774641399999382,9.666061700001592,10.440703100000974,505.0,276.0,781.0,34171.50509161488,2.5818398035550327,3376.63330078125,3376.63330078125,3376.63330078125,3.0,6,3,8.23343069999828,974.06494140625,27.0,1127.0,1154.0,505.0,276.0,781.0,3376.63330078125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, dark hair. Her expression is neutral, and she is looking to the right side of the frame. She is holding a smartphone in her right hand, which is resting on her lap. The smartphone is pink, and she is holding it close to her chest.
+
+The background of the image is slightly blurred, but it contains a doorway or opening that leads to another room or area. The door is made of wood and has a white frame. The door is closed, and there is a small, rectangular window on the left side of the door. The window has a dark frame, and it is slightly open.
+
+The door is slightly raised, and it has a white door handle. The door is closed, and there is a small, black object, possibly a lock or key, on the door.
+
+The walls of the room are painted in a light color, and there is a small, rectangular window on the right side of the door. The window has a dark frame, and it is slightly open.
+
+The overall setting of the image is casual and relaxed. The woman is standing in a relaxed","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",3,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",9.119273499993142,1.2507179999956861,0.028228599985595793,0.028228599985595793,0.6575888000079431,0.6575888000079431,9.147502099978738,9.80509089998668,505.0,276.0,781.0,27666.976059688433,3.0414143306209622,3376.63330078125,3376.63330078125,3376.63330078125,3.0,6,3,7.868555499997456,974.06494140625,27.0,1127.0,1154.0,505.0,276.0,781.0,3376.63330078125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, dark hair. Her expression is neutral, and she is looking to the right side of the frame. She is holding a smartphone in her right hand, which is resting on her lap. The smartphone is pink, and she is holding it close to her chest.
+
+The background of the image is slightly blurred, but it contains a doorway or opening that leads to another room or area. The door is made of wood and has a white frame. The door is closed, and there is a small, rectangular window on the left side of the door. The window has a dark frame, and it is slightly open.
+
+The door is slightly raised, and it has a white door handle. The door is closed, and there is a small, black object, possibly a lock or key, on the door.
+
+The walls of the room are painted in a light color, and there is a small, rectangular window on the right side of the door. The window has a dark frame, and it is slightly open.
+
+The overall setting of the image is casual and relaxed. The woman is standing in a relaxed","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",3,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,3,0,C,D,C,"person:0.34, person:0.31, class_67:0.45",9.28831890001311,1.3580341000051703,0.026310799992643297,0.026310799992643297,0.8208326999738347,0.8208326999738347,9.314629700005753,10.135462399979588,505.0,276.0,781.0,29683.628024171583,2.436550103405667,3376.63330078125,3376.63330078125,3376.63330078125,3.0,6,3,7.930284800007939,974.06494140625,27.0,1127.0,1154.0,505.0,276.0,781.0,3376.63330078125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, dark hair. Her expression is neutral, and she is looking to the right side of the frame. She is holding a smartphone in her right hand, which is resting on her lap. The smartphone is pink, and she is holding it close to her chest.
+
+The background of the image is slightly blurred, but it contains a doorway or opening that leads to another room or area. The door is made of wood and has a white frame. The door is closed, and there is a small, rectangular window on the left side of the door. The window has a dark frame, and it is slightly open.
+
+The door is slightly raised, and it has a white door handle. The door is closed, and there is a small, black object, possibly a lock or key, on the door.
+
+The walls of the room are painted in a light color, and there is a small, rectangular window on the right side of the door. The window has a dark frame, and it is slightly open.
+
+The overall setting of the image is casual and relaxed. The woman is standing in a relaxed","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",3,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,4,1,A,A,A,"class_67:0.53, class_67:0.40",9.263105799996993,1.2411262999812607,0.021310399984940886,0.021310399984940886,0.5557009999756701,0.5557009999756701,9.284416199981933,9.840117199957604,447.0,188.0,635.0,29797.657502849608,3.599057766834259,3283.59228515625,3283.59228515625,3283.59228515625,2.0,8,2,8.021979500015732,974.06494140625,27.0,1127.0,1154.0,447.0,188.0,635.0,3283.59228515625,"The image depicts a young woman standing in front of a doorway or entrance. She is wearing a white sleeveless top and light-colored pants. Her hair is long and dark, and she is wearing a small backpack or bag on her back. She is holding a smartphone in her right hand, which she appears to be using to take a picture or text message.
+
+The background of the image is slightly blurred, but it appears to be an urban setting, possibly a school or a public building. The doorway or entrance is made of concrete or stone, and it has a slightly slanted roof. The door is slightly open, and there is a glimpse of a staircase or steps leading up to the doorway.
+
+On the right side of the image, there is a red brick wall with a noticeable patch of damage or wear. The bricks are a mix of red and orange, and they are arranged in a pattern that suggests a historical or architectural style.
+
+The woman is standing in front of a door or entrance, which is slightly open. The door is made of concrete or stone, and it has a slanted roof. The door is closed, and there is a small, visible sign or label on the door, which reads ""27B.""","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",2,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,5,1,B,B,B,"class_67:0.53, class_67:0.40",9.402070499985712,1.3593388999870513,0.01768280001124367,0.01768280001124367,0.7494135000160895,0.7494135000160895,9.419753299996955,10.169166800013045,447.0,188.0,635.0,35910.602370452245,2.6687536319495995,3283.59228515625,3283.59228515625,3283.59228515625,2.0,8,2,8.04273159999866,974.06494140625,27.0,1127.0,1154.0,447.0,188.0,635.0,3283.59228515625,"The image depicts a young woman standing in front of a doorway or entrance. She is wearing a white sleeveless top and light-colored pants. Her hair is long and dark, and she is wearing a small backpack or bag on her back. She is holding a smartphone in her right hand, which she appears to be using to take a picture or text message.
+
+The background of the image is slightly blurred, but it appears to be an urban setting, possibly a school or a public building. The doorway or entrance is made of concrete or stone, and it has a slightly slanted roof. The door is slightly open, and there is a glimpse of a staircase or steps leading up to the doorway.
+
+On the right side of the image, there is a red brick wall with a noticeable patch of damage or wear. The bricks are a mix of red and orange, and they are arranged in a pattern that suggests a historical or architectural style.
+
+The woman is standing in front of a door or entrance, which is slightly open. The door is made of concrete or stone, and it has a slanted roof. The door is closed, and there is a small, visible sign or label on the door, which reads ""27B.""","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",2,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,6,1,C,C,C,"class_67:0.53, class_67:0.40",9.637666200025706,1.4016415000078268,0.01816160001908429,0.01816160001908429,0.6979603999934625,0.6979603999934625,9.65582780004479,10.353788200038252,447.0,188.0,635.0,34963.87979763563,2.8654920823856673,3283.59228515625,3283.59228515625,3283.59228515625,2.0,8,2,8.236024700017879,974.06494140625,27.0,1127.0,1154.0,447.0,188.0,635.0,3283.59228515625,"The image depicts a young woman standing in front of a doorway or entrance. She is wearing a white sleeveless top and light-colored pants. Her hair is long and dark, and she is wearing a small backpack or bag on her back. She is holding a smartphone in her right hand, which she appears to be using to take a picture or text message.
+
+The background of the image is slightly blurred, but it appears to be an urban setting, possibly a school or a public building. The doorway or entrance is made of concrete or stone, and it has a slightly slanted roof. The door is slightly open, and there is a glimpse of a staircase or steps leading up to the doorway.
+
+On the right side of the image, there is a red brick wall with a noticeable patch of damage or wear. The bricks are a mix of red and orange, and they are arranged in a pattern that suggests a historical or architectural style.
+
+The woman is standing in front of a door or entrance, which is slightly open. The door is made of concrete or stone, and it has a slanted roof. The door is closed, and there is a small, visible sign or label on the door, which reads ""27B.""","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",2,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,7,1,D,D,D,"class_67:0.53, class_67:0.40",9.315471000008984,1.3098821000021417,0.015023999992990866,0.015023999992990866,0.6572572000150103,0.6572572000150103,9.330495000001974,9.987752200016985,447.0,188.0,635.0,42265.70821993118,3.0429487877109973,3283.59228515625,3283.59228515625,3283.59228515625,2.0,8,2,8.005588900006842,974.06494140625,27.0,1127.0,1154.0,447.0,188.0,635.0,3283.59228515625,"The image depicts a young woman standing in front of a doorway or entrance. She is wearing a white sleeveless top and light-colored pants. Her hair is long and dark, and she is wearing a small backpack or bag on her back. She is holding a smartphone in her right hand, which she appears to be using to take a picture or text message.
+
+The background of the image is slightly blurred, but it appears to be an urban setting, possibly a school or a public building. The doorway or entrance is made of concrete or stone, and it has a slightly slanted roof. The door is slightly open, and there is a glimpse of a staircase or steps leading up to the doorway.
+
+On the right side of the image, there is a red brick wall with a noticeable patch of damage or wear. The bricks are a mix of red and orange, and they are arranged in a pattern that suggests a historical or architectural style.
+
+The woman is standing in front of a door or entrance, which is slightly open. The door is made of concrete or stone, and it has a slanted roof. The door is closed, and there is a small, visible sign or label on the door, which reads ""27B.""","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",2,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,8,1,A,A,A,"person:0.25, class_75:0.38, class_67:0.29",9.534945699997479,1.3911640000005718,0.024543400009861216,0.024543400009861216,0.7881361999898218,0.7881361999898218,9.55948910000734,10.347625299997162,494.0,266.0,760.0,30965.554882153327,2.5376324549307956,3365.353515625,3365.353515625,3365.353515625,3.0,7,3,8.143781699996907,974.06494140625,27.0,1127.0,1154.0,494.0,266.0,760.0,3365.353515625,"The image depicts a young woman standing in front of a slightly raised, concrete staircase. She is wearing a white sleeveless top and white shorts. Her hair is long and dark, and she has a small backpack on her back. She is holding a red cell phone in her right hand, and she is looking at the camera with a focused expression.
+
+In the background, there is a concrete wall with a brick column. The wall has a weathered appearance, with some areas showing signs of wear and tear, such as cracks and discoloration. The brick column is also aged, with a reddish hue, and appears to be part of a larger structure.
+
+To the left of the woman, there is a large, rectangular object that appears to be a trash bin or a similar container. The bin is gray and appears to be made of metal or plastic. The top of the bin is open, and there is a small, black object inside of it.
+
+The woman is standing in front of a doorway, which is slightly open. The doorway is made of concrete and appears to be part of a larger structure, possibly a building or a part of a larger complex.
+
+The overall setting suggests a casual, possibly school-related environment, as the woman","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",3,1280,360,512,0.5,0.5,smol,360
+hrbench_4k,Smol_YOLO_Qwen_4B_smol360,9,1,B,B,B,"person:0.25, class_75:0.38, class_67:0.29",15.935899599979166,1.2720197000016924,0.020414099999470636,0.020414099999470636,0.81738259998383,0.81738259998383,15.956313699978637,16.773696299962467,494.0,266.0,760.0,37229.170035402385,2.446834566871824,3365.353515625,3365.353515625,3365.353515625,3.0,7,3,14.663879899977474,974.06494140625,27.0,1127.0,1154.0,494.0,266.0,760.0,3365.353515625,"The image depicts a young woman standing in front of a slightly raised, concrete staircase. She is wearing a white sleeveless top and white shorts. Her hair is long and dark, and she has a small backpack on her back. She is holding a red cell phone in her right hand, and she is looking at the camera with a focused expression.
+
+In the background, there is a concrete wall with a brick column. The wall has a weathered appearance, with some areas showing signs of wear and tear, such as cracks and discoloration. The brick column is also aged, with a reddish hue, and appears to be part of a larger structure.
+
+To the left of the woman, there is a large, rectangular object that appears to be a trash bin or a similar container. The bin is gray and appears to be made of metal or plastic. The top of the bin is open, and there is a small, black object inside of it.
+
+The woman is standing in front of a doorway, which is slightly open. The doorway is made of concrete and appears to be part of a larger structure, possibly a building or a part of a larger complex.
+
+The overall setting suggests a casual, possibly school-related environment, as the woman","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",3,1280,360,512,0.5,0.5,smol,360

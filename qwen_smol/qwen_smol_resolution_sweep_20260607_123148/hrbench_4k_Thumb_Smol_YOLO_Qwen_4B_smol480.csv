@@ -1,0 +1,151 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_text_tokens,smol_image_tokens,smol_total_tokens,qwen_text_tokens,qwen_image_tokens,qwen_total_tokens,qwen_peak_mem_mb,smol_description,question,num_vlm_images,single_vlm_max_side,smol_max_side,thumb_max_side,crop_qwen_scale,yolo_context_scale,sweep_axis,sweep_value
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,0,1,A,A,A,"person:0.34, person:0.31, class_67:0.45",18.11061719999998,0.33980180000071414,0.018132400000467896,0.018132400000467896,0.798895200015977,0.798895200015977,18.128749600000447,18.927644800016424,528.0,536.0,1064.0,58679.490854632815,2.5034572744460126,3591.23095703125,3591.23095703125,3591.23095703125,3.0,6,3,17.770815399999265,3940.333984375,27.0,1127.0,1154.0,528.0,536.0,1064.0,3591.23095703125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, straight, dark hair. Her expression is neutral, and she is looking slightly to her right, which is the direction she is standing.
+
+The background of the image is slightly blurred, but it contains a door with a white frame and a black handle. The door is slightly open, revealing a glimpse of the interior of the room behind it. The room is not entirely clear, but it appears to be an outdoor area, possibly a courtyard or a small garden.
+
+To the left of the door, there is a white wall with a series of vertical grooves or slats. These grooves are likely part of a storage unit or a storage area. The wall is painted in a light color, possibly beige or off-white, and has a few visible stains or dirt marks.
+
+The woman is holding a small object, possibly a tablet or a mobile phone, in her right hand. She is wearing a wristwatch on her left wrist, which is black with a blue band. Her hair is dark and falls over her shoulders, and she is wearing a watch on her left wrist.
+
+The door to","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",4,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",17.772991200035904,0.3313331000099424,0.016688400006387383,0.016688400006387383,0.789067999983672,0.789067999983672,17.78967960004229,18.578747600025963,528.0,536.0,1064.0,63756.8610287841,2.5346357982346075,3591.23095703125,3591.23095703125,3591.23095703125,3.0,6,3,17.44165810002596,3940.34521484375,27.0,1127.0,1154.0,528.0,536.0,1064.0,3591.23095703125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, straight, dark hair. Her expression is neutral, and she is looking slightly to her right, which is the direction she is standing.
+
+The background of the image is slightly blurred, but it contains a door with a white frame and a black handle. The door is slightly open, revealing a glimpse of the interior of the room behind it. The room is not entirely clear, but it appears to be an outdoor area, possibly a courtyard or a small garden.
+
+To the left of the door, there is a white wall with a series of vertical grooves or slats. These grooves are likely part of a storage unit or a storage area. The wall is painted in a light color, possibly beige or off-white, and has a few visible stains or dirt marks.
+
+The woman is holding a small object, possibly a tablet or a mobile phone, in her right hand. She is wearing a wristwatch on her left wrist, which is black with a blue band. Her hair is dark and falls over her shoulders, and she is wearing a watch on her left wrist.
+
+The door to","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",4,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",17.816052000009222,0.3785850999993272,0.01897360000293702,0.01897360000293702,0.814759500004584,0.814759500004584,17.83502560001216,18.649785100016743,528.0,536.0,1064.0,56077.91878374679,2.4547120960096174,3591.23095703125,3591.23095703125,3591.23095703125,3.0,6,3,17.437466900009895,3940.34521484375,27.0,1127.0,1154.0,528.0,536.0,1064.0,3591.23095703125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, straight, dark hair. Her expression is neutral, and she is looking slightly to her right, which is the direction she is standing.
+
+The background of the image is slightly blurred, but it contains a door with a white frame and a black handle. The door is slightly open, revealing a glimpse of the interior of the room behind it. The room is not entirely clear, but it appears to be an outdoor area, possibly a courtyard or a small garden.
+
+To the left of the door, there is a white wall with a series of vertical grooves or slats. These grooves are likely part of a storage unit or a storage area. The wall is painted in a light color, possibly beige or off-white, and has a few visible stains or dirt marks.
+
+The woman is holding a small object, possibly a tablet or a mobile phone, in her right hand. She is wearing a wristwatch on her left wrist, which is black with a blue band. Her hair is dark and falls over her shoulders, and she is wearing a watch on her left wrist.
+
+The door to","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",4,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,3,1,D,D,D,"person:0.34, person:0.31, class_67:0.45",17.357879699993646,0.3306456000136677,0.01734240000951104,0.01734240000951104,0.8214370999776293,0.8214370999776293,17.375222100003157,18.196659199980786,528.0,536.0,1064.0,61352.52326185959,2.434757329629338,3591.23095703125,3591.23095703125,3591.23095703125,3.0,6,3,17.027234099979978,3940.34521484375,27.0,1127.0,1154.0,528.0,536.0,1064.0,3591.23095703125,"The image depicts a young woman standing in what appears to be an outdoor setting. She is wearing a white sleeveless top and has long, straight, dark hair. Her expression is neutral, and she is looking slightly to her right, which is the direction she is standing.
+
+The background of the image is slightly blurred, but it contains a door with a white frame and a black handle. The door is slightly open, revealing a glimpse of the interior of the room behind it. The room is not entirely clear, but it appears to be an outdoor area, possibly a courtyard or a small garden.
+
+To the left of the door, there is a white wall with a series of vertical grooves or slats. These grooves are likely part of a storage unit or a storage area. The wall is painted in a light color, possibly beige or off-white, and has a few visible stains or dirt marks.
+
+The woman is holding a small object, possibly a tablet or a mobile phone, in her right hand. She is wearing a wristwatch on her left wrist, which is black with a blue band. Her hair is dark and falls over her shoulders, and she is wearing a watch on her left wrist.
+
+The door to","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",4,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,4,1,A,A,A,"class_67:0.53, class_67:0.40",17.239727400039556,0.34971480001695454,0.01584730000467971,0.01584730000467971,0.6607935999927577,0.6607935999927577,17.255574700044235,17.916368300036993,468.0,448.0,916.0,57801.644427095154,3.026663696533865,3485.96533203125,3485.96533203125,3485.96533203125,2.0,8,2,16.8900126000226,3940.34521484375,27.0,1127.0,1154.0,468.0,448.0,916.0,3485.96533203125,"The image depicts a young woman standing outdoors, likely in a public or semi-public area. She is holding a smartphone in her right hand and appears to be looking at it. She is wearing a white sleeveless top and light blue jeans. Her hair is long and dark, and she has a small backpack on her back.
+
+The background of the image is slightly blurred, but it appears to be an urban or semi-urban setting, possibly a public or public-use building. The building has a few visible signs of wear and tear, including a brick wall and a door that appears to be part of the building's exterior.
+
+The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a white backpack, and her hair is dark and pulled back, suggesting she might be in a casual or relaxed mood.
+
+The smartphone she is holding has a screen that is turned on, displaying a digital interface. The screen is displaying a message or a notification, but the details of the message are not clear from the image.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood or a similar material, and it has a","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",3,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,5,1,B,B,B,"class_67:0.53, class_67:0.40",16.861621299991384,0.315329400007613,0.01472849998390302,0.01472849998390302,0.6404048000113107,0.6404048000113107,16.876349799975287,17.516754599986598,468.0,448.0,916.0,62192.34823648769,3.1230246868303864,3485.96533203125,3485.96533203125,3485.96533203125,2.0,8,2,16.54629189998377,3940.34521484375,27.0,1127.0,1154.0,468.0,448.0,916.0,3485.96533203125,"The image depicts a young woman standing outdoors, likely in a public or semi-public area. She is holding a smartphone in her right hand and appears to be looking at it. She is wearing a white sleeveless top and light blue jeans. Her hair is long and dark, and she has a small backpack on her back.
+
+The background of the image is slightly blurred, but it appears to be an urban or semi-urban setting, possibly a public or public-use building. The building has a few visible signs of wear and tear, including a brick wall and a door that appears to be part of the building's exterior.
+
+The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a white backpack, and her hair is dark and pulled back, suggesting she might be in a casual or relaxed mood.
+
+The smartphone she is holding has a screen that is turned on, displaying a digital interface. The screen is displaying a message or a notification, but the details of the message are not clear from the image.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood or a similar material, and it has a","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",3,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,6,1,C,C,C,"class_67:0.53, class_67:0.40",17.096227300004102,0.3160156999947503,0.016080699977464974,0.016080699977464974,0.647616400005063,0.647616400005063,17.112307999981567,17.75992439998663,468.0,448.0,916.0,56962.69448989508,3.088247919577645,3485.96533203125,3485.96533203125,3485.96533203125,2.0,8,2,16.780211600009352,3940.34521484375,27.0,1127.0,1154.0,468.0,448.0,916.0,3485.96533203125,"The image depicts a young woman standing outdoors, likely in a public or semi-public area. She is holding a smartphone in her right hand and appears to be looking at it. She is wearing a white sleeveless top and light blue jeans. Her hair is long and dark, and she has a small backpack on her back.
+
+The background of the image is slightly blurred, but it appears to be an urban or semi-urban setting, possibly a public or public-use building. The building has a few visible signs of wear and tear, including a brick wall and a door that appears to be part of the building's exterior.
+
+The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a white backpack, and her hair is dark and pulled back, suggesting she might be in a casual or relaxed mood.
+
+The smartphone she is holding has a screen that is turned on, displaying a digital interface. The screen is displaying a message or a notification, but the details of the message are not clear from the image.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood or a similar material, and it has a","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",3,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,7,1,D,D,D,"class_67:0.53, class_67:0.40",17.613649400009308,0.3167696000018623,0.014196300006005913,0.014196300006005913,0.6434400999860372,0.6434400999860372,17.627845700015314,18.27128580000135,468.0,448.0,916.0,64523.85477994092,3.1082924425185814,3485.96533203125,3485.96533203125,3485.96533203125,2.0,8,2,17.296879800007446,3940.34521484375,27.0,1127.0,1154.0,468.0,448.0,916.0,3485.96533203125,"The image depicts a young woman standing outdoors, likely in a public or semi-public area. She is holding a smartphone in her right hand and appears to be looking at it. She is wearing a white sleeveless top and light blue jeans. Her hair is long and dark, and she has a small backpack on her back.
+
+The background of the image is slightly blurred, but it appears to be an urban or semi-urban setting, possibly a public or public-use building. The building has a few visible signs of wear and tear, including a brick wall and a door that appears to be part of the building's exterior.
+
+The woman is holding a smartphone in her right hand, which is resting on her lap. She is wearing a white backpack, and her hair is dark and pulled back, suggesting she might be in a casual or relaxed mood.
+
+The smartphone she is holding has a screen that is turned on, displaying a digital interface. The screen is displaying a message or a notification, but the details of the message are not clear from the image.
+
+The woman is standing in front of a doorway or entrance, which is slightly open. The door appears to be made of wood or a similar material, and it has a","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",3,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,8,1,A,A,A,"person:0.25, class_75:0.38, class_67:0.29",12.040719600016018,0.3101164000108838,0.015695500012952834,0.015695500012952834,0.8023824999982025,0.8023824999982025,12.056415100028971,12.858797600027174,513.0,526.0,1039.0,66197.31764789634,2.492576794738769,3571.74658203125,3571.74658203125,3571.74658203125,3.0,7,3,11.730603200005135,3940.34521484375,27.0,1127.0,1154.0,513.0,526.0,1039.0,3571.74658203125,"The image depicts a young woman standing in front of a concrete structure, likely a part of a building or a public area. She is wearing a white sleeveless top and light blue shorts. Her hair is long and dark, and she has a small backpack on her back. She is holding a pink tablet or smartphone in her right hand, which she appears to be looking at.
+
+The background features a concrete staircase with vertical wooden steps. The staircase appears to be part of a larger structure, possibly a building or a public area. The walls of the structure are painted in a muted color, possibly gray or white, and there is a brick wall on the right side of the image.
+
+The woman is standing on the left side of the image, facing the right side. She has a neutral expression on her face, and her body language suggests she is either looking at something or is engaged in a conversation.
+
+There is a small object, possibly a bag or a container, on the left side of the image, partially visible. The bag appears to be made of a material that is not clearly visible, but it could be a bag or a similar item.
+
+The image captures a moment of curiosity or engagement, as the woman appears to","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",4,1280,480,512,0.5,0.5,smol,480
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_smol480,9,1,B,B,B,"person:0.25, class_75:0.38, class_67:0.29",8.539560400007758,0.31404720002319664,0.015600499988067895,0.015600499988067895,0.7995895000058226,0.7995895000058226,8.555160899995826,9.354750400001649,513.0,526.0,1039.0,66600.42952435392,2.501283471062884,3571.74658203125,3571.74658203125,3571.74658203125,3.0,7,3,8.225513199984562,3940.34521484375,27.0,1127.0,1154.0,513.0,526.0,1039.0,3571.74658203125,"The image depicts a young woman standing in front of a concrete structure, likely a part of a building or a public area. She is wearing a white sleeveless top and light blue shorts. Her hair is long and dark, and she has a small backpack on her back. She is holding a pink tablet or smartphone in her right hand, which she appears to be looking at.
+
+The background features a concrete staircase with vertical wooden steps. The staircase appears to be part of a larger structure, possibly a building or a public area. The walls of the structure are painted in a muted color, possibly gray or white, and there is a brick wall on the right side of the image.
+
+The woman is standing on the left side of the image, facing the right side. She has a neutral expression on her face, and her body language suggests she is either looking at something or is engaged in a conversation.
+
+There is a small object, possibly a bag or a container, on the left side of the image, partially visible. The bag appears to be made of a material that is not clearly visible, but it could be a bag or a similar item.
+
+The image captures a moment of curiosity or engagement, as the woman appears to","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",4,1280,480,512,0.5,0.5,smol,480

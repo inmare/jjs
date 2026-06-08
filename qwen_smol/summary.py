@@ -56,9 +56,23 @@ SAMPLE_CSV_COLUMNS: list[str] = [
 QWEN_SMOL_EXTRA_SAMPLE_COLUMNS: list[str] = [
     "smol_time_sec",
     "smol_peak_mem_mb",
+    "smol_text_tokens",
+    "smol_image_tokens",
+    "smol_total_tokens",
+    "qwen_text_tokens",
+    "qwen_image_tokens",
+    "qwen_total_tokens",
+    "qwen_peak_mem_mb",
     "smol_description",
     "question",
     "num_vlm_images",
+    "single_vlm_max_side",
+    "smol_max_side",
+    "thumb_max_side",
+    "crop_qwen_scale",
+    "yolo_context_scale",
+    "sweep_axis",
+    "sweep_value",
 ]
 
 ALL_SAMPLE_CSV_COLUMNS = SAMPLE_CSV_COLUMNS + QWEN_SMOL_EXTRA_SAMPLE_COLUMNS
@@ -93,11 +107,31 @@ def make_sample_record(
     n_detections: int = 0,
     smol_time_sec: float = 0.0,
     smol_peak_mem_mb: float = 0.0,
+    smol_text_tokens: float = 0.0,
+    smol_image_tokens: float = 0.0,
+    smol_total_tokens: float = 0.0,
+    qwen_text_tokens: float | None = None,
+    qwen_image_tokens: float | None = None,
+    qwen_total_tokens: float | None = None,
+    qwen_peak_mem_mb: float | None = None,
     smol_description: str = "",
     question: str = "",
     num_vlm_images: int = 0,
+    single_vlm_max_side: int | None = None,
+    smol_max_side: int | None = None,
+    thumb_max_side: int | None = None,
+    crop_qwen_scale: float | None = None,
+    yolo_context_scale: float | None = None,
+    sweep_axis: str = "",
+    sweep_value: float | int | None = None,
 ) -> dict[str, Any]:
     """11주차-3 ``SampleMetrics`` 필드명으로 샘플 한 줄 dict."""
+    q_tok = float(qwen_text_tokens if qwen_text_tokens is not None else text_tokens)
+    q_img = float(qwen_image_tokens if qwen_image_tokens is not None else image_tokens)
+    q_all = float(qwen_total_tokens if qwen_total_tokens is not None else total_tokens)
+    q_peak = float(
+        qwen_peak_mem_mb if qwen_peak_mem_mb is not None else overall_peak_allocated_mb
+    )
     m = SampleMetrics(
         sample_index=sample_index,
         correct=correct,
@@ -113,14 +147,14 @@ def make_sample_record(
         output_time_sec=decode_time_sec,
         input_time_with_preprocess_sec=input_time_with_preprocess_sec,
         total_time_sec=total_time_sec,
-        text_tokens=text_tokens,
-        image_tokens=image_tokens,
-        total_tokens=total_tokens,
+        text_tokens=q_tok,
+        image_tokens=q_img,
+        total_tokens=q_all,
         prefill_tokens_per_sec=prefill_tokens_per_sec,
         decode_tokens_per_sec=decode_tokens_per_sec,
         prefill_mem_peak_allocated_mb=prefill_mem_peak_allocated_mb,
         decode_mem_peak_allocated_mb=decode_mem_peak_allocated_mb,
-        overall_peak_allocated_mb=overall_peak_allocated_mb,
+        overall_peak_allocated_mb=q_peak,
         num_objects=float(n_crops_sent),
         n_detections=n_detections,
         n_crops_sent=n_crops_sent,
@@ -130,9 +164,23 @@ def make_sample_record(
         {
             "smol_time_sec": smol_time_sec,
             "smol_peak_mem_mb": smol_peak_mem_mb,
+            "smol_text_tokens": smol_text_tokens,
+            "smol_image_tokens": smol_image_tokens,
+            "smol_total_tokens": smol_total_tokens,
+            "qwen_text_tokens": q_tok,
+            "qwen_image_tokens": q_img,
+            "qwen_total_tokens": q_all,
+            "qwen_peak_mem_mb": q_peak,
             "smol_description": smol_description,
             "question": question,
             "num_vlm_images": num_vlm_images,
+            "single_vlm_max_side": single_vlm_max_side,
+            "smol_max_side": smol_max_side,
+            "thumb_max_side": thumb_max_side,
+            "crop_qwen_scale": crop_qwen_scale,
+            "yolo_context_scale": yolo_context_scale,
+            "sweep_axis": sweep_axis,
+            "sweep_value": sweep_value,
         }
     )
     return rec
@@ -210,6 +258,56 @@ def write_sample_jsonl(records: list[dict[str, Any]], path: Path) -> None:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def _avg_field(results: list[dict[str, Any]], key: str, *, fallback: str = "") -> float:
+    vals: list[float] = []
+    for row in results:
+        v = row.get(key)
+        if v is None or str(v) == "nan":
+            if fallback:
+                v = row.get(fallback)
+        if v is None or str(v) == "nan":
+            continue
+        vals.append(float(v))
+    return sum(vals) / len(vals) if vals else 0.0
+
+
+def enrich_dual_model_summary(
+    summary_row: dict[str, Any],
+    results: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Qwen(레거시) + Smol 분리 평균을 summary 행에 추가."""
+    out = dict(summary_row)
+    out["accuracy_percent"] = float(out.get("accuracy") or 0.0) * 100.0
+    out["avg_smol_image_tokens"] = _avg_field(results, "smol_image_tokens")
+    out["avg_smol_peak_mem_mb"] = _avg_field(results, "smol_peak_mem_mb")
+    out["avg_qwen_image_tokens"] = _avg_field(
+        results, "qwen_image_tokens", fallback="image_tokens"
+    )
+    out["avg_qwen_peak_mem_mb"] = _avg_field(
+        results, "qwen_peak_mem_mb", fallback="overall_peak_allocated_mb"
+    )
+    if not out.get("avg_image_tokens"):
+        out["avg_image_tokens"] = out["avg_qwen_image_tokens"]
+    if not out.get("avg_overall_peak_allocated_mb"):
+        out["avg_overall_peak_allocated_mb"] = out["avg_qwen_peak_mem_mb"]
+    return out
+
+
+def find_results_for_summary(
+    all_results: dict[str, list[dict[str, Any]]],
+    *,
+    benchmark: str,
+    method: str,
+) -> list[dict[str, Any]]:
+    for rec_list in all_results.values():
+        if not rec_list:
+            continue
+        r0 = rec_list[0]
+        if str(r0.get("benchmark")) == benchmark and str(r0.get("method")) == method:
+            return rec_list
+    return []
+
+
 def build_summary_rows(
     all_results: dict[str, list[dict[str, Any]]],
 ) -> list[dict[str, Any]]:
@@ -278,7 +376,7 @@ def iter_sample_csv_paths(run_dir: Path) -> list[Path]:
     """``{benchmark}_{method}.csv`` 및 레거시 ``{method}.csv``."""
     seen: set[str] = set()
     paths: list[Path] = []
-    for pattern in ("*_*_Qwen_4B.csv", "*_Qwen_4B.csv"):
+    for pattern in ("*_*_Qwen_4B*.csv", "*_Qwen_4B*.csv"):
         for csv_path in sorted(run_dir.glob(pattern)):
             if csv_path.name in seen:
                 continue

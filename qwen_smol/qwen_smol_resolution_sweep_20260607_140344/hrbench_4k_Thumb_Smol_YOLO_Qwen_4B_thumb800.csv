@@ -1,0 +1,119 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_text_tokens,smol_image_tokens,smol_total_tokens,qwen_text_tokens,qwen_image_tokens,qwen_total_tokens,qwen_peak_mem_mb,smol_description,question,num_vlm_images,single_vlm_max_side,smol_max_side,thumb_max_side,crop_qwen_scale,yolo_context_scale,sweep_axis,sweep_value
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,0,1,A,A,A,"person:0.34, person:0.31, class_67:0.45",17.042998699995223,0.30414679998648353,0.02643009999883361,0.02643009999883361,1.1500133999797981,1.1500133999797981,17.069428799994057,18.219442199973855,530.0,905.0,1435.0,54294.1570430429,1.739110170399,3955.5419921875,3955.5419921875,3955.5419921875,3.0,6,3,16.73885190000874,3186.6376953125,27.0,1127.0,1154.0,530.0,905.0,1435.0,3955.5419921875,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be painted white, with a slightly slanted roof. The door is slightly open, revealing a glimpse of the interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is also wearing a wristwatch on her left wrist and a blue handbag on her right shoulder.
+
+The door is slightly open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background. There is a window to the left of the door, which is covered with a curtain. The curtain is partially visible, but it is not entirely clear.
+
+The woman is looking to the right side of the image, which is where the text ""27B"" is located. This indicates that the door is likely a door to a building or a room, as the number ""27B"" is a common identifier for a building number.
+
+The door is made of wood and has a slanted roof. The door is open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",4,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",17.442130800016457,0.3118211000110023,0.027162799990037456,0.027162799990037456,1.132356099988101,1.132356099988101,17.469293600006495,18.601649699994596,530.0,905.0,1435.0,52829.605214717085,1.7662288391620058,3955.5419921875,3955.5419921875,3955.5419921875,3.0,6,3,17.130309700005455,3186.64892578125,27.0,1127.0,1154.0,530.0,905.0,1435.0,3955.5419921875,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be painted white, with a slightly slanted roof. The door is slightly open, revealing a glimpse of the interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is also wearing a wristwatch on her left wrist and a blue handbag on her right shoulder.
+
+The door is slightly open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background. There is a window to the left of the door, which is covered with a curtain. The curtain is partially visible, but it is not entirely clear.
+
+The woman is looking to the right side of the image, which is where the text ""27B"" is located. This indicates that the door is likely a door to a building or a room, as the number ""27B"" is a common identifier for a building number.
+
+The door is made of wood and has a slanted roof. The door is open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",4,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",17.42530900001293,0.30770510001457296,0.026146699994569644,0.026146699994569644,1.130692899983842,1.130692899983842,17.4514557000075,18.582148599991342,530.0,905.0,1435.0,54882.642945306,1.7688268848496183,3955.5419921875,3955.5419921875,3955.5419921875,3.0,6,3,17.117603899998358,3186.64892578125,27.0,1127.0,1154.0,530.0,905.0,1435.0,3955.5419921875,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be painted white, with a slightly slanted roof. The door is slightly open, revealing a glimpse of the interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is also wearing a wristwatch on her left wrist and a blue handbag on her right shoulder.
+
+The door is slightly open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background. There is a window to the left of the door, which is covered with a curtain. The curtain is partially visible, but it is not entirely clear.
+
+The woman is looking to the right side of the image, which is where the text ""27B"" is located. This indicates that the door is likely a door to a building or a room, as the number ""27B"" is a common identifier for a building number.
+
+The door is made of wood and has a slanted roof. The door is open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",4,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,3,1,D,D,D,"person:0.34, person:0.31, class_67:0.45",17.629188299993984,0.30880669999169186,0.027798299997812137,0.027798299997812137,1.1359717999876011,1.1359717999876011,17.656986599991797,18.792958399979398,530.0,905.0,1435.0,51621.86177258831,1.760607085512008,3955.5419921875,3955.5419921875,3955.5419921875,3.0,6,3,17.320381600002293,3186.64892578125,27.0,1127.0,1154.0,530.0,905.0,1435.0,3955.5419921875,"The image depicts a young woman standing in front of a doorway. The door is made of wood and appears to be painted white, with a slightly slanted roof. The door is slightly open, revealing a glimpse of the interior. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is also wearing a wristwatch on her left wrist and a blue handbag on her right shoulder.
+
+The door is slightly open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background. There is a window to the left of the door, which is covered with a curtain. The curtain is partially visible, but it is not entirely clear.
+
+The woman is looking to the right side of the image, which is where the text ""27B"" is located. This indicates that the door is likely a door to a building or a room, as the number ""27B"" is a common identifier for a building number.
+
+The door is made of wood and has a slanted roof. The door is open, revealing a glimpse of the interior. The interior is not entirely visible, but it appears to be a room with a dark background","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",4,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,4,1,A,A,A,"class_67:0.53, class_67:0.40",17.504071399976965,0.3016520999954082,0.024069700011750683,0.024069700011750683,0.9920149999961723,0.9920149999961723,17.528141099988716,18.520156099984888,471.0,817.0,1288.0,53511.26101992156,2.0160985469047517,3803.07275390625,3803.07275390625,3803.07275390625,2.0,8,2,17.202419299981557,3186.64892578125,27.0,1127.0,1154.0,471.0,817.0,1288.0,3803.07275390625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beige backpack on her back.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with some text and a logo, but the details are not clear. The text on the sign is not legible, but it appears to be related to a business or organization.
+
+The wall behind the woman is painted in a light color, possibly white or beige, and has a few visible cracks and patches. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall. The bricks are arranged in a pattern that is somewhat irregular, with some areas appearing to be more","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",3,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,5,1,B,B,B,"class_67:0.53, class_67:0.40",17.30241840000963,0.2982147000147961,0.02348169998731464,0.02348169998731464,1.0070647000102326,1.0070647000102326,17.325900099996943,18.332964800007176,471.0,817.0,1288.0,54851.22460025498,1.9859697197009074,3803.07275390625,3803.07275390625,3803.07275390625,2.0,8,2,17.004203699994832,3186.64892578125,27.0,1127.0,1154.0,471.0,817.0,1288.0,3803.07275390625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beige backpack on her back.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with some text and a logo, but the details are not clear. The text on the sign is not legible, but it appears to be related to a business or organization.
+
+The wall behind the woman is painted in a light color, possibly white or beige, and has a few visible cracks and patches. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall. The bricks are arranged in a pattern that is somewhat irregular, with some areas appearing to be more","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",3,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,6,1,C,C,C,"class_67:0.53, class_67:0.40",17.477385600010166,0.2972172000154387,0.023876999999629334,0.023876999999629334,1.0032194000086747,1.0032194000086747,17.501262600009795,18.50448200001847,471.0,817.0,1288.0,53943.125184068136,1.9935818625344628,3803.07275390625,3803.07275390625,3803.07275390625,2.0,8,2,17.180168399994727,3186.64892578125,27.0,1127.0,1154.0,471.0,817.0,1288.0,3803.07275390625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beige backpack on her back.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with some text and a logo, but the details are not clear. The text on the sign is not legible, but it appears to be related to a business or organization.
+
+The wall behind the woman is painted in a light color, possibly white or beige, and has a few visible cracks and patches. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall. The bricks are arranged in a pattern that is somewhat irregular, with some areas appearing to be more","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",3,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,7,1,D,D,D,"class_67:0.53, class_67:0.40",17.487586100003682,0.30232770001748577,0.023608700023032725,0.023608700023032725,1.0094252999988385,1.0094252999988385,17.511194800026715,18.520620100025553,471.0,817.0,1288.0,54556.1593286976,1.98132541358167,3803.07275390625,3803.07275390625,3803.07275390625,2.0,8,2,17.185258399986196,3186.64892578125,27.0,1127.0,1154.0,471.0,817.0,1288.0,3803.07275390625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or advertisement on the wall behind her. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are slightly loose-fitting. Her long, dark hair is neatly styled, and she is wearing a beige backpack on her back.
+
+The background of the image is slightly blurred, focusing attention on the woman and the sign or advertisement. The sign or advertisement is partially visible, partially obscured by the woman's hand and the surrounding elements. The sign has a rectangular shape with some text and a logo, but the details are not clear. The text on the sign is not legible, but it appears to be related to a business or organization.
+
+The wall behind the woman is painted in a light color, possibly white or beige, and has a few visible cracks and patches. The bricks in the background are a reddish-brown color, and they are arranged in a pattern that suggests a brick wall. The bricks are arranged in a pattern that is somewhat irregular, with some areas appearing to be more","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",3,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,8,1,A,A,A,"person:0.25, class_75:0.38, class_67:0.29",17.656978899991373,0.3098446000076365,0.025958599988371134,0.025958599988371134,1.0717218999925535,1.0717218999925535,17.682937499979744,18.754659399972297,513.0,895.0,1408.0,54240.213286955084,1.866155762995882,3928.6474609375,3928.6474609375,3928.6474609375,3.0,7,3,17.347134299983736,3186.64892578125,27.0,1127.0,1154.0,513.0,895.0,1408.0,3928.6474609375,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, straight, dark hair that is parted in the middle and falls over her shoulders. She is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with some text on it. She is also wearing a white handbag with a lace trim and a small blue tag with some text on it. Her shorts are light blue and she has a watch on her left wrist.
+
+The background of the image is slightly blurred, but it appears to be an outdoor setting, possibly a courtyard or a small park. There is a concrete or brick wall to the right of the woman, with a white brick column on the right side. The wall has a rough texture and appears to be made of concrete or brick. There is a small object, possibly a trash bin or a trash can, located on the left side of the image, partially visible.
+
+The woman is looking upwards with a focused expression, possibly indicating that she is contemplating something important or is about to make a decision. Her body language suggests that she is either listening or engaged in thought.","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",4,1280,1280,800,0.5,0.5,thumb,800
+hrbench_4k,Thumb_Smol_YOLO_Qwen_4B_thumb800,9,1,B,B,B,"person:0.25, class_75:0.38, class_67:0.29",17.416052800021134,0.3055074000149034,0.025250599981518462,0.025250599981518462,1.0658644999784883,1.0658644999784883,17.441303400002653,18.50716789998114,513.0,895.0,1408.0,55761.051263358095,1.8764111198378075,3928.6474609375,3928.6474609375,3928.6474609375,3.0,7,3,17.11054540000623,3186.64892578125,27.0,1127.0,1154.0,513.0,895.0,1408.0,3928.6474609375,"The image depicts a young woman standing in front of a doorway or a wall, looking upwards with a focused expression. She has long, straight, dark hair that is parted in the middle and falls over her shoulders. She is wearing a white sleeveless top and light blue shorts. The top has a lace trim around the neckline and a small blue tag with some text on it. She is also wearing a white handbag with a lace trim and a small blue tag with some text on it. Her shorts are light blue and she has a watch on her left wrist.
+
+The background of the image is slightly blurred, but it appears to be an outdoor setting, possibly a courtyard or a small park. There is a concrete or brick wall to the right of the woman, with a white brick column on the right side. The wall has a rough texture and appears to be made of concrete or brick. There is a small object, possibly a trash bin or a trash can, located on the left side of the image, partially visible.
+
+The woman is looking upwards with a focused expression, possibly indicating that she is contemplating something important or is about to make a decision. Her body language suggests that she is either listening or engaged in thought.","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",4,1280,1280,800,0.5,0.5,thumb,800

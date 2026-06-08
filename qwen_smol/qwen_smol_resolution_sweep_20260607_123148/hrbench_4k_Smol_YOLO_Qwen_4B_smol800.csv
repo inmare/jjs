@@ -1,0 +1,131 @@
+﻿benchmark,method,sample_index,correct,predicted_answer,gt_answer,model_response,detector_summary,preprocess_time_sec,yolo_time_sec,processor_time_sec,prefill_time_sec,decode_time_sec,output_time_sec,input_time_with_preprocess_sec,total_time_sec,text_tokens,image_tokens,total_tokens,prefill_tokens_per_sec,decode_tokens_per_sec,prefill_mem_peak_allocated_mb,decode_mem_peak_allocated_mb,overall_peak_allocated_mb,num_objects,n_detections,n_crops_sent,smol_time_sec,smol_peak_mem_mb,smol_text_tokens,smol_image_tokens,smol_total_tokens,qwen_text_tokens,qwen_image_tokens,qwen_total_tokens,qwen_peak_mem_mb,smol_description,question,num_vlm_images,single_vlm_max_side,smol_max_side,thumb_max_side,crop_qwen_scale,yolo_context_scale,sweep_axis,sweep_value
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,0,0,B,A,B,"person:0.34, person:0.31, class_67:0.45",18.60374240000965,1.3419465000042692,0.029064100002869964,0.029064100002869964,0.9153743000060786,0.9153743000060786,18.63280650001252,19.5481808000186,500.0,276.0,776.0,26699.605352423543,2.184898570985354,3378.14794921875,3378.14794921875,3378.14794921875,3.0,6,3,17.26179590000538,3940.333984375,27.0,1127.0,1154.0,500.0,276.0,776.0,3378.14794921875,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a series of horizontal slats, which are typical of modern architectural designs. The slats are painted in a light color, possibly beige or off-white, and are slightly raised from the floor, creating a sense of openness.
+
+The doorway is framed by a white wall, which is painted in a light color, possibly beige or off-white. The wall has a few visible cracks and imperfections, which might indicate wear or aging.
+
+To the right of the doorway, there is a white column or railing, which is part of the building's exterior. The column is painted in a light color, possibly beige or off-white, and has a few visible cracks and imperfections.
+
+In the background, there is a glimpse of a window or a door, which is partially visible. The window or door appears to be made of wood or a similar material, and it has a","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27B
+B. 37B
+C. 27D
+D. 27E",3,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,1,1,B,B,B,"person:0.34, person:0.31, class_67:0.45",18.07595830000355,1.1725168999982998,0.02273100000456907,0.02273100000456907,0.8646171000145841,0.8646171000145841,18.098689300008118,18.963306400022702,500.0,276.0,776.0,34138.40129532442,2.3131626704656485,3376.90380859375,3376.90380859375,3376.90380859375,3.0,6,3,16.90344140000525,3940.34521484375,27.0,1127.0,1154.0,500.0,276.0,776.0,3376.90380859375,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a series of horizontal slats, which are typical of modern architectural designs. The slats are painted in a light color, possibly beige or off-white, and are slightly raised from the floor, creating a sense of openness.
+
+The doorway is framed by a white wall, which is painted in a light color, possibly beige or off-white. The wall has a few visible cracks and imperfections, which might indicate wear or aging.
+
+To the right of the doorway, there is a white column or railing, which is part of the building's exterior. The column is painted in a light color, possibly beige or off-white, and has a few visible cracks and imperfections.
+
+In the background, there is a glimpse of a window or a door, which is partially visible. The window or door appears to be made of wood or a similar material, and it has a","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27B
+C. 37B
+D. 27D",3,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,2,1,C,C,C,"person:0.34, person:0.31, class_67:0.45",18.094802700012224,1.1229942000063602,0.020093900006031618,0.020093900006031618,0.7695805999974255,0.7695805999974255,18.114896600018255,18.88447720001568,500.0,276.0,776.0,38618.6852610527,2.5988181095088554,3376.90380859375,3376.90380859375,3376.90380859375,3.0,6,3,16.971808500005864,3940.34521484375,27.0,1127.0,1154.0,500.0,276.0,776.0,3376.90380859375,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a series of horizontal slats, which are typical of modern architectural designs. The slats are painted in a light color, possibly beige or off-white, and are slightly raised from the floor, creating a sense of openness.
+
+The doorway is framed by a white wall, which is painted in a light color, possibly beige or off-white. The wall has a few visible cracks and imperfections, which might indicate wear or aging.
+
+To the right of the doorway, there is a white column or railing, which is part of the building's exterior. The column is painted in a light color, possibly beige or off-white, and has a few visible cracks and imperfections.
+
+In the background, there is a glimpse of a window or a door, which is partially visible. The window or door appears to be made of wood or a similar material, and it has a","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 27D
+C. 27B
+D. 37B",3,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,3,0,B,D,B,"person:0.34, person:0.31, class_67:0.45",18.52770610002335,1.1914324999961536,0.023717200005194172,0.023717200005194172,0.7777764000056777,0.7777764000056777,18.551423300028546,19.329199700034223,500.0,276.0,776.0,32718.870685833597,2.57143312651991,3376.90380859375,3376.90380859375,3376.90380859375,3.0,6,3,17.336273600027198,3940.34521484375,27.0,1127.0,1154.0,500.0,276.0,776.0,3376.90380859375,"The image depicts a young woman standing in front of a doorway. The woman is wearing a white sleeveless top and has long, straight, dark hair. She is holding a smartphone in her right hand, which is resting on her lap. Her left hand is slightly raised, indicating a gesture of interest or curiosity.
+
+The doorway is made of a series of horizontal slats, which are typical of modern architectural designs. The slats are painted in a light color, possibly beige or off-white, and are slightly raised from the floor, creating a sense of openness.
+
+The doorway is framed by a white wall, which is painted in a light color, possibly beige or off-white. The wall has a few visible cracks and imperfections, which might indicate wear or aging.
+
+To the right of the doorway, there is a white column or railing, which is part of the building's exterior. The column is painted in a light color, possibly beige or off-white, and has a few visible cracks and imperfections.
+
+In the background, there is a glimpse of a window or a door, which is partially visible. The window or door appears to be made of wood or a similar material, and it has a","What is the number displayed above the entrance where the woman is standing?
+
+Options:
+A. 27E
+B. 37B
+C. 27D
+D. 27B",3,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,4,1,A,A,A,"class_67:0.53, class_67:0.40",18.78077610002947,1.1636553000134882,0.013804499991238117,0.013804499991238117,0.6606825000199024,0.6606825000199024,18.79458060002071,19.45526310004061,446.0,188.0,634.0,45927.05280179706,3.0271726584853575,3281.5009765625,3281.5009765625,3281.5009765625,2.0,8,2,17.617120800015982,3940.34521484375,27.0,1127.0,1154.0,446.0,188.0,634.0,3281.5009765625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the sign or signboard. The sign or signboard is rectangular and appears to be made of a light-colored material, possibly concrete or a similar material, and it has some text written on it. The text on the sign is not entirely legible, but it appears to be some form of information or a message, possibly related to a location or a topic.
+
+The woman is standing in front of a doorway or a doorway-like structure, which is partially visible in the background. The doorway is made of a vertical, possibly wooden or stone material, and it has a slanted roof. The door appears to be closed, and","What is the color of the mailbox?
+
+Options:
+A. Blue
+B. Red
+C. Green
+D. Black",2,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,5,1,B,B,B,"class_67:0.53, class_67:0.40",18.651540699996985,1.2298206000123173,0.018113700003596023,0.018113700003596023,0.8314747999829706,0.8314747999829706,18.66965440000058,19.501129199983552,446.0,188.0,634.0,35001.13173311555,2.405364540261427,3281.5009765625,3281.5009765625,3281.5009765625,2.0,8,2,17.421720099984668,3940.34521484375,27.0,1127.0,1154.0,446.0,188.0,634.0,3281.5009765625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the sign or signboard. The sign or signboard is rectangular and appears to be made of a light-colored material, possibly concrete or a similar material, and it has some text written on it. The text on the sign is not entirely legible, but it appears to be some form of information or a message, possibly related to a location or a topic.
+
+The woman is standing in front of a doorway or a doorway-like structure, which is partially visible in the background. The doorway is made of a vertical, possibly wooden or stone material, and it has a slanted roof. The door appears to be closed, and","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Blue
+C. Black
+D. Red",2,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,6,1,C,C,C,"class_67:0.53, class_67:0.40",18.655916099989554,1.240220399980899,0.01617310001165606,0.01617310001165606,0.7417234999884386,0.7417234999884386,18.67208920000121,19.41381269998965,446.0,188.0,634.0,39200.89528557123,2.6964225887829825,3281.5009765625,3281.5009765625,3281.5009765625,2.0,8,2,17.415695700008655,3940.34521484375,27.0,1127.0,1154.0,446.0,188.0,634.0,3281.5009765625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the sign or signboard. The sign or signboard is rectangular and appears to be made of a light-colored material, possibly concrete or a similar material, and it has some text written on it. The text on the sign is not entirely legible, but it appears to be some form of information or a message, possibly related to a location or a topic.
+
+The woman is standing in front of a doorway or a doorway-like structure, which is partially visible in the background. The doorway is made of a vertical, possibly wooden or stone material, and it has a slanted roof. The door appears to be closed, and","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Blue
+D. Red",2,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,7,1,D,D,D,"class_67:0.53, class_67:0.40",18.46962920000078,1.1475396000023466,0.016999599989503622,0.016999599989503622,0.6675746999972034,0.6675746999972034,18.486628799990285,19.15420349998749,446.0,188.0,634.0,37294.99519938483,2.995919407982924,3281.5009765625,3281.5009765625,3281.5009765625,2.0,8,2,17.322089599998435,3940.34521484375,27.0,1127.0,1154.0,446.0,188.0,634.0,3281.5009765625,"The image depicts a young woman standing outdoors, likely in a public space, as indicated by the presence of a sign or signboard in the background. The woman is holding a smartphone in her right hand, which she appears to be using to text or communicate with someone. She is wearing a white sleeveless top and light-colored pants, which are loose-fitting and slightly baggy. Her long, dark hair is neatly styled, and she is wearing a beaded bracelet on her left wrist.
+
+The background of the image is slightly blurred, which helps to focus the viewer's attention on the woman and the sign or signboard. The sign or signboard is rectangular and appears to be made of a light-colored material, possibly concrete or a similar material, and it has some text written on it. The text on the sign is not entirely legible, but it appears to be some form of information or a message, possibly related to a location or a topic.
+
+The woman is standing in front of a doorway or a doorway-like structure, which is partially visible in the background. The doorway is made of a vertical, possibly wooden or stone material, and it has a slanted roof. The door appears to be closed, and","What is the color of the mailbox?
+
+Options:
+A. Green
+B. Black
+C. Red
+D. Blue",2,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,8,1,A,A,A,"person:0.25, class_75:0.38, class_67:0.29",19.006249699974433,1.2256799999740906,0.017872900003567338,0.017872900003567338,0.6641072999918833,0.6641072999918833,19.024122599978,19.688229899969883,493.0,266.0,759.0,42466.52752762604,3.0115615353489473,3364.8603515625,3364.8603515625,3364.8603515625,3.0,7,3,17.780569700000342,3940.34521484375,27.0,1127.0,1154.0,493.0,266.0,759.0,3364.8603515625,"The image depicts a young woman standing in front of a concrete structure, likely a staircase or a raised platform. She is wearing a white sleeveless top and light blue shorts. Her hair is long and dark, and she has a neutral expression on her face. She is holding a smartphone in her right hand, which she appears to be looking at.
+
+In the background, there is a concrete wall with a few visible signs or notices, including one that reads ""SIN"" and another that says ""SIN"". The wall is made of concrete blocks, and it has a rough texture. There is also a small, circular object, possibly a trash bin, located on the left side of the image.
+
+The woman is standing on a concrete platform or staircase, which is slightly elevated from the ground. The platform appears to be made of concrete and has a few visible signs or notices, including one that reads ""SIN"" and another that says ""SIN"". The platform is also made of concrete blocks, and it has a rough texture.
+
+The woman is wearing a white bag over her shoulder, which is tied around her neck. She is also wearing a watch on her left wrist. Her hair is dark and pulled back, and she has","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Right
+B. Directly above
+C. In front
+D. Left",3,1280,800,512,0.5,0.5,smol,800
+hrbench_4k,Smol_YOLO_Qwen_4B_smol800,9,1,B,B,B,"person:0.25, class_75:0.38, class_67:0.29",18.729246700007934,1.3730555000074673,0.023221799987368286,0.023221799987368286,0.8054579000163358,0.8054579000163358,18.752468499995302,19.557926400011638,493.0,266.0,759.0,32684.804813273095,2.483059635965377,3364.8603515625,3364.8603515625,3364.8603515625,3.0,7,3,17.356191200000467,3940.34521484375,27.0,1127.0,1154.0,493.0,266.0,759.0,3364.8603515625,"The image depicts a young woman standing in front of a concrete structure, likely a staircase or a raised platform. She is wearing a white sleeveless top and light blue shorts. Her hair is long and dark, and she has a neutral expression on her face. She is holding a smartphone in her right hand, which she appears to be looking at.
+
+In the background, there is a concrete wall with a few visible signs or notices, including one that reads ""SIN"" and another that says ""SIN"". The wall is made of concrete blocks, and it has a rough texture. There is also a small, circular object, possibly a trash bin, located on the left side of the image.
+
+The woman is standing on a concrete platform or staircase, which is slightly elevated from the ground. The platform appears to be made of concrete and has a few visible signs or notices, including one that reads ""SIN"" and another that says ""SIN"". The platform is also made of concrete blocks, and it has a rough texture.
+
+The woman is wearing a white bag over her shoulder, which is tied around her neck. She is also wearing a watch on her left wrist. Her hair is dark and pulled back, and she has","Is the mailbox on the left or right side of the woman?
+
+Options:
+A. Left
+B. Right
+C. In front
+D. Directly above",3,1280,800,512,0.5,0.5,smol,800

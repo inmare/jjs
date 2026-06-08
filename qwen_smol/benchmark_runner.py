@@ -2,8 +2,13 @@ import argparse
 import json
 import gc
 import math
+import os
 import time
 from datetime import datetime
+
+# Windows + bitsandbytes: transformers 스레드/비동기 weight 로드 시 access violation 방지
+os.environ.setdefault("HF_DEACTIVATE_ASYNC_LOAD", "1")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 from pathlib import Path
 import sys
 from typing import Any
@@ -80,18 +85,28 @@ from week3.datasets import (  # noqa: E402
 )
 
 # Qwen 입력 정책 (11주차-3 CROP8 · THUMB512)
-# - YOLO crop: ctx(0.5×)에서 잘라낸 뒤 CROP8 필터만 적용, 추가 리사이즈 없음 (week3 와 동일)
+# - YOLO crop: ctx(yolo_context_scale×)에서 잘라낸 뒤 CROP8 필터, crop_qwen_scale 로 Qwen 전송 전 축소
 # - crop > BBOX_PROMPT_MAX_CROPS 이면 bbox 텍스트 생략 + naive grid 로 1장 병합 (rectpack 대신)
-# - Thumb_Smol 썸네일: 긴 변 512px 고정
+# - Thumb_Smol 썸네일: thumb_max_side (기본 512px)
 # - Single_VLM: 긴 변 상한 (0=원본). 8GB VRAM 에서 4K 원본은 OOM → 기본 1280 (222613 런과 동일)
 THUMB_MAX_SIDE = 512
 SINGLE_VLM_MAX_SIDE = 1280
+# 0 = SmolVLM 에 원본 전송
+DEFAULT_SMOL_MAX_SIDE = 0
 YOLO_CONTEXT_SCALE = 0.5
+# YOLO crop → Qwen 전송 전 추가 축소. 0.5 = ctx crop 대비 절반 (Thumb+다중 crop 토큰 절감, 디테일 유지)
+DEFAULT_CROP_QWEN_SCALE = 0.5
+SMOL_DESCRIBE_PROMPT = (
+    "Describe this image in detail. Pay attention to small objects, "
+    "text, relationships, and colors."
+)
 # 0 = CROP8·VLM 예산 필터 후 남는 crop 전부 (week3 DEFAULT_MAX_CROPS_VLM 과 동일)
 DEFAULT_YOLO_MAX_CROPS = 0
 # bbox 좌표 프롬프트: crop 이 이 개수를 **초과**하면 생략하고 grid merge 사용
 BBOX_PROMPT_MAX_CROPS = 4
 MERGED_BACKGROUND = (255, 255, 255)
+# grid merge 1장: ctx=1.0·crop 다수 시 수천 px mosaic → Qwen/CUDA 오류 방지
+MERGED_GRID_MAX_SIDE = 1280
 CROP_AREA_NUMERATOR = 8
 CROP_AREA_DENOMINATOR = 100
 YOLO_DEVICE = "cpu"  # Qwen GPU VRAM 과 분리
@@ -117,16 +132,101 @@ def get_device():
 def free_memory():
     gc.collect()
     if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
+        try:
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
+        except RuntimeError as exc:
+            print(f"[warn] CUDA cleanup skipped: {exc}", flush=True)
+
+
+def cap_vlm_image_for_qwen(img: Image.Image, max_side: int = MERGED_GRID_MAX_SIDE) -> Image.Image:
+    """Qwen vision 입력 상한. max_side<=0 이면 그대로."""
+    out = img.convert("RGB").copy()
+    if max_side > 0:
+        out = resize_max_side(out, max_side)
+    return out
 
 
 def prepare_single_vlm_image(image: Image.Image, max_side: int) -> Image.Image:
     """Single_VLM 입력. max_side=0 이면 원본 (고해상도·저 VRAM 에서 OOM 주의)."""
-    img = image.convert("RGB").copy()
-    if max_side > 0:
-        img = resize_max_side(img, max_side)
-    return img
+    return cap_vlm_image_for_qwen(image, max_side if max_side > 0 else 0)
+
+
+def prepare_smol_image(image: Image.Image, max_side: int) -> Image.Image:
+    """SmolVLM Phase 1 입력. max_side=0 이면 원본."""
+    return prepare_single_vlm_image(image, max_side)
+
+
+def compute_sweep_value(
+    sweep_axis: str,
+    *,
+    single_vlm_max_side: int,
+    smol_max_side: int,
+    thumb_max_side: int,
+    crop_qwen_scale: float,
+    yolo_context_scale: float,
+) -> float | int | None:
+    if sweep_axis in ("control", "single_vlm"):
+        return single_vlm_max_side
+    if sweep_axis == "smol":
+        return smol_max_side
+    if sweep_axis == "crop_qwen":
+        return crop_qwen_scale
+    if sweep_axis == "thumb":
+        return thumb_max_side
+    if sweep_axis == "yolo_ctx":
+        return yolo_context_scale
+    return None
+
+
+def tag_method(method: str, tag: str) -> str:
+    return f"{method}{tag}" if tag else method
+
+
+def parse_int_list(s: str) -> list[int]:
+    out: list[int] = []
+    for part in s.replace(",", " ").split():
+        part = part.strip()
+        if part:
+            out.append(int(part))
+    return out
+
+
+def parse_float_list(s: str) -> list[float]:
+    out: list[float] = []
+    for part in s.replace(",", " ").split():
+        part = part.strip()
+        if part:
+            out.append(float(part))
+    return out
+
+
+def prep_crop_for_qwen(crop: Image.Image, scale: float) -> Image.Image:
+    """YOLO crop → Qwen 전송 전 균일 축소. scale=1.0 이면 ctx crop 그대로."""
+    pc = crop.convert("RGB").copy()
+    if scale >= 1.0 - 1e-6:
+        return pc
+    if scale <= 0:
+        return pc
+    return resize_uniform_scale(pc, scale)
+
+
+def count_vlm_input_tokens(
+    processor,
+    inputs,
+    *,
+    text_only_prompt: str,
+) -> tuple[int, int, int]:
+    """멀티모달 processor 입력에서 (text_tokens, image_tokens, total_tokens) 추정."""
+    text_token_ids = processor.tokenizer(
+        text_only_prompt,
+        add_special_tokens=False,
+        return_attention_mask=False,
+    )["input_ids"]
+    text_tokens = len(text_token_ids)
+    total_input_tokens = int(inputs.input_ids.shape[-1])
+    image_tokens = max(0, total_input_tokens - text_tokens)
+    return text_tokens, image_tokens, total_input_tokens
 
 def scale_bboxes_ctx_to_original(
     bboxes_ctx: list[tuple[int, int, int, int]],
@@ -234,7 +334,8 @@ def build_grid_merge_preamble_en(
         f"Image #{merged_image_index}: a mosaic grid ({grid_rows}×{grid_cols}) of {n_crops} "
         "region crops from the original image, placed in row-major order "
         "(left-to-right, top-to-bottom). Per-region bounding-box coordinates are omitted "
-        "because there are many crops."
+        f"because there are many crops. The mosaic longest edge is capped at {MERGED_GRID_MAX_SIDE} px "
+        "for the VLM."
     )
     return "\n".join(lines)
 
@@ -247,6 +348,14 @@ def pack_vlm_crops_for_qwen(
         return list(vlm_crops), False, 0.0
     t0 = time.perf_counter()
     merged = merge_crops_naive_grid(vlm_crops)
+    before = merged.size
+    merged = cap_vlm_image_for_qwen(merged, MERGED_GRID_MAX_SIDE)
+    if merged.size != before:
+        print(
+            f"[grid merge] mosaic {before[0]}×{before[1]} → "
+            f"{merged.size[0]}×{merged.size[1]} (max side {MERGED_GRID_MAX_SIDE})",
+            flush=True,
+        )
     return [merged], True, time.perf_counter() - t0
 
 
@@ -256,10 +365,13 @@ def prepare_yolo_vlm_crops(
     *,
     yolo_model,
     max_crops: int,
+    yolo_context_scale: float = YOLO_CONTEXT_SCALE,
+    crop_qwen_scale: float = DEFAULT_CROP_QWEN_SCALE,
+    thumb_max_side_for_budget: int = THUMB_MAX_SIDE,
 ) -> tuple[list[Image.Image], list[tuple[int, int, int, int]], int, float, str]:
-    """저해상도 ctx 에서 YOLO 탐지 → CROP8 필터 후 crop (11주차-3, 추가 리사이즈 없음)."""
+    """ctx(yolo_context_scale) 에서 YOLO 탐지 → CROP8 필터 → crop_qwen_scale 로 Qwen용 축소."""
     full = image.convert("RGB")
-    ctx = resize_uniform_scale(full, YOLO_CONTEXT_SCALE)
+    ctx = resize_uniform_scale(full, yolo_context_scale)
     t0 = time.perf_counter()
     crops, bboxes_ctx, summary, n_det, _all_cls = run_yolo_crops(
         ctx,
@@ -268,15 +380,20 @@ def prepare_yolo_vlm_crops(
         vlm_budget=True,
         max_crops=max_crops,
         original_full_image_size=full.size,
-        vlm_overview_max_side_for_budget=THUMB_MAX_SIDE,
+        vlm_overview_max_side_for_budget=thumb_max_side_for_budget,
         crop_max_side_for_budget=0,
         max_bbox_area_numerator=CROP_AREA_NUMERATOR,
         max_bbox_area_denominator=CROP_AREA_DENOMINATOR,
-        context_resize_scale=YOLO_CONTEXT_SCALE,
+        context_resize_scale=yolo_context_scale,
     )
     t_yolo = time.perf_counter() - t0
     bboxes_orig = scale_bboxes_ctx_to_original(bboxes_ctx, ctx.size, full.size)
-    return list(crops), bboxes_orig, n_det, t_yolo, summary
+    scaled_crops = [
+        prep_crop_for_qwen(c, crop_qwen_scale)
+        for c in crops
+        if c.width > 0 and c.height > 0
+    ]
+    return scaled_crops, bboxes_orig, n_det, t_yolo, summary
 
 
 def build_method_payload(
@@ -290,6 +407,7 @@ def build_method_payload(
     smol_time: float,
     t_yolo: float,
     single_vlm_max_side: int = SINGLE_VLM_MAX_SIDE,
+    thumb_max_side: int = THUMB_MAX_SIDE,
 ) -> tuple[str, str, list[Image.Image], float, float, float, bool, int]:
     instruction = (
         "Choose the best answer from the given options. Respond with only one letter from the given options."
@@ -322,6 +440,7 @@ def build_method_payload(
                 grid_cols=grid_cols,
                 grid_rows=grid_rows,
                 has_thumbnail=has_thumbnail,
+                thumb_max_side=thumb_max_side,
             )
             parts.append(f"[Crop regions]\n{grid_block}")
         else:
@@ -336,6 +455,7 @@ def build_method_payload(
                 bboxes_orig=bboxes_for_prompt,
                 first_crop_image_index=bbox_first_index,
                 has_thumbnail=has_thumbnail,
+                thumb_max_side=thumb_max_side,
             )
             if bbox_block:
                 parts.append(f"[Crop regions]\n{bbox_block}")
@@ -363,7 +483,7 @@ def build_method_payload(
                 merged_image_index=0,
             )
         else:
-            vlm_images = [resize_max_side(full.copy(), THUMB_MAX_SIDE)]
+            vlm_images = [resize_max_side(full.copy(), thumb_max_side)]
             user_text = _compose_user_text(
                 include_smol=True,
                 bbox_first_index=0,
@@ -391,7 +511,7 @@ def build_method_payload(
                 "You are an AI assistant. You receive a low-res thumbnail, a SmolVLM description, "
                 "and a mosaic grid of many region crops. Use all sources to answer."
             )
-        vlm_images = [resize_max_side(full.copy(), THUMB_MAX_SIDE), *crop_images]
+        vlm_images = [resize_max_side(full.copy(), thumb_max_side), *crop_images]
         user_text = _compose_user_text(
             include_smol=True,
             bbox_first_index=1,
@@ -402,6 +522,15 @@ def build_method_payload(
         yolo_time, smol_time_out = t_yolo, smol_time
     else:
         raise ValueError(f"unknown method: {method}")
+
+    if method != "Single_VLM_Qwen_4B":
+        capped: list[Image.Image] = []
+        for im in vlm_images:
+            if max(im.size) > MERGED_GRID_MAX_SIDE:
+                capped.append(cap_vlm_image_for_qwen(im, MERGED_GRID_MAX_SIDE))
+            else:
+                capped.append(im.convert("RGB").copy())
+        vlm_images = capped
 
     return (
         system_text,
@@ -418,9 +547,15 @@ def build_method_payload(
 # --- Phase 1: SmolVLM ---
 def run_smol_phase(
     slices: list[tuple[str, Any, int, int]],
+    *,
+    smol_max_side: int = DEFAULT_SMOL_MAX_SIDE,
 ) -> tuple[dict[str, dict[int, str]], dict[str, dict[int, dict[str, float]]]]:
     """벤치마크별 SmolVLM 설명 생성. ``slices``: (benchmark, dataset, start, end)."""
     print("=== Phase 1: Loading SmolVLM ===")
+    if smol_max_side > 0:
+        print(f"SmolVLM input: longest edge capped at {smol_max_side}px", flush=True)
+    else:
+        print("SmolVLM input: original resolution", flush=True)
     device = get_device()
     model_id = "HuggingFaceTB/SmolVLM-256M-Instruct"
 
@@ -433,6 +568,9 @@ def run_smol_phase(
         device_map="auto",
     )
     print("Model loaded.")
+    if device.startswith("cuda"):
+        torch.cuda.synchronize()
+        torch.cuda.reset_peak_memory_stats()
 
     descriptions: dict[str, dict[int, str]] = {}
     smol_metrics: dict[str, dict[int, dict[str, float]]] = {}
@@ -446,29 +584,35 @@ def run_smol_phase(
             image = extract_image(example)
             if image is None:
                 continue
+            smol_image = prepare_smol_image(image, smol_max_side)
 
             messages = [
                 {
                     "role": "user",
                     "content": [
                         {"type": "image"},
-                        {
-                            "type": "text",
-                            "text": (
-                                "Describe this image in detail. Pay attention to small objects, "
-                                "text, relationships, and colors."
-                            ),
-                        },
+                        {"type": "text", "text": SMOL_DESCRIBE_PROMPT},
                     ],
                 }
             ]
 
             t0 = time.perf_counter()
             if device.startswith("cuda"):
+                torch.cuda.synchronize()
                 torch.cuda.reset_peak_memory_stats()
 
             prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
-            inputs = processor(text=prompt, images=[image], return_tensors="pt").to(device)
+            inputs = processor(text=prompt, images=[smol_image], return_tensors="pt").to(device)
+            smol_text_only = processor.apply_chat_template(
+                [{"role": "user", "content": [{"type": "text", "text": SMOL_DESCRIBE_PROMPT}]}],
+                add_generation_prompt=True,
+                tokenize=False,
+            )
+            smol_text_tokens, smol_image_tokens, smol_total_tokens = count_vlm_input_tokens(
+                processor,
+                inputs,
+                text_only_prompt=smol_text_only,
+            )
 
             with torch.inference_mode():
                 generated_ids = model.generate(**inputs, max_new_tokens=256)
@@ -486,6 +630,9 @@ def run_smol_phase(
             smol_metrics[benchmark][idx] = {
                 "smol_time_sec": t1 - t0,
                 "smol_peak_mem_mb": smol_peak_mem,
+                "smol_text_tokens": float(smol_text_tokens),
+                "smol_image_tokens": float(smol_image_tokens),
+                "smol_total_tokens": float(smol_total_tokens),
             }
 
             output_text = generated_texts[0]
@@ -495,7 +642,11 @@ def run_smol_phase(
                 desc = output_text.strip()
 
             descriptions[benchmark][idx] = desc
-            print(f"[SmolVLM] {benchmark}[{idx}] {t1 - t0:.2f}s", flush=True)
+            print(
+                f"[SmolVLM] {benchmark}[{idx}] {t1 - t0:.2f}s "
+                f"img_tok={smol_image_tokens} peak={smol_peak_mem:.0f}MB",
+                flush=True,
+            )
 
     print("=== Phase 1 Complete. Unloading SmolVLM ===")
     del model
@@ -503,6 +654,39 @@ def run_smol_phase(
     free_memory()
 
     return descriptions, smol_metrics
+
+
+QwenBundle = tuple[Any, Any]
+
+
+def load_qwen_bundle(device: str) -> QwenBundle:
+    model_id = "Qwen/Qwen3-VL-4B-Instruct"
+    print(f"Loading processor for {model_id}...", flush=True)
+    processor = AutoProcessor.from_pretrained(model_id)
+    print(f"Loading model for {model_id}...", flush=True)
+    from transformers import BitsAndBytesConfig
+
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+    model = Qwen3VLForConditionalGeneration.from_pretrained(
+        model_id,
+        device_map="auto",
+        quantization_config=bnb_config,
+        low_cpu_mem_usage=True,
+    )
+    print("Model loaded.", flush=True)
+    return processor, model
+
+
+def unload_qwen_bundle(bundle: QwenBundle | None) -> None:
+    if bundle is None:
+        return
+    processor, model = bundle
+    del processor, model
+    free_memory()
+
 
 # --- Phase 2: Qwen + YOLO ---
 def run_qwen_phase(
@@ -512,32 +696,29 @@ def run_qwen_phase(
     *,
     max_crops: int = DEFAULT_YOLO_MAX_CROPS,
     single_vlm_max_side: int = SINGLE_VLM_MAX_SIDE,
+    smol_max_side: int = DEFAULT_SMOL_MAX_SIDE,
+    thumb_max_side: int = THUMB_MAX_SIDE,
+    crop_qwen_scale: float = DEFAULT_CROP_QWEN_SCALE,
+    yolo_context_scale: float = YOLO_CONTEXT_SCALE,
+    methods: list[str] | None = None,
+    method_tag: str = "",
+    sweep_axis: str = "",
+    qwen_bundle: QwenBundle | None = None,
+    yolo_model: Any | None = None,
+    unload_at_end: bool = True,
 ) -> dict[str, list[dict]]:
     print("=== Phase 2: Loading YOLO and Qwen ===")
     device = get_device()
 
-    yolo_model = load_yolo()
+    own_yolo = yolo_model is None
+    own_qwen = qwen_bundle is None
+    if own_yolo:
+        yolo_model = load_yolo()
+    if own_qwen:
+        qwen_bundle = load_qwen_bundle(device)
+    processor, model = qwen_bundle
 
-    model_id = "Qwen/Qwen3-VL-4B-Instruct"
-
-    print(f"Loading processor for {model_id}...", flush=True)
-    processor = AutoProcessor.from_pretrained(model_id)
-
-    print(f"Loading model for {model_id}...", flush=True)
-    from transformers import BitsAndBytesConfig
-
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.float16,
-    )
-
-    model = Qwen3VLForConditionalGeneration.from_pretrained(
-        model_id,
-        device_map="auto",
-        quantization_config=bnb_config,
-    )
-    print("Model loaded.", flush=True)
-
+    active_methods = methods or METHODS
     from summary import make_sample_record
 
     all_results: dict[str, list[dict]] = {}
@@ -559,10 +740,16 @@ def run_qwen_phase(
                 image,
                 yolo_model=yolo_model,
                 max_crops=max_crops,
+                yolo_context_scale=yolo_context_scale,
+                crop_qwen_scale=crop_qwen_scale,
+                thumb_max_side_for_budget=thumb_max_side,
             )
             smol_info = smol_metrics.get(benchmark, {}).get(idx, {})
             smol_time = smol_info.get("smol_time_sec", 0.0)
             smol_peak_mem = smol_info.get("smol_peak_mem_mb", 0.0)
+            smol_image_tokens = float(smol_info.get("smol_image_tokens") or 0.0)
+            smol_text_tokens = float(smol_info.get("smol_text_tokens") or 0.0)
+            smol_total_tokens = float(smol_info.get("smol_total_tokens") or 0.0)
 
             print(
                 f"[YOLO] detections={n_det}, vlm_crops={len(vlm_crops)}, "
@@ -570,8 +757,10 @@ def run_qwen_phase(
                 flush=True,
             )
 
-            for method in METHODS:
-                print(f"\n[Running Method: {method}]", flush=True)
+            for method in active_methods:
+                run_method = tag_method(method, method_tag)
+                uses_smol = method != "Single_VLM_Qwen_4B"
+                print(f"\n[Running Method: {run_method}]", flush=True)
 
                 system_text, user_text, vlm_images, cur_preprocess_time, cur_yolo_time, cur_smol_time, used_grid_merge, raw_crop_count = (
                 build_method_payload(
@@ -584,6 +773,7 @@ def run_qwen_phase(
                     smol_time=smol_time,
                     t_yolo=t_yolo,
                     single_vlm_max_side=single_vlm_max_side,
+                    thumb_max_side=thumb_max_side,
                 )
                 )
                 content: list[dict] = [{"type": "image", "image": im} for im in vlm_images]
@@ -604,7 +794,8 @@ def run_qwen_phase(
                     else:
                         print(
                             f"[DEBUG] VLM images: {len(vlm_images)} crops "
-                            f"(CROP8, ctx scale {YOLO_CONTEXT_SCALE})"
+                            f"(CROP8, ctx scale {yolo_context_scale}, "
+                            f"crop_qwen_scale {crop_qwen_scale})"
                         )
 
                 t_proc_start = time.perf_counter()
@@ -633,9 +824,20 @@ def run_qwen_phase(
                     add_special_tokens=False,
                     return_attention_mask=False,
                 )["input_ids"]
-                text_tokens = len(text_token_ids)
-                total_input_tokens = inputs.input_ids.shape[-1]
-                image_tokens = max(0, total_input_tokens - text_tokens)
+                qwen_text_only = processor.apply_chat_template(
+                    [{"role": "user", "content": [{"type": "text", "text": user_text}]}],
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+                qwen_text_tokens, qwen_image_tokens, qwen_total_tokens = count_vlm_input_tokens(
+                    processor,
+                    inputs,
+                    text_only_prompt=qwen_text_only,
+                )
+                # 레거시 컬럼(image_tokens 등) = Qwen Phase2
+                text_tokens = qwen_text_tokens
+                image_tokens = qwen_image_tokens
+                total_input_tokens = qwen_total_tokens
 
                 if device.startswith("cuda"):
                     torch.cuda.reset_peak_memory_stats()
@@ -675,14 +877,16 @@ def run_qwen_phase(
 
                 print(
                     f"[Result] Pred: {pred} | GT: {gt_answer} | Correct: {is_correct} | "
-                    f"images={len(vlm_images)} tok={total_input_tokens} peak={peak_mb:.0f}MB | "
+                    f"images={len(vlm_images)} "
+                    f"smol_tok={smol_image_tokens if uses_smol else 0} "
+                    f"qwen_tok={qwen_image_tokens} peak={peak_mb:.0f}MB | "
                     f"Total: {total_time_sec:.2f}s",
                     flush=True,
                 )
 
                 record = make_sample_record(
                     benchmark=benchmark,
-                    method=method,
+                    method=run_method,
                     sample_index=idx,
                     correct=is_correct,
                     predicted_answer=pred,
@@ -706,14 +910,35 @@ def run_qwen_phase(
                     overall_peak_allocated_mb=peak_mb,
                     n_crops_sent=n_crops_sent,
                     n_detections=n_det,
-                    smol_time_sec=cur_smol_time if method != "Single_VLM_Qwen_4B" else 0.0,
-                    smol_peak_mem_mb=smol_peak_mem if method != "Single_VLM_Qwen_4B" else 0.0,
-                    smol_description=smol_desc if method != "Single_VLM_Qwen_4B" else "",
+                    smol_time_sec=cur_smol_time if uses_smol else 0.0,
+                    smol_peak_mem_mb=smol_peak_mem if uses_smol else 0.0,
+                    smol_text_tokens=smol_text_tokens if uses_smol else 0.0,
+                    smol_image_tokens=smol_image_tokens if uses_smol else 0.0,
+                    smol_total_tokens=smol_total_tokens if uses_smol else 0.0,
+                    qwen_text_tokens=qwen_text_tokens,
+                    qwen_image_tokens=qwen_image_tokens,
+                    qwen_total_tokens=qwen_total_tokens,
+                    qwen_peak_mem_mb=peak_mb,
+                    smol_description=smol_desc if uses_smol else "",
                     question=question,
                     num_vlm_images=len(vlm_images),
+                    single_vlm_max_side=single_vlm_max_side,
+                    smol_max_side=smol_max_side,
+                    thumb_max_side=thumb_max_side,
+                    crop_qwen_scale=crop_qwen_scale,
+                    yolo_context_scale=yolo_context_scale,
+                    sweep_axis=sweep_axis,
+                    sweep_value=compute_sweep_value(
+                        sweep_axis,
+                        single_vlm_max_side=single_vlm_max_side,
+                        smol_max_side=smol_max_side,
+                        thumb_max_side=thumb_max_side,
+                        crop_qwen_scale=crop_qwen_scale,
+                        yolo_context_scale=yolo_context_scale,
+                    ),
                 )
 
-                result_key = result_file_stem(benchmark, method)
+                result_key = result_file_stem(benchmark, run_method)
                 all_results.setdefault(result_key, []).append(record)
 
                 del (
@@ -732,6 +957,13 @@ def run_qwen_phase(
                     del video_inputs
                 free_memory()
 
+    if unload_at_end:
+        if own_yolo:
+            del yolo_model
+        if own_qwen:
+            unload_qwen_bundle(qwen_bundle)
+        else:
+            free_memory()
     print("=== Phase 2 Complete ===")
     return all_results
 
@@ -765,6 +997,30 @@ def main():
             "Single_VLM 긴 변 상한 px (0=원본). "
             f"8GB VRAM 4K 원본 OOM 방지 기본 {SINGLE_VLM_MAX_SIDE}"
         ),
+    )
+    parser.add_argument(
+        "--smol-max-side",
+        type=int,
+        default=DEFAULT_SMOL_MAX_SIDE,
+        help="SmolVLM Phase1 긴 변 상한 px (0=원본, 기본 0)",
+    )
+    parser.add_argument(
+        "--thumb-max-side",
+        type=int,
+        default=THUMB_MAX_SIDE,
+        help=f"Thumb_Smol 썸네일 긴 변 px (기본 {THUMB_MAX_SIDE})",
+    )
+    parser.add_argument(
+        "--crop-qwen-scale",
+        type=float,
+        default=DEFAULT_CROP_QWEN_SCALE,
+        help="YOLO crop → Qwen 전송 전 균일 축소 배율 (1.0=ctx crop 그대로, 기본 0.5)",
+    )
+    parser.add_argument(
+        "--yolo-context-scale",
+        type=float,
+        default=YOLO_CONTEXT_SCALE,
+        help=f"YOLO 탐지용 ctx 축소 배율 (기본 {YOLO_CONTEXT_SCALE})",
     )
     parser.add_argument(
         "--output",
@@ -816,20 +1072,27 @@ def main():
             "methods": METHODS,
             "smol_model": "HuggingFaceTB/SmolVLM-256M-Instruct",
             "qwen_model": "Qwen/Qwen3-VL-4B-Instruct",
-            "thumb_max_side": THUMB_MAX_SIDE,
+            "thumb_max_side": args.thumb_max_side,
             "single_vlm_max_side": args.single_vlm_max_side,
-            "yolo_crop_resize": "none",
+            "smol_max_side": args.smol_max_side,
+            "crop_qwen_scale": args.crop_qwen_scale,
+            "yolo_context_scale": args.yolo_context_scale,
+            "yolo_crop_resize": (
+                "none" if args.crop_qwen_scale >= 1.0 else f"uniform×{args.crop_qwen_scale}"
+            ),
             "crop_area_filter": f"{CROP_AREA_NUMERATOR}/{CROP_AREA_DENOMINATOR}",
-            "yolo_context_scale": YOLO_CONTEXT_SCALE,
             "yolo_max_crops": args.max_crops,
             "bbox_prompt_max_crops": BBOX_PROMPT_MAX_CROPS,
+            "merged_grid_max_side": MERGED_GRID_MAX_SIDE,
             "grid_merge_policy": (
-                f"crop>{BBOX_PROMPT_MAX_CROPS}: bbox 생략 + naive sqrt-grid 1장 병합"
+                f"crop>{BBOX_PROMPT_MAX_CROPS}: bbox 생략 + naive sqrt-grid 1장 병합 "
+                f"(mosaic longest edge ≤{MERGED_GRID_MAX_SIDE}px)"
             ),
             "yolo_device": YOLO_DEVICE,
             "note": (
                 "YOLO crop: 11주차-3 CROP8. crop≤{n} 개별 crop+bbox 좌표. "
-                "crop>{n} naive grid merge. Thumb 512px. "
+                "crop>{n} naive grid merge. Thumb thumb_max_side. "
+                "crop_qwen_scale, yolo_context_scale 조절 가능. "
                 "Single_VLM: single_vlm_max_side (0=원본)."
             ).format(n=BBOX_PROMPT_MAX_CROPS),
             "run_stamp": format_run_stamp(),
@@ -839,7 +1102,10 @@ def main():
             encoding="utf-8",
         )
 
-    descriptions, smol_metrics = run_smol_phase(slices)
+    descriptions, smol_metrics = run_smol_phase(
+        slices,
+        smol_max_side=args.smol_max_side,
+    )
 
     all_results = run_qwen_phase(
         slices,
@@ -847,6 +1113,10 @@ def main():
         smol_metrics,
         max_crops=args.max_crops,
         single_vlm_max_side=args.single_vlm_max_side,
+        smol_max_side=args.smol_max_side,
+        thumb_max_side=args.thumb_max_side,
+        crop_qwen_scale=args.crop_qwen_scale,
+        yolo_context_scale=args.yolo_context_scale,
     )
 
     from summary import write_sample_csv, write_sample_jsonl, write_summary_csvs

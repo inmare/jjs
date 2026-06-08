@@ -1,0 +1,67 @@
+{
+  "benchmarks": [
+    "hrbench_4k",
+    "mme_rw_lite",
+    "treebench",
+    "vstar"
+  ],
+  "max_samples": 50,
+  "start_index": 0,
+  "methods": [
+    "Smol_YOLO_Qwen_4B",
+    "Single_VLM_Qwen_4B",
+    "Thumb_Smol_YOLO_Qwen_4B"
+  ],
+  "smol_model": "HuggingFaceTB/SmolVLM-256M-Instruct",
+  "qwen_model": "Qwen/Qwen3-VL-4B-Instruct",
+  "thumb_max_side": 512,
+  "single_vlm_resize": "none",
+  "yolo_crop_resize": "none",
+  "crop_area_filter": "8/100",
+  "yolo_context_scale": 0.5,
+  "yolo_max_crops": 0,
+  "bbox_prompt_max_crops": 4,
+  "grid_merge_policy": "crop>4: bbox 생략 + naive sqrt-grid 1장 병합",
+  "yolo_device": "cpu",
+  "note": "control=Single_VLM px. ablation: smol px | crop_qwen scale | thumb px | yolo_ctx scale. 각 ablation 은 해당 축만 변화, 나머지 baseline 고정.",
+  "run_stamp": "20260607_153723",
+  "sweep_modes": [
+    "control",
+    "smol",
+    "crop_qwen",
+    "thumb",
+    "yolo_ctx"
+  ],
+  "sweep_sides_px": [
+    360,
+    480,
+    540,
+    640,
+    720,
+    800,
+    960,
+    1080,
+    1280
+  ],
+  "sweep_scales": [
+    0.1,
+    0.2,
+    0.25,
+    0.33,
+    0.5,
+    0.67,
+    1.0
+  ],
+  "ablation_baselines": {
+    "smol_max_side": 1280,
+    "thumb_max_side": 512,
+    "crop_qwen_scale": 0.5,
+    "yolo_context_scale": 0.5
+  },
+  "base_config_path": "D:\\Programming\\jjs\\qwen_smol\\qwen_smol_20260531_143238\\run_config.json",
+  "methods_full": [
+    "Single_VLM_Qwen_4B",
+    "Smol_YOLO_Qwen_4B",
+    "Thumb_Smol_YOLO_Qwen_4B"
+  ]
+}
